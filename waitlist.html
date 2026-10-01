@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>قائمة الانتظار | أكاديمية</title>
+<meta name="description" content="سجّل رقمك وكن من أوائل المنضمين لمنصة أكاديمية للصف الثالث الإعدادي.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="wl">
+<a href="index.html" class="wl-back">العودة للرئيسية</a>
+<main class="wl-main">
+  <span class="badge">قريبًا للصف الثالث الإعدادي</span>
+  <h1 class="wl-h">انضم لقائمة الانتظار</h1>
+  <p class="wl-type" aria-live="polite"><span id="typed"></span><i class="caret"></i></p>
+  <div class="wl-stage">
+    <div class="wl-card">
+      <form id="f" novalidate>
+        <label for="ph">رقم الموبايل</label>
+        <div class="wl-in"><span>+20</span><input id="ph" type="tel" inputmode="numeric" autocomplete="tel" maxlength="14" placeholder="01XXXXXXXXX"></div>
+        <p class="wl-msg" id="msg" role="status"></p>
+        <button class="btn btn-p wl-btn" id="b" type="submit">سجّلني في القائمة</button>
+      </form>
+      <div class="wl-ok" id="ok" hidden>
+        <div class="tick"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg></div>
+        <h2 id="okt">تم تسجيلك بنجاح</h2>
+        <p class="muted">سنتواصل معك فور فتح المنصة.</p>
+      </div>
+    </div>
+  </div>
+</main>
+<script src="config.js"></script>
+<script>
+const $=id=>document.getElementById(id), msg=(t,e)=>{$("msg").textContent=t;$("msg").className="wl-msg"+(e?" err":"")};
+/* كتابة متحركة */
+const lines=["كن من أوائل المنضمين.","دروس لكل مواد الثالث الإعدادي.","امتحانات ونقاط ومجتمع مجاني."],T=$("typed");
+if(matchMedia("(prefers-reduced-motion:reduce)").matches)T.textContent=lines[0];
+else{let l=0,c=0,d=0;(function tick(){const s=lines[l];c+=d?-1:1;T.textContent=s.slice(0,c);let w=d?30:75;
+ if(!d&&c===s.length){d=1;w=1700}else if(d&&c===0){d=0;l=(l+1)%lines.length;w=350}setTimeout(tick,w)})()}
+/* التسجيل */
+$("f").addEventListener("submit",async e=>{
+  e.preventDefault();
+  let v=$("ph").value.replace(/[٠-٩]/g,x=>"٠١٢٣٤٥٦٧٨٩".indexOf(x)).replace(/^\+?20/,"0").replace(/\D/g,"");
+  if(!/^01[0125]\d{8}$/.test(v))return msg("أدخل رقم موبايل مصري صحيح من 11 رقمًا.",1);
+  $("b").disabled=true;msg("جارٍ التسجيل...");
+  try{
+    const r=await fetch(SUPA_URL+"/rest/v1/edu_waitlist",{method:"POST",headers:{apikey:SUPA_KEY,"Content-Type":"application/json",Prefer:"return=minimal"},body:JSON.stringify({phone:v})});
+    if(r.status===409)$("okt").textContent="رقمك مسجّل بالفعل";
+    else if(!r.ok)throw 0;
+    $("f").hidden=true;$("ok").hidden=false;
+  }catch(_){msg("تعذر التسجيل الآن، حاول مرة أخرى.",1)}
+  $("b").disabled=false;
+});
+</script>
+</body>
+</html>

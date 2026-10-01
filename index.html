@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أكاديمية | منصة تعليمية مجانية للطلاب</title>
+<meta name="description" content="منصة تعليمية عربية مجانية تساعدك على فهم دروسك، متابعة تقدمك، حل الامتحانات، والتواصل مع مجتمع من الطلاب والمدرسين.">
+<meta property="og:title" content="أكاديمية | تعلم أكثر. أنجز أكثر.">
+<meta property="og:description" content="منصة تعليمية عربية مجانية للطلاب.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="intro" aria-hidden="true"><div class="bw"><div class="book"><div class="pgs"><span>تعلم أكثر.<br>أنجز أكثر.</span></div><div class="cv"><div class="f"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/></svg><b>أكاديمية</b></div><div class="b"></div></div></div></div><button id="skip">تخطي</button></div>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-in">
+    <a href="#home" class="logo" aria-label="الرئيسية"><span class="logo-mark" aria-hidden="true"></span><span data-brand>أكاديمية</span></a>
+    <nav class="links" id="links" aria-label="التنقل الرئيسي">
+      <a href="#home">الرئيسية</a><a href="#features">المميزات</a><a href="#community">المجتمع</a><a href="#subjects">المواد</a><a href="#faq">الأسئلة الشائعة</a>
+    </nav>
+    <div class="nav-act">
+      <a href="#" class="login">تسجيل الدخول</a>
+      <a href="waitlist.html" class="btn btn-p btn-s">انضم للقائمة</a>
+      <button class="burger" id="burger" aria-label="فتح القائمة" aria-expanded="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="home">
+  <section class="hero wrap">
+    <div class="hero-text fade">
+      <span class="badge">مجانية للصف الثالث الإعدادي</span>
+      <h1>تعلم أكثر.<br>أنجز أكثر.</h1>
+      <p class="lead">منصة لطلاب الصف الثالث الإعدادي: دروس لكل المواد من أكثر من مدرس، امتحانات، نظام نقاط، وسؤال مباشر للمدرس، وكل ذلك في مكان واحد.</p>
+      <div class="btns"><a href="waitlist.html" class="btn btn-p">انضم للقائمة</a><a href="#features" class="btn btn-o">اكتشف المنصة</a></div>
+    </div>
+    <div class="hero-img fade">
+      <div class="mock" id="heroGfx" role="img" aria-label="لقطة من درس داخل المنصة"></div>
+      <div class="chip c1"><strong>+2,500</strong> طالب</div>
+      <div class="chip c2">مجتمع تعليمي مجاني</div>
+    </div>
+  </section>
+
+  <section class="trust">
+    <div class="wrap">
+      <p class="trust-t">مجتمع تعليمي مجاني للطلاب</p>
+      <div class="stats" id="stats"></div>
+    </div>
+  </section>
+
+  <section class="sec wrap" id="features">
+    <div class="sec-head fade"><h2>كل ما تحتاجه في الإعدادية، في مكان واحد</h2><p>شاهد كيف تبدو كل ميزة داخل المنصة.</p></div>
+    <div id="show"></div>
+    <div class="sec-head fade" style="margin-top:72px"><h3 class="more">وأكثر من ذلك</h3></div>
+    <div class="feats" id="feats"></div>
+  </section>
+
+  <section class="sec soft" id="subjects">
+    <div class="wrap">
+      <div class="sec-head fade"><h2>مواد الصف الثالث الإعدادي</h2><p>لكل مادة أكثر من مدرس، اختر من يناسب أسلوبك وبدّل وقتما تشاء.</p></div>
+      <div class="subs" id="subs"></div>
+    </div>
+  </section>
+
+  <section class="sec soft" id="community">
+    <div class="wrap split">
+      <div class="split-img fade"><div class="mock" id="comGfx" role="img" aria-label="نقاش بين الطلاب"></div></div>
+      <div class="fade">
+        <span class="badge">مجاني بالكامل</span>
+        <h2>مجتمعك التعليمي، مجانًا</h2>
+        <p class="lead">مكان يجمع الطلاب للتعلم، مشاركة الأسئلة، تبادل الخبرات ومساعدة بعضهم البعض.</p>
+        <ul class="list" id="clist"></ul>
+        <a href="waitlist.html" class="btn btn-p">انضم للمجتمع</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec wrap" id="progress">
+    <div class="sec-head fade"><h2>تابع تقدمك بالأرقام</h2></div>
+    <div class="dash fade">
+      <div class="kpis" id="kpis"></div>
+      <div class="bars" id="bars" aria-label="النتائج حسب المادة"></div>
+    </div>
+  </section>
+
+  <section class="sec soft" id="support">
+    <div class="wrap">
+      <div class="sec-head fade"><h2>تحتاج مساعدة؟ نحن هنا.</h2><p>إذا واجهتك مشكلة في التسجيل أو الدروس أو الاختبارات، يمكنك التواصل مع فريق الدعم.</p></div>
+      <div class="sup" id="sup"></div>
+      <div class="center"><a href="#contact" class="btn btn-p">تواصل مع الدعم</a></div>
+    </div>
+  </section>
+
+  <section class="sec wrap narrow" id="faq">
+    <div class="sec-head fade"><h2>الأسئلة الشائعة</h2></div>
+    <div class="faq" id="faqList"></div>
+  </section>
+
+  <section class="cta" id="cta">
+    <div class="wrap fade">
+      <h2>ابدأ التعلم مجانًا</h2>
+      <p>سجّل رقمك الآن لتكون من أوائل المنضمين.</p>
+      <a href="waitlist.html" class="btn btn-w">انضم لقائمة الانتظار</a>
+    </div>
+  </section>
+</main>
+
+<footer class="foot" id="contact">
+  <div class="wrap foot-in">
+    <div>
+      <a href="#home" class="logo"><span class="logo-mark" aria-hidden="true"></span><span data-brand>أكاديمية</span></a>
+      <p class="muted">منصة تعليمية عربية مجانية تجمع الدروس والاختبارات والمجتمع في مكان واحد.</p>
+    </div>
+    <nav aria-label="روابط التذييل" class="flinks">
+      <a href="#home">الرئيسية</a><a href="#features">المميزات</a><a href="#community">المجتمع</a><a href="#subjects">المواد</a><a href="#support">الدعم</a><a href="#faq">الأسئلة الشائعة</a>
+    </nav>
+    <div>
+      <h3>تواصل معنا</h3>
+      <p class="muted" dir="ltr" style="text-align:right">support@example.com</p>
+    </div>
+  </div>
+  <div class="wrap copy">© 2026 جميع الحقوق محفوظة</div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

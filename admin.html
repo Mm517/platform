@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>لوحة الإدارة | قائمة الانتظار</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="ad">
+<div class="ad-box" id="login">
+  <h2 style="font-size:24px">دخول الإدارة</h2>
+  <label for="code" class="muted">كود الإدارة</label>
+  <input id="code" type="password" autocomplete="current-password" dir="ltr">
+  <p class="wl-msg err" id="err"></p>
+  <button class="btn btn-p" id="go" style="width:100%">دخول</button>
+</div>
+<div class="ad-w" id="app" hidden>
+  <div class="ad-top">
+    <div><div class="ad-n" id="n">0</div><span class="muted">رقم في قائمة الانتظار</span></div>
+    <input id="q" placeholder="بحث برقم..." dir="ltr" style="flex:1;min-width:160px;max-width:260px;margin:0">
+    <div style="display:flex;gap:8px"><button class="btn btn-o btn-s" id="rf">تحديث</button><button class="btn btn-p btn-s" id="csv">تصدير CSV</button></div>
+  </div>
+  <div style="overflow-x:auto"><table><thead><tr><th>#</th><th>رقم الموبايل</th><th>تاريخ التسجيل</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
+<script src="config.js"></script>
+<script>
+const $=id=>document.getElementById(id);let code="",data=[];
+const rpc=(fn,b)=>fetch(SUPA_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:SUPA_KEY,"Content-Type":"application/json"},body:JSON.stringify(b)});
+async function load(){
+  const r=await rpc("edu_admin_list",{p_code:code});
+  if(!r.ok){$("err").textContent="الكود غير صحيح.";try{sessionStorage.removeItem("ac")}catch(_){}return false}
+  data=await r.json();$("login").hidden=true;$("app").hidden=false;draw();return true;
+}
+function draw(){
+  const q=$("q").value.trim(),l=data.filter(x=>x.phone.includes(q));$("n").textContent=data.length;
+  $("rows").innerHTML=l.length?l.map((x,i)=>`<tr><td>${l.length-i}</td><td dir="ltr" style="text-align:right">${x.phone}</td><td>${new Date(x.created_at).toLocaleString("ar-EG")}</td><td><button data-id="${x.id}">حذف</button></td></tr>`).join(""):'<tr><td colspan="4" class="muted">لا توجد أرقام بعد.</td></tr>';
+}
+async function login(){code=$("code").value;if(await load())try{sessionStorage.setItem("ac",code)}catch(_){}}
+$("go").onclick=login;$("code").onkeydown=e=>e.key==="Enter"&&login();$("q").oninput=draw;$("rf").onclick=load;
+$("rows").onclick=async e=>{const id=e.target.dataset.id;if(!id||!confirm("حذف هذا الرقم؟"))return;await rpc("edu_admin_delete",{p_code:code,p_id:+id});load()};
+$("csv").onclick=()=>{const t="phone,created_at\n"+data.map(x=>x.phone+","+x.created_at).join("\n"),a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+t],{type:"text/csv"}));a.download="waitlist.csv";a.click()};
+try{code=sessionStorage.getItem("ac")||"";if(code)load()}catch(_){}
+</script>
+</body>
+</html>
