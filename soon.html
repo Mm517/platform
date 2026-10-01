@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>الموقع قيد التطوير | أكاديمية</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+body{min-height:100dvh;display:grid;place-items:center;padding:24px 16px max(24px,env(safe-area-inset-bottom));background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 0/22px 22px;text-align:center}
+.sn{width:min(440px,100%);background:#fff;border:1px solid var(--bo);border-radius:20px;padding:36px 22px;box-shadow:0 14px 34px rgba(7,91,152,.09)}
+.sn svg{color:var(--bl);animation:rt 6s linear infinite}@keyframes rt{to{transform:rotate(360deg)}}
+.sn h1{font-size:28px;letter-spacing:0;margin:14px 0 8px}.sn p{color:var(--mu)}
+.sn .pb{margin:22px 0 26px;height:8px}.sn .pb i{width:62%;animation:ld 2.2s ease-in-out infinite alternate}@keyframes ld{from{width:35%}to{width:75%}}
+.sn .btns{justify-content:center}.sn .btn{min-height:48px}
+</style>
+</head>
+<body>
+<main class="sn">
+ <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>
+ <h1 id="t">الموقع قيد التطوير</h1>
+ <p>ما زلنا نعمل على المنصة ولم ننتهِ منها بعد.<br>تم حفظ حسابك، وسنخبرك فور الإطلاق.</p>
+ <div class="pb" role="presentation"><i></i></div>
+ <div class="btns"><a href="index.html" class="btn btn-o">الرئيسية</a><button class="btn btn-p" id="out">تسجيل الخروج</button></div>
+</main>
+<script>
+try{const u=JSON.parse(localStorage.getItem('acad_user')||'null');if(u&&u.name)document.getElementById('t').textContent='أهلًا '+u.name.split(' ')[0]+'، الموقع قيد التطوير'}catch(_){}
+document.getElementById('out').onclick=()=>{try{localStorage.removeItem('acad_user')}catch(_){}location.href='auth.html#login'};
+</script>
+</body>
+</html>

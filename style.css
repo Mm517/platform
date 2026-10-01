@@ -353,3 +353,5 @@ a,button,.btn,.feat,.sb,.tr,.li,.opt,.go,.q button{-webkit-tap-highlight-color:t
   .onb-btn{display:block;width:100%;max-width:420px;margin:0 auto;padding:15px;font-size:18px;border-radius:14px;box-shadow:0 14px 28px -14px rgba(8,120,201,.7)}
   .onb-btn:active{transform:scale(.98)}
 }
+
+.links .ml{display:none}@media(max-width:900px){.links .ml{display:block;color:var(--bl);font-weight:600}}

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F8FAFC">
+<title>حسابك | أكاديمية</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 0/22px 22px;min-height:100dvh}
+.au-main{min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:max(14px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
+.au-back{align-self:flex-start;color:var(--mu);font-size:15px;padding:8px 0}
+.au-book{width:clamp(120px,36vw,170px);perspective:700px;margin-top:4px}
+.au-spin{will-change:transform}.au-spin.spin{animation:sp 1s ease-in-out}
+@keyframes sp{to{transform:rotateY(360deg)}}
+#bsvg{width:100%;height:auto;display:block;overflow:hidden;animation:fl 3.2s ease-in-out infinite}
+@keyframes fl{50%{transform:translateY(-5px)}}
+.pu{transition:transform .18s ease-out}
+.ey{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}
+@keyframes bl{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.08)}}
+.hd{transition:transform .5s cubic-bezier(.3,1.35,.5,1)}.hd.r{transition-delay:.07s}
+.cv .hd{transform:translateY(-134px)}
+#fc,#ck{transition:opacity .3s}
+#ck{opacity:0;transform-origin:105px 110px;transform:scale(.4);transition:opacity .3s,transform .5s cubic-bezier(.3,1.5,.5,1)}
+#ck path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .5s .25s}
+.ok #fc{opacity:0}.ok #ck{opacity:1;transform:none}.ok #ck path{stroke-dashoffset:0}
+.au-bub{min-height:40px;margin:6px 0 12px;padding:6px 18px;background:#fff;border:1px solid var(--bo);border-radius:99px;font-size:15px;font-weight:600;color:var(--bd);box-shadow:0 6px 18px rgba(7,91,152,.08);text-align:center}
+.au-bub.pop{animation:pp .35s}@keyframes pp{from{transform:scale(.85);opacity:0}}
+.au-card{width:min(440px,100%);background:#fff;border:1px solid var(--bo);border-radius:20px;padding:24px 20px;box-shadow:0 14px 34px rgba(7,91,152,.09)}
+.au-card.sh{animation:shk .4s}@keyframes shk{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.au-card h1{font-size:26px;letter-spacing:0;margin-bottom:4px;line-height:1.4}
+.au-lab{color:var(--mu);font-size:14px;margin-bottom:12px}
+.au-prog{display:flex;gap:6px;margin-bottom:6px}.au-prog i{flex:1;height:5px;border-radius:9px;background:var(--bo);transition:background .3s}.au-prog i.f{background:var(--bl)}
+.st{display:none}.st.on{display:block;animation:sin .35s}@keyframes sin{from{opacity:0;transform:translateX(-18px)}}
+.au-card label{display:block;font-weight:600;margin:10px 0 6px}
+.au-card input{width:100%;font:inherit;font-size:16px;min-height:50px;padding:0 14px;border:1.5px solid var(--bo);border-radius:12px;background:#fff;color:var(--tx);outline:0;transition:border-color .2s,box-shadow .2s}
+.au-card input:focus{border-color:var(--bl);box-shadow:0 0 0 4px rgba(8,120,201,.12)}
+.au-ph,.au-pw{position:relative}.au-ph input{padding-inline-start:58px;text-align:left}
+.au-ph span{position:absolute;inset-inline-start:14px;top:0;bottom:0;display:grid;place-items:center;color:var(--mu);font-weight:600;direction:ltr}
+.au-pw input{padding-inline-end:52px}
+.au-pw button{position:absolute;inset-inline-end:4px;top:3px;width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:10px}
+.au-pw button:active{background:var(--soft)}
+.au-str{height:5px;background:var(--bo);border-radius:9px;margin-top:10px;overflow:hidden}.au-str i{display:block;height:100%;width:0;transition:width .3s,background .3s}
+.au-hint{color:var(--mu);font-size:13px;margin-top:6px}
+.au-err{color:#c0392b;font-size:14px;min-height:24px;margin-top:8px}
+.au-btns{display:flex;gap:10px;margin-top:6px}.au-btns .btn{flex:1;min-height:50px;text-align:center}
+.au-btns .btn:disabled{opacity:.6}
+.au-sw{text-align:center;margin-top:16px;color:var(--mu);font-size:15px}.au-sw a{color:var(--bl);font-weight:600}
+@media(max-height:660px){.au-book{width:104px}.au-bub{margin-bottom:8px}}
+</style>
+</head>
+<body class="au">
+<main class="au-main">
+<a class="au-back" href="index.html">← الرئيسية</a>
+<div class="au-book" id="bk"><div class="au-spin" id="sp">
+<svg id="bsvg" viewBox="0 0 190 236" role="img" aria-label="كتاب لطيف يتابع ما تكتبه">
+ <rect x="34" y="40" width="140" height="160" rx="12" fill="#fff" stroke="#c9dceb" stroke-width="2"/>
+ <path d="M44 198h120" stroke="#dbe7f1" stroke-width="3"/>
+ <rect x="22" y="28" width="144" height="164" rx="14" fill="#075B98"/>
+ <rect x="22" y="28" width="22" height="164" rx="14" fill="#0878C9"/>
+ <path d="M52 40v140" stroke="#fff" stroke-opacity=".25" stroke-width="2" stroke-dasharray="4 5"/>
+ <path d="M138 28v26l9-7 9 7V28z" fill="#f59e0b"/>
+ <g id="fc">
+  <g class="ey"><circle cx="83" cy="92" r="16" fill="#fff"/><circle class="pu" cx="83" cy="92" r="8" fill="#111"/></g>
+  <g class="ey"><circle cx="127" cy="92" r="16" fill="#fff"/><circle class="pu" cx="127" cy="92" r="8" fill="#111"/></g>
+  <circle cx="66" cy="116" r="6" fill="#ff8fa3" opacity=".55"/><circle cx="144" cy="116" r="6" fill="#ff8fa3" opacity=".55"/>
+  <path id="mo" d="M93 118Q105 129 117 118" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+ </g>
+ <g id="ck"><circle cx="105" cy="110" r="44" fill="#22c55e"/><path d="M85 111l14 14 28-30" pathLength="1" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/></g>
+ <g transform="translate(83 226)"><g class="hd"><rect x="-11" y="0" width="22" height="60" rx="11" fill="#ffcfa0"/><ellipse rx="22" ry="18" fill="#ffd9b3"/><path d="M-9-14v8M0-16v9M9-14v8" stroke="#e5a877" stroke-width="2.5" stroke-linecap="round"/></g></g>
+ <g transform="translate(127 226)"><g class="hd r"><rect x="-11" y="0" width="22" height="60" rx="11" fill="#ffcfa0"/><ellipse rx="22" ry="18" fill="#ffd9b3"/><path d="M-9-14v8M0-16v9M9-14v8" stroke="#e5a877" stroke-width="2.5" stroke-linecap="round"/></g></g>
+</svg></div></div>
+<p class="au-bub pop" id="bub" role="status" aria-live="polite"></p>
+
+<div class="au-card" id="card">
+ <h1 id="ttl"></h1>
+ <form id="fs" novalidate>
+  <p class="au-lab" id="lab"></p>
+  <div class="au-prog" id="prog"><i></i><i></i><i></i></div>
+  <div class="st on"><label for="nm">الاسم</label><input id="nm" data-y=".5" autocomplete="name" placeholder="اكتب اسمك" maxlength="40"></div>
+  <div class="st"><label for="ph">رقم الموبايل</label><div class="au-ph"><span>+20</span><input id="ph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="tel" maxlength="14" placeholder="01XXXXXXXXX"></div></div>
+  <div class="st"><label for="pw">كلمة السر</label><div class="au-pw"><input id="pw" data-y="1" type="password" dir="ltr" autocomplete="new-password" maxlength="64"><button type="button" id="eye" aria-label="إظهار كلمة السر"></button></div><div class="au-str"><i id="str"></i></div><p class="au-hint">6 أحرف على الأقل، والأفضل أرقام وحروف معًا.</p></div>
+  <p class="au-err" id="er" role="alert"></p>
+  <div class="au-btns"><button type="button" class="btn btn-o" id="back" hidden>رجوع</button><button class="btn btn-p" id="nx">التالي</button></div>
+ </form>
+ <form id="fl" novalidate hidden>
+  <label for="lph">رقم الموبايل</label><div class="au-ph"><span>+20</span><input id="lph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="tel" maxlength="14" placeholder="01XXXXXXXXX"></div>
+  <label for="lpw">كلمة السر</label><div class="au-pw"><input id="lpw" data-y="1" type="password" dir="ltr" autocomplete="current-password" maxlength="64"><button type="button" id="leye" aria-label="إظهار كلمة السر"></button></div>
+  <p class="au-err" id="le" role="alert"></p>
+  <div class="au-btns"><button class="btn btn-p" id="lb">دخول</button></div>
+ </form>
+ <p class="au-sw" id="sw"></p>
+</div>
+</main>
+<script src="config.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const sv=$('#bsvg'),pu=$$('.pu'),mo=$('#mo'),bub=$('#bub'),card=$('#card');
+const MO={n:'M93 118Q105 129 117 118',h:'M91 115Q105 138 119 115',s:'M94 127Q105 117 116 127'};
+const PR=['أهلًا بك! ما اسمك؟','رائع! وما رقم موبايلك؟','اختر كلمة سر لا يعرفها غيرك'];
+const MSG={user_already_exists:'هذا الرقم مسجّل بالفعل، سجّل دخولك.',invalid_credentials:'رقم الموبايل أو كلمة السر غير صحيحة.',weak_password:'كلمة السر ضعيفة، اختر أقوى.',over_request_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',over_email_send_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',email_not_confirmed:'الحساب غير مفعّل، تواصل مع الدعم.',confirm:'تم إنشاء الحساب لكن التفعيل مطلوب، تواصل مع الدعم.',signup_disabled:'التسجيل غير متاح حاليًا.'};
+const EYE='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const EYEOFF='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
+const norm=v=>v.replace(/[٠-٩]/g,x=>"٠١٢٣٤٥٦٧٨٩".indexOf(x)).replace(/^\+?20/,"0").replace(/\D/g,"");
+const okPh=v=>/^01[0125]\d{8}$/.test(v),mail=p=>`u${p}@academy-users.com`;
+let pend=false,step=0;
+
+/* الكتاب */
+const look=(x,y)=>pu.forEach(p=>p.style.transform=`translate(${x*6}px,${y*5}px)`);
+const face=m=>mo.setAttribute('d',MO[m]);
+const cover=on=>{sv.classList.toggle('cv',on);if(on)look(0,0)};
+const say=t=>{bub.classList.remove('pop');void bub.offsetWidth;bub.textContent=t;bub.classList.add('pop')};
+function track(el){if(pend||sv.classList.contains('cv'))return;const p=Math.min((el.selectionStart??el.value.length)/16,1),rtl=getComputedStyle(el).direction==='rtl';look((rtl?1-2*p:2*p-1)*.9,+el.dataset.y)}
+function fail(el,m){el.textContent=m;face('s');card.classList.remove('sh');void card.offsetWidth;card.classList.add('sh');setTimeout(()=>!pend&&face('n'),1400)}
+$$('.au-card input').forEach(el=>{['focus','input','keyup','click','select'].forEach(e=>el.addEventListener(e,()=>track(el)));el.addEventListener('blur',()=>{if(!pend)look(0,0)})});
+addEventListener('pointermove',e=>{if(pend||sv.classList.contains('cv')||document.activeElement.matches('input'))return;const r=sv.getBoundingClientRect(),c=v=>Math.max(-1,Math.min(1,v/200));look(c(e.clientX-r.left-r.width/2),c(e.clientY-r.top-r.height*.4))});
+
+/* إظهار / إخفاء كلمة السر */
+function bindPw(pw,btn){
+ btn.innerHTML=EYE;
+ const sync=()=>{const hid=pw.type==='password';cover(hid&&document.activeElement===pw);if(!hid)track(pw)};
+ pw.addEventListener('focus',sync);
+ pw.addEventListener('blur',()=>{if(!pend){cover(false);look(0,0)}});
+ btn.addEventListener('pointerdown',e=>e.preventDefault());
+ btn.addEventListener('click',()=>{const show=pw.type==='password';pw.type=show?'text':'password';btn.innerHTML=show?EYEOFF:EYE;btn.setAttribute('aria-label',show?'إخفاء كلمة السر':'إظهار كلمة السر');pw.focus({preventScroll:true});sync();if(show){look(0,1);face('h');setTimeout(()=>face('n'),900)}});
+}
+bindPw($('#pw'),$('#eye'));bindPw($('#lpw'),$('#leye'));
+$('#pw').addEventListener('input',e=>{const v=e.target.value,s=(v.length>=6)+(v.length>=10)+(/[a-z]/i.test(v)&&/\d/.test(v))+/[^a-z0-9]/i.test(v),b=$('#str');b.style.width=s*25+'%';b.style.background=['#e5e7eb','#ef4444','#f59e0b','#84cc16','#22c55e'][s]});
+
+/* الخادم (Supabase Auth) */
+async function api(path,body){const r=await fetch(SUPA_URL+path,{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw j;return j}
+const save=(j,name,phone)=>{try{localStorage.setItem('acad_user',JSON.stringify({name,phone,token:j.access_token}))}catch(_){}};
+async function win(t){const f=matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1;cover(false);look(0,.3);await sleep(450*f);face('h');say(t+' ✓');await sleep(1200*f);$('#sp').classList.add('spin');await sleep(450*f);$('#bk').classList.add('ok');await sleep(1400*f);location.href='soon.html'}
+async function run(btn,el,pw,fn,msg){
+ pend=true;btn.disabled=true;el.textContent='';cover(pw.type==='password');say('لحظة من فضلك...');
+ try{await fn()}catch(e){pend=false;btn.disabled=false;cover(false);say('حدث خطأ، حاول مرة أخرى');return fail(el,MSG[e.error_code]||MSG[e.code]||'تعذر الاتصال، حاول مرة أخرى.')}
+ await win(msg)
+}
+
+/* إنشاء حساب على مراحل */
+function go(n){step=n;$$('.st').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#prog i').forEach((d,i)=>d.classList.toggle('f',i<=n));
+ $('#lab').textContent=`الخطوة ${n+1} من 3`;$('#nx').textContent=n===2?'إنشاء الحساب':'التالي';$('#back').hidden=!n;$('#er').textContent='';face('n');say(PR[n]);
+ const f=$$('.st input')[n];f.focus({preventScroll:true})}
+$('#back').onclick=()=>go(step-1);
+$('#fs').addEventListener('submit',e=>{e.preventDefault();if(pend)return;
+ const bad=[()=>$('#nm').value.trim().length<2&&'اكتب اسمك (حرفان على الأقل).',()=>!okPh(norm($('#ph').value))&&'أدخل رقم موبايل مصري صحيح من 11 رقمًا.',()=>$('#pw').value.length<6&&'كلمة السر 6 أحرف على الأقل.'][step]();
+ if(bad)return fail($('#er'),bad);
+ if(step<2)return go(step+1);
+ const name=$('#nm').value.trim(),phone=norm($('#ph').value);
+ run($('#nx'),$('#er'),$('#pw'),async()=>{const j=await api('/auth/v1/signup',{email:mail(phone),password:$('#pw').value,data:{name,phone}});if(!j.access_token)throw{error_code:'confirm'};save(j,name,phone)},'تم حفظ كلمة السر')});
+
+/* تسجيل الدخول */
+$('#fl').addEventListener('submit',e=>{e.preventDefault();if(pend)return;
+ const phone=norm($('#lph').value);
+ if(!okPh(phone))return fail($('#le'),'أدخل رقم موبايل مصري صحيح من 11 رقمًا.');
+ if(!$('#lpw').value)return fail($('#le'),'اكتب كلمة السر.');
+ run($('#lb'),$('#le'),$('#lpw'),async()=>{const j=await api('/auth/v1/token?grant_type=password',{email:mail(phone),password:$('#lpw').value});save(j,(j.user&&j.user.user_metadata&&j.user.user_metadata.name)||'',phone)},'تم التحقق من كلمة السر')});
+
+/* التبديل بين الوضعين */
+function mode(){const l=location.hash==='#login';$('#fs').hidden=l;$('#fl').hidden=!l;
+ $('#ttl').textContent=l?'تسجيل الدخول':'إنشاء حساب';document.title=(l?'تسجيل الدخول':'إنشاء حساب')+' | أكاديمية';
+ $('#sw').innerHTML=l?'ليس لديك حساب؟ <a href="#signup">أنشئ حسابًا</a>':'لديك حساب؟ <a href="#login">سجّل دخولك</a>';
+ cover(false);face('n');if(l){say('أهلًا بعودتك! أدخل بياناتك');$('#lph').focus({preventScroll:true})}else go(step)}
+addEventListener('hashchange',mode);mode();
+</script>
+</body>
+</html>
