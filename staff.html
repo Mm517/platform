@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>لوحة المدرس | أكاديمية</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
+<body class="cr" data-p="staff"><main class="pg"><h1>لوحة المدرس والإدارة</h1><div id="o"><p class="empty">جارٍ التحميل...</p></div></main>
+<script src="config.js"></script><script src="lib.js"></script>
+<script>
+if(!U())location.replace('auth.html#login');
+topbar();
+let R,TID,subs=[],ls=[],ts=[],cs=[],ads=[],qzs=[],tab='c',P=null,QI=[],QT='';
+const UPERR='تعذر رفع الملف. تأكد من تشغيل setup_uploads.sql ومن حجم الملف (الحد الافتراضي 50MB).';
+const sel=(id,a,f)=>`<select id="${id}">${a.map(f).join('')}</select>`,fv=id=>$('#'+id).value.trim(),say=t=>{const m=$('#mg');if(m)m.textContent=t};
+const fup=(id,acc,lab)=>`<div class="up"><small class="muted">${lab}</small><input type="file" id="${id}" accept="${acc}"><div class="pbar"><i id="${id}_p" style="width:0"></i></div></div>`;
+const up=async(id,folder)=>{const f=$('#'+id)?.files[0];if(!f)return null;return upload(f,folder,v=>{const p=$('#'+id+'_p');if(p)p.style.width=v+'%'})};
+const FA='.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,image/*',VA='video/*,.mp4,.webm,.mov';
+async function load(){[subs,ls,ts,cs]=await Promise.all([get('edu_subjects?order=sort'),get('edu_lessons?order=subject_id,sort,id'),get('edu_teachers?order=id'),get('edu_courses_v?order=id.desc')]);
+ if(R=='admin')ads=await get('edu_ads?order=sort,id').catch(()=>[]);else cs=cs.filter(c=>c.teacher_id==TID);
+ qzs=(await get('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)').catch(()=>[])).filter(q=>cs.some(c=>c.id==q.course_id))}
+function panel(c){if(!P||P.id!=c.id)return'';
+ if(P.k=='q')return `<div class="box fm sf" style="border-color:var(--bl)"><b>اختبار جديد</b><input id="qt" value="${esc(QT)}" placeholder="عنوان الاختبار" maxlength="120">${QI.map((x,i)=>`<div class="box"><div class="row"><b>سؤال ${i+1}</b>${QI.length>1?`<button class="btn btn-o btn-s" data-a="delq" data-i="${i}">حذف</button>`:''}</div><input id="q${i}" value="${esc(x.q)}" placeholder="نص السؤال">${x.o.map((o,j)=>`<label class="row" style="justify-content:flex-start;gap:8px"><input type="radio" name="c${i}" value="${j}" ${x.a==j?'checked':''} style="width:auto"><input id="o${i}_${j}" value="${esc(o)}" placeholder="الاختيار ${j+1}"></label>`).join('')}<small class="muted">اختر الدائرة بجانب الإجابة الصحيحة</small></div>`).join('')}<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-o btn-s" data-a="addq">+ سؤال</button><button class="btn btn-p btn-s" data-a="saveq">حفظ الاختبار</button><button class="btn btn-o btn-s" data-a="close">إلغاء</button></div></div>`;
+ const f=P.k=='f';return `<div class="box fm sf" style="border-color:var(--bl)"><b>${f?'إضافة ملف / مذكرة / صورة':'إضافة فيديو حل'}</b><input id="pt" placeholder="العنوان" maxlength="140">${fup('pf',f?FA:VA,f?'ارفع ملف أو صورة':'ارفع فيديو')}<input id="pl" dir="ltr" placeholder="أو الصق رابط ${f?'':'(يوتيوب / درايف / mp4)'}"><div style="display:flex;gap:8px"><button class="btn btn-p btn-s" data-a="savep">حفظ</button><button class="btn btn-o btn-s" data-a="close">إلغاء</button></div></div>`}
+function draw(){const T=[['c','الكورسات'],['l','الدروس']].concat(R=='admin'?[['t','المدرسون'],['a','الإعلانات']]:[]);let b='';
+ if(tab=='l')b=`<div class="box fm sf"><b>إضافة درس جديد</b>${sel('ls',subs,s=>`<option value="${s.id}">${esc(s.name)}</option>`)}<input id="lt" placeholder="عنوان الدرس" maxlength="120"><button class="btn btn-p btn-s" data-a="addl">إضافة الدرس</button></div>`+subs.map(s=>`<h3 class="lsn">${esc(s.name)}</h3>`+(ls.filter(l=>l.subject_id==s.id).map(l=>`<div class="box row"><span>${esc(l.title)} <small class="muted">${cs.filter(c=>c.lesson_id==l.id).length} كورس</small></span><button class="btn btn-o btn-s" data-a="dell" data-id="${l.id}">حذف</button></div>`).join('')||'<p class="muted">لا توجد دروس.</p>')).join('');
+ if(tab=='c')b=`<div class="box fm sf"><b>إضافة كورس / فيديو درس</b>${sel('cl',ls,l=>`<option value="${l.id}">${esc(subs.find(s=>s.id==l.subject_id)?.name||'')} — ${esc(l.title)}</option>`)}${R=='admin'?sel('ct',ts,t=>`<option value="${t.id}">${esc(t.name)}</option>`):''}<input id="cn" placeholder="عنوان الكورس" maxlength="140"><textarea id="cd" placeholder="وصف الكورس" rows="3"></textarea>${fup('cif','image/*','صورة الغلاف (ارفع صورة)')}<input id="ci" dir="ltr" placeholder="أو رابط صورة"> ${fup('cvf',VA,'فيديو الشرح (ارفع فيديو mp4 للأفضل)')}<input id="cv" dir="ltr" placeholder="أو رابط فيديو (يوتيوب / درايف / mp4)"><label><input type="checkbox" id="cf" checked style="width:auto"> مجاني</label><button class="btn btn-p btn-s" data-a="addc">إضافة الكورس</button></div>`+(cs.map(c=>`<div class="box"><div class="row"><b>${esc(c.title)}</b><a class="btn btn-o btn-s" href="course.html?id=${c.id}">عرض</a></div><small class="muted">${esc(c.subject_name||'')} • ${esc(c.lesson_title||'')} • ${esc(c.teacher_name||'')}</small>${qzs.filter(q=>q.course_id==c.id).map(q=>`<div class="lg"><span>📝 ${esc(q.title)} <small class="muted">${q.edu_quiz_questions?.[0]?.count??''} سؤال</small></span><button class="btn btn-o btn-s" data-a="delz" data-id="${q.id}">حذف</button></div>`).join('')}<div style="margin:8px 0;display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-o btn-s" data-a="op" data-k="f" data-id="${c.id}">+ ملف/صورة</button><button class="btn btn-o btn-s" data-a="op" data-k="s" data-id="${c.id}">+ فيديو حل</button><button class="btn btn-o btn-s" data-a="op" data-k="q" data-id="${c.id}">+ اختبار</button><button class="btn btn-o btn-s" data-a="delc" data-id="${c.id}">حذف</button></div>${panel(c)}</div>`).join('')||'<p class="empty">لا توجد كورسات بعد.</p>');
+ if(tab=='t')b=`<div class="box fm sf"><b>إضافة مدرس</b><input id="tn" placeholder="اسم المدرس" maxlength="60"><input id="tb" placeholder="نبذة قصيرة"><button class="btn btn-p btn-s" data-a="addt">إضافة</button><small class="muted">لربط حساب مدرس: شغّل في SQL Editor: select edu_make_staff('رقم_الموبايل','teacher',رقم_المدرس);</small></div>`+ts.map(t=>`<div class="box row"><span>${t.id} — ${esc(t.name)} <small class="muted">${esc(t.bio||'')}</small></span></div>`).join('');
+ if(tab=='a')b=`<div class="box fm sf"><b>إضافة إعلان (يظهر في لافتة الرئيسية)</b><input id="at1" placeholder="عنوان الإعلان / اسم المتجر">${fup('aif','image/*','ارفع صورة الإعلان')}<input id="ai" dir="ltr" placeholder="أو رابط صورة"><input id="al" dir="ltr" placeholder="رابط عند الضغط (اختياري)"><button class="btn btn-p btn-s" data-a="adda">إضافة</button></div>`+ads.map(a=>`<div class="box row"><span>${esc(a.title||'')}</span><button class="btn btn-o btn-s" data-a="dela" data-id="${a.id}">حذف</button></div>`).join('');
+ $('#o').innerHTML=`<div class="tabs">${T.map(([k,t])=>`<button class="${k==tab?'on':''}" data-t="${k}">${t}</button>`).join('')}</div><p class="msg" id="mg"></p>${b}`}
+const run=async(r,m)=>{if(!r.ok){say('تعذر الحفظ — تأكد من تشغيل ملفات SQL ومن صلاحيات حسابك.');return null}P=null;await load();draw();say(m||'تم ✓');return r};
+function collect(){const t=$('#qt');if(t)QT=t.value;QI=QI.map((x,i)=>{const r=document.querySelector(`input[name=c${i}]:checked`);return{q:$('#q'+i)?.value||'',o:x.o.map((_,j)=>$(`#o${i}_${j}`)?.value||''),a:r?+r.value:x.a}})}
+const blank=()=>({q:'',o:['','','',''],a:0});
+document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||!R)return;const a=b.dataset.a,id=b.dataset.id;
+ if(b.dataset.t){tab=b.dataset.t;P=null;return draw()}
+ if(a=='close'){P=null;return draw()}
+ if(a=='op'){P={id:+id,k:b.dataset.k};if(P.k=='q'){QI=[blank()];QT=''}return draw()}
+ if(a=='addq'){collect();QI.push(blank());return draw()}
+ if(a=='delq'){collect();QI.splice(+b.dataset.i,1);return draw()}
+ if(a=='saveq'){collect();if(QT.trim().length<2)return say('اكتب عنوان الاختبار.');
+  const rows=[];for(const [n,x] of QI.entries()){const o=x.o.map(s=>s.trim()),ok=o.filter(Boolean);if(x.q.trim().length<2||ok.length<2||!o[x.a])return say('السؤال '+(n+1)+': اكتب السؤال واختيارين على الأقل، وحدد إجابة صحيحة مكتوبة.');
+   rows.push({q:x.q.trim(),options:ok,answer:ok.indexOf(o[x.a]),sort:n+1})}
+  b.disabled=true;const r=await post('edu_quizzes',{course_id:P.id,title:QT.trim()},'return=representation');if(!r.ok){b.disabled=false;return say('تعذر الحفظ — شغّل setup_uploads.sql.')}
+  const z=(await r.json())[0];const r2=await post('edu_quiz_questions',rows.map(x=>({...x,quiz_id:z.id})));if(!r2.ok){await rest('edu_quizzes?id=eq.'+z.id,{method:'DELETE'});b.disabled=false;return say('تعذر حفظ الأسئلة.')}
+  return run(r2,'تم حفظ الاختبار ✓')}
+ if(a=='delz'&&confirm('حذف الاختبار؟'))return run(await rest('edu_quizzes?id=eq.'+id,{method:'DELETE'}));
+ if(a=='addl'){if(fv('lt').length<2)return say('اكتب عنوان الدرس.');return run(await post('edu_lessons',{subject_id:+fv('ls'),title:fv('lt'),sort:ls.length+1}),'تمت إضافة الدرس ✓')}
+ if(a=='dell'&&confirm('حذف الدرس؟'))return run(await rest('edu_lessons?id=eq.'+id,{method:'DELETE'}));
+ if(a=='addc'){const t=R=='admin'?+fv('ct'):TID;if(!t)return say('حسابك غير مربوط بمدرس.');if(!ls.length)return say('أضف درسًا أولًا.');if(fv('cn').length<2)return say('اكتب عنوان الكورس.');
+  b.disabled=true;say('جارٍ الرفع... لا تغلق الصفحة');let img,vid;try{img=await up('cif','covers')||fv('ci')||null;vid=await up('cvf','videos')||fv('cv')||null}catch(_){b.disabled=false;return say(UPERR)}
+  return run(await post('edu_courses',{lesson_id:+fv('cl'),teacher_id:t,title:fv('cn'),description:fv('cd')||null,image:img,video_url:vid,is_free:$('#cf').checked}),'تمت إضافة الكورس ✓ — أضف له الملفات والاختبارات')}
+ if(a=='delc'&&confirm('حذف الكورس وكل ملفاته واختباراته؟')){await rest('edu_course_files?course_id=eq.'+id,{method:'DELETE'});await rest('edu_course_solutions?course_id=eq.'+id,{method:'DELETE'});return run(await rest('edu_courses?id=eq.'+id,{method:'DELETE'}))}
+ if(a=='savep'){const t=fv('pt');if(t.length<2)return say('اكتب العنوان.');b.disabled=true;say('جارٍ الرفع... لا تغلق الصفحة');let u;try{u=await up('pf',P.k=='f'?'files':'solutions')||fv('pl')}catch(_){b.disabled=false;return say(UPERR)}
+  if(!u){b.disabled=false;return say('ارفع ملفًا أو الصق رابطًا.')}
+  return run(await post(P.k=='f'?'edu_course_files':'edu_course_solutions',P.k=='f'?{course_id:P.id,title:t,url:u,kind:/\.(png|jpe?g|webp|gif)$/i.test(u)?'image':'pdf'}:{course_id:P.id,title:t,video_url:u}),'تمت الإضافة ✓')}
+ if(a=='addt'){if(fv('tn').length<2)return say('اكتب اسم المدرس.');return run(await post('edu_teachers',{name:fv('tn'),bio:fv('tb')||null}))}
+ if(a=='adda'){b.disabled=true;say('جارٍ الرفع...');let u;try{u=await up('aif','ads')||fv('ai')}catch(_){b.disabled=false;return say(UPERR)}if(!u){b.disabled=false;return say('ارفع صورة أو ضع رابطها.')}
+  return run(await post('edu_ads',{title:fv('at1'),image:u,link:fv('al')||null,sort:ads.length+1}))}
+ if(a=='dela'&&confirm('حذف الإعلان؟'))return run(await rest('edu_ads?id=eq.'+id,{method:'DELETE'}));
+});
+get('edu_staff?select=role,teacher_id').catch(()=>[]).then(async s=>{if(!s[0])return $('#o').innerHTML='<p class="empty">هذه الصفحة للمدرسين والإدارة فقط.</p>';R=s[0].role;TID=s[0].teacher_id;await load();draw()}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
+</script></body></html>

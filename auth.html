@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8"><script>try{if(JSON.parse(localStorage.getItem('acad_user')||'null')?.token)location.replace('home.html')}catch(_){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#F8FAFC">
 <title>حسابك | أكاديمية</title>
@@ -12,10 +12,11 @@
 body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 0/22px 22px;min-height:100dvh}
 .au-main{min-height:100dvh;display:flex;flex-direction:column;align-items:center;padding:max(14px,env(safe-area-inset-top)) 16px max(24px,env(safe-area-inset-bottom))}
 .au-back{align-self:flex-start;color:var(--mu);font-size:15px;padding:8px 0}
-.au-book{width:clamp(120px,36vw,170px);perspective:700px;margin-top:4px}
+.au-main>*{flex:none}
+.au-book{width:clamp(120px,36vw,170px);aspect-ratio:190/236;perspective:700px;margin-top:4px}
 .au-spin{will-change:transform}.au-spin.spin{animation:sp 1s ease-in-out}
 @keyframes sp{to{transform:rotateY(360deg)}}
-#bsvg{width:100%;height:auto;display:block;overflow:hidden;animation:fl 3.2s ease-in-out infinite}
+#bsvg{width:100%;height:100%;display:block;overflow:hidden;animation:fl 3.2s ease-in-out infinite}
 @keyframes fl{50%{transform:translateY(-5px)}}
 .pu{transition:transform .18s ease-out}
 .ey{transform-box:fill-box;transform-origin:center;animation:bl 4.6s infinite}
@@ -26,7 +27,7 @@ body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 
 #ck{opacity:0;transform-origin:105px 110px;transform:scale(.4);transition:opacity .3s,transform .5s cubic-bezier(.3,1.5,.5,1)}
 #ck path{stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .5s .25s}
 .ok #fc{opacity:0}.ok #ck{opacity:1;transform:none}.ok #ck path{stroke-dashoffset:0}
-.au-bub{min-height:40px;margin:6px 0 12px;padding:6px 18px;background:#fff;border:1px solid var(--bo);border-radius:99px;font-size:15px;font-weight:600;color:var(--bd);box-shadow:0 6px 18px rgba(7,91,152,.08);text-align:center}
+.au-bub{position:relative;z-index:2;min-height:40px;margin:6px 0 12px;padding:6px 18px;background:#fff;border:1px solid var(--bo);border-radius:99px;font-size:15px;font-weight:600;color:var(--bd);box-shadow:0 6px 18px rgba(7,91,152,.08);text-align:center}
 .au-bub.pop{animation:pp .35s}@keyframes pp{from{transform:scale(.85);opacity:0}}
 .au-card{width:min(440px,100%);background:#fff;border:1px solid var(--bo);border-radius:20px;padding:24px 20px;box-shadow:0 14px 34px rgba(7,91,152,.09)}
 .au-card.sh{animation:shk .4s}@keyframes shk{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
@@ -40,7 +41,7 @@ body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 
 .au-ph,.au-pw{position:relative}.au-ph input{padding-inline-start:58px;text-align:left}
 .au-ph span{position:absolute;inset-inline-start:14px;top:0;bottom:0;display:grid;place-items:center;color:var(--mu);font-weight:600;direction:ltr}
 .au-pw input{padding-inline-end:52px}
-.au-pw button{position:absolute;inset-inline-end:4px;top:3px;width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:10px}
+.au-pw button{position:absolute;right:4px;left:auto;top:3px;width:44px;height:44px;display:grid;place-items:center;color:var(--mu);border-radius:10px}
 .au-pw button:active{background:var(--soft)}
 .au-str{height:5px;background:var(--bo);border-radius:9px;margin-top:10px;overflow:hidden}.au-str i{display:block;height:100%;width:0;transition:width .3s,background .3s}
 .au-hint{color:var(--mu);font-size:13px;margin-top:6px}
@@ -48,7 +49,7 @@ body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 
 .au-btns{display:flex;gap:10px;margin-top:6px}.au-btns .btn{flex:1;min-height:50px;text-align:center}
 .au-btns .btn:disabled{opacity:.6}
 .au-sw{text-align:center;margin-top:16px;color:var(--mu);font-size:15px}.au-sw a{color:var(--bl);font-weight:600}
-@media(max-height:660px){.au-book{width:104px}.au-bub{margin-bottom:8px}}
+@media(max-height:760px){.au-book{width:96px}.au-bub{min-height:34px;margin:4px 0 8px}.au-card{padding:18px 16px}.au-card h1{font-size:22px}}
 </style>
 </head>
 <body class="au">
@@ -81,12 +82,12 @@ body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 
   <div class="au-prog" id="prog"><i></i><i></i><i></i></div>
   <div class="st on"><label for="nm">الاسم</label><input id="nm" data-y=".5" autocomplete="name" placeholder="اكتب اسمك" maxlength="40" dir="auto" autocapitalize="words"><label for="gr">الصف الدراسي</label><select id="gr"><option value="prep3">الصف الثالث الإعدادي</option></select></div>
   <div class="st"><label for="ph">رقم الموبايل</label><div class="au-ph"><span>+20</span><input id="ph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="tel" maxlength="14" placeholder="01XXXXXXXXX"></div></div>
-  <div class="st"><label for="pw">كلمة السر</label><div class="au-pw"><input id="pw" data-y="1" type="password" dir="ltr" autocomplete="new-password" maxlength="64"><button type="button" id="eye" aria-label="إظهار كلمة السر"></button></div><div class="au-str"><i id="str"></i></div><p class="au-hint">6 أحرف على الأقل، والأفضل أرقام وحروف معًا.</p></div>
+  <div class="st"><input type="text" id="un" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;opacity:0;height:0;width:0;min-height:0;padding:0;border:0;pointer-events:none"><label for="pw">كلمة السر</label><div class="au-pw"><input id="pw" data-y="1" type="password" dir="ltr" autocomplete="new-password" maxlength="64"><button type="button" id="eye" aria-label="إظهار كلمة السر"></button></div><div class="au-str"><i id="str"></i></div><p class="au-hint">6 أحرف على الأقل، والأفضل أرقام وحروف معًا.</p></div>
   <p class="au-err" id="er" role="alert"></p>
   <div class="au-btns"><button type="button" class="btn btn-o" id="back" hidden>رجوع</button><button class="btn btn-p" id="nx">التالي</button></div>
  </form>
  <form id="fl" novalidate hidden>
-  <label for="lph">رقم الموبايل</label><div class="au-ph"><span>+20</span><input id="lph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="tel" maxlength="14" placeholder="01XXXXXXXXX"></div>
+  <label for="lph">رقم الموبايل</label><div class="au-ph"><span>+20</span><input id="lph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="username" maxlength="14" placeholder="01XXXXXXXXX"></div>
   <label for="lpw">كلمة السر</label><div class="au-pw"><input id="lpw" data-y="1" type="password" dir="ltr" autocomplete="current-password" maxlength="64"><button type="button" id="leye" aria-label="إظهار كلمة السر"></button></div>
   <p class="au-err" id="le" role="alert"></p>
   <div class="au-btns"><button class="btn btn-p" id="lb">دخول</button></div>
@@ -143,7 +144,7 @@ async function run(btn,el,pw,fn,msg){
 }
 
 /* إنشاء حساب على مراحل */
-function go(n){step=n;$$('.st').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#prog i').forEach((d,i)=>d.classList.toggle('f',i<=n));
+function go(n){step=n;$('#un').value=norm($('#ph').value);$$('.st').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#prog i').forEach((d,i)=>d.classList.toggle('f',i<=n));
  $('#lab').textContent=`الخطوة ${n+1} من 3`;$('#nx').textContent=n===2?'إنشاء الحساب':'التالي';$('#back').hidden=!n;$('#er').textContent='';face('n');say(PR[n]);
  const f=$$('.st input')[n];f.focus({preventScroll:true})}
 $('#back').onclick=()=>go(step-1);

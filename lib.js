@@ -24,6 +24,15 @@ function shell(active){const u=U();
  <div class="sb-f">${u?`<div class="pt">⭐ <b class="pts" id="pts">0</b> نقطة</div><div class="sb-n">${esc(u.name||'')}</div><button id="lo" class="btn btn-o btn-s">تسجيل الخروج</button>`:'<a class="btn btn-p btn-s" href="auth.html#login">تسجيل الدخول</a>'}</div></aside>`);
  const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
  const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth.html#login'};
- if(u)get('edu_profiles?select=points').then(r=>{if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{})}
+ if(u)get('edu_profiles?select=points').then(r=>{if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
+ if(u)get('edu_staff?select=role').then(r=>{if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff.html" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>لوحة المدرس</span></a>`)}).catch(()=>{})}
 const topbar=()=>shell(document.body.dataset.p||'');
 const lvl=p=>Math.floor(p/100)+1;
+
+/* رفع ملف إلى Supabase Storage (bucket: academy) ويرجع الرابط العام */
+async function upload(file,folder,onp){await refresh();const u=U();if(!u||!u.token)throw 'auth';
+ const ext=((file.name.split('.').pop()||'bin').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,8))||'bin',path=folder+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
+ return new Promise((ok,no)=>{const x=new XMLHttpRequest();x.open('POST',SUPA_URL+'/storage/v1/object/academy/'+path);
+  x.setRequestHeader('apikey',SUPA_KEY);x.setRequestHeader('Authorization','Bearer '+u.token);x.setRequestHeader('Content-Type',file.type||'application/octet-stream');x.setRequestHeader('Cache-Control','max-age=31536000');
+  x.upload.onprogress=e=>{if(e.lengthComputable&&onp)onp(Math.round(e.loaded/e.total*100))};
+  x.onload=()=>x.status<300?ok(SUPA_URL+'/storage/v1/object/public/academy/'+path):no(x.responseText);x.onerror=()=>no('network');x.send(file)})}

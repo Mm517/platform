@@ -3,14 +3,36 @@
 <title>الرئيسية | أكاديمية</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
-<body class="cr" data-p="home"><main class="pg" id="m"><h1>أهلًا بك 👋</h1><p class="muted">كمّل من حيث وقفت واكسب نقاط.</p><div id="o"><p class="empty">جارٍ التحميل...</p></div></main>
+<body class="cr" data-p="home"><main class="pg" id="m"><div id="o"><p class="empty">جارٍ التحميل...</p></div></main>
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
+if(!U())location.replace('auth.html#login');
 topbar();
-const need=()=>U()?false:(location.href='auth.html#login',true);
-
-const u=U();if(u)$('h1').textContent='أهلًا '+(u.name||'').split(' ')[0]+' 👋';
-Promise.all([get('edu_courses_v?order=is_featured.desc,id&limit=6'),u?get('edu_profiles?select=points'):[]]).then(([c,p])=>{const n=p[0]?.points||0;
-$('#o').innerHTML=`<div class="stat"><div class="box"><b>${n}</b>نقطة</div><div class="box"><b>${lvl(n)}</b>المستوى</div><div class="box"><div class="pbar"><i style="width:${n%100}%"></i></div><small class="muted">${100-n%100} نقطة للمستوى التالي</small></div></div>
-<a class="btn btn-p" href="courses.html">ابدأ اختيار المادة والدرس</a><h2 class="lsn">كورسات مميزة</h2><div class="grid">${c.map(x=>`<a class="cc" href="course.html?id=${x.id}"><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${x.is_free?'f':'p'}">${x.is_free?'مجاني':'مميز'}</span></div><div class="cb"><h3>${esc(x.title)}</h3><p class="tg">${esc(x.teacher_name)}</p><div class="rt">${x.reviews_count?stars(x.rating)+` ${x.rating}`:''}</div></div></a>`).join('')}</div>`}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
+const ok=p=>p.catch(()=>[]),u=U()||{},h=new Date().getHours(),gr=h<12?'صباح الخير':h<18?'نهارك سعيد':'مساء الخير';
+const DEF=[['إعلانك هنا','تواصل مع الإدارة لعرض متجرك','#0878C9,#075B98'],['عروض المتاجر','اكتشف عروض المتاجر القريبة','#f59e0b,#d97706'],['تعلّم أكثر','دروس الثالث الإعدادي مجانًا','#16a34a,#15803d']];
+const RS={watch:'مشاهدة درس',file:'فتح ملف',solution:'فيديو حل',question:'سؤال للمدرس',review:'تقييم'};
+const cc=x=>`<a class="cc" href="course.html?id=${x.id}"><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${x.is_free?'f':'p'}">${x.is_free?'مجاني':'مميز'}</span></div><div class="cb"><h3>${esc(x.title)}</h3><p class="tg">${esc(x.teacher_name)}</p></div></a>`;
+Promise.all([get('edu_profiles?select=points,name'),ok(get('edu_points_log?select=reason,ref,amount,created_at&order=created_at.desc&limit=300')),ok(get('edu_enrollments?select=course_id')),get('edu_courses_v?order=is_featured.desc,id'),ok(get('edu_ads?active=eq.true&order=sort,id')),ok(get('edu_updates?order=created_at.desc&limit=3')),ok(get('edu_quiz_attempts?select=score,total,edu_quizzes(title)&order=created_at.desc&limit=5'))]).then(([p,lg,en,cs,ads,up,qa])=>{
+ const n=p[0]?.points||0,name=(p[0]?.name||u.name||'').split(' ')[0],done=new Set(lg.filter(x=>x.reason=='watch').map(x=>String(x.ref))),subs=new Set(en.map(x=>x.course_id));
+ const mine=cs.filter(c=>subs.has(c.id)),sj=new Set(mine.map(c=>c.subject_id));
+ const nxt=cs.filter(c=>!done.has(String(c.id))&&!subs.has(c.id)).sort((a,b)=>sj.has(b.subject_id)-sj.has(a.subject_id)).slice(0,4);
+ const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return{k:d.toDateString(),l:d.toLocaleDateString('ar-EG',{weekday:'short'}),v:0}});
+ lg.forEach(x=>{const d=days.find(y=>y.k==new Date(x.created_at).toDateString());if(d)d.v+=x.amount});const mx=Math.max(1,...days.map(d=>d.v));
+ const cnt=r=>lg.filter(x=>x.reason==r).length,sl=ads.length?ads.map(a=>[a.title,'',null,a.image,a.link]):DEF.map(a=>[a[0],a[1],a[2]]);
+ $('#o').innerHTML=`<div class="hi"><h1>${gr} ${esc(name)} 👋</h1><span class="pt">⭐ <b class="pts">${n}</b> نقطة</span></div><p class="muted">كمّل من حيث وقفت واكسب نقاط.</p>
+ <div class="ads" id="ads"><div class="ads-t" id="at">${sl.map(a=>`<${a[4]?'a href="'+esc(a[4])+'" target="_blank" rel="noopener"':'div'} class="ad" style="${a[3]?`background-image:linear-gradient(transparent 40%,#0008),url('${esc(a[3])}')`:`background:linear-gradient(135deg,${a[2]})`}">${esc(a[0])}<small>${esc(a[1])}</small></${a[4]?'a':'div'}>`).join('')}</div><div class="ads-d" id="ad">${sl.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></div>
+ <div class="stat"><div class="box"><b>${n}</b>نقطة</div><div class="box"><b>${lvl(n)}</b>المستوى</div><div class="box"><b>${done.size}</b>درس شاهدته</div><div class="box"><b>${mine.length}</b>اشتراكاتك</div></div>
+ <div class="two"><div class="box"><b>📊 تحليلك آخر ٧ أيام</b><div class="bars">${days.map(d=>`<div><i style="height:${d.v/mx*80}%"></i>${d.l}</div>`).join('')}</div></div>
+ <div class="box"><b>🏆 نتائجك</b><div class="pbar" style="margin:10px 0"><i style="width:${n%100}%"></i></div><small class="muted">${100-n%100} نقطة للمستوى ${lvl(n)+1}</small>
+ <div class="lg"><span>دروس شاهدتها</span><b>${done.size}</b></div><div class="lg"><span>فيديوهات حل</span><b>${cnt('solution')}</b></div><div class="lg"><span>أسئلة للمدرس</span><b>${cnt('question')}</b></div><div class="lg"><span>تقييمات</span><b>${cnt('review')}</b></div></div></div>
+ ${qa.length?`<div class="box" style="margin-top:14px"><b>📝 آخر اختباراتك</b>${qa.map(x=>`<div class="lg"><span>${esc(x.edu_quizzes?.title||'اختبار')}</span><b>${x.score}/${x.total}</b></div>`).join('')}</div>`:''}
+ <h2 class="lsn">📚 المشترك فيه</h2>${mine.length?`<div class="grid">${mine.map(cc).join('')}</div>`:'<p class="empty">لم تشترك في كورس بعد. افتح أي كورس واضغط «اشترك».</p>'}
+ <h2 class="lsn">⏭️ إيه القادم</h2>${nxt.length?`<div class="grid">${nxt.map(cc).join('')}</div>`:'<p class="empty">شاهدت كل الدروس المتاحة، ترقّب الجديد!</p>'}
+ ${up.map(x=>`<div class="box"><b>📢 ${esc(x.title)}</b><div>${esc(x.body||'')}</div></div>`).join('')}
+ <a class="btn btn-p" style="margin-top:16px" href="courses.html">ابدأ اختيار المادة والدرس</a>`;
+ let i=0;const t=$('#at'),ds=[...document.querySelectorAll('#ad i')],go=k=>{i=(k+sl.length)%sl.length;t.style.transform=`translateX(-${i*100}%)`;ds.forEach((d,j)=>d.classList.toggle('on',j==i))};
+ let tm=setInterval(()=>go(i+1),4000),x0=null;const bx=$('#ads');
+ bx.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;clearInterval(tm)},{passive:true});
+ bx.addEventListener('touchend',e=>{if(x0!=null){const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>40)go(i+(d<0?1:-1));x0=null}tm=setInterval(()=>go(i+1),4000)});
+}).catch(()=>{if(!U())location.replace('auth.html#login');else $('#o').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>'});
 </script></body></html>
