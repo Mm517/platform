@@ -145,3 +145,62 @@ $("comGfx").innerHTML = mocks.comments;
   if (s || matchMedia("(prefers-reduced-motion:reduce)").matches) { i.remove(); return; }
   $("skip").onclick = end; setTimeout(end, 3800);
 })();
+
+/* ===== v4: تفاعل الرسومات ===== */
+(() => {
+  const mocks = document.querySelectorAll(".mock");
+  mocks.forEach(m => m.querySelectorAll(".win>*").forEach((c, i) => c.style.setProperty("--i", i)));
+  const fine = matchMedia("(hover:hover) and (pointer:fine)").matches;
+  const still = matchMedia("(prefers-reduced-motion:reduce)").matches;
+
+  if (!still) {
+    if (!fine) {
+      /* موبايل: تشتغل الحركة لما الرسمة تظهر في الشاشة */
+      const lo = new IntersectionObserver(es => es.forEach(e => e.target.classList.toggle("live", e.isIntersecting)), {threshold: .55});
+      mocks.forEach(m => lo.observe(m));
+    } else {
+      /* كمبيوتر: تتفاعل لما المؤشر يقرب منها */
+      let px = -999, py = -999, raf = 0;
+      const clamp = v => Math.min(Math.max(v, 0), 1);
+      const run = () => {
+        raf = 0;
+        mocks.forEach(m => {
+          const r = m.getBoundingClientRect();
+          const dx = Math.max(r.left - px, 0, px - r.right), dy = Math.max(r.top - py, 0, py - r.bottom);
+          const near = Math.hypot(dx, dy) < 110;
+          m.classList.toggle("near", near);
+          if (near) {
+            const x = clamp((px - r.left) / r.width), y = clamp((py - r.top) / r.height);
+            m.style.setProperty("--mx", x * 100 + "%"); m.style.setProperty("--my", y * 100 + "%");
+            m.style.setProperty("--rx", ((x - .5) * 8).toFixed(2) + "deg"); m.style.setProperty("--ry", ((.5 - y) * 6).toFixed(2) + "deg");
+          } else { m.style.setProperty("--rx", "0deg"); m.style.setProperty("--ry", "0deg"); }
+        });
+      };
+      addEventListener("pointermove", e => { if (e.pointerType !== "mouse") return; px = e.clientX; py = e.clientY; raf || (raf = requestAnimationFrame(run)); }, {passive: true});
+      document.documentElement.addEventListener("mouseleave", () => { px = py = -999; run(); });
+    }
+  }
+
+  /* ضغط على عنصر داخل الرسمة يخليه هو المختار */
+  mocks.forEach(m => m.addEventListener("click", e => {
+    const it = e.target.closest(".tr,.opt,.li"); if (!it || !m.contains(it)) return;
+    const sel = it.classList.contains("li") ? ".li" : it.classList.contains("tr") ? ".tr" : ".opt";
+    m.querySelectorAll(sel).forEach(x => x.classList.toggle("on", x === it));
+  }));
+})();
+
+
+/* ===== v5: نقاط الكروت الطولية ===== */
+(() => {
+  const sh = $("show"), dots = $("dots"), cards = [...sh.children];
+  if (!dots || !cards.length) return;
+  dots.innerHTML = cards.map(() => "<i></i>").join("");
+  const ds = [...dots.children];
+  const upd = () => {
+    const x = Math.abs(sh.scrollLeft), end = x + sh.clientWidth >= sh.scrollWidth - 4;
+    const i = end ? cards.length - 1 : Math.min(cards.length - 1, Math.round(x / (cards[0].offsetWidth + 14)));
+    ds.forEach((d, k) => d.classList.toggle("on", k === i));
+  };
+  sh.addEventListener("scroll", upd, {passive: true}); addEventListener("resize", upd); upd();
+  ds.forEach((d, k) => d.onclick = () => cards[k].scrollIntoView({behavior: "smooth", inline: "center", block: "nearest"}));
+})();

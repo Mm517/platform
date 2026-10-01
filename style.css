@@ -227,3 +227,129 @@ h1{font-size:clamp(40px,6vw,76px)}
 .ad th{background:var(--soft);color:var(--mu);font-weight:600;font-size:14px}
 .ad td button{color:#c0392b;font-size:14px}
 .ad .btn{border:0;cursor:pointer}.ad .btn-o{border:1px solid var(--bo)}
+
+/* ===== v4: موبايل احترافي + تفاعل الرسومات + إزالة المربع الأزرق ===== */
+*{-webkit-tap-highlight-color:transparent}
+a,button,.btn,.feat,.sb,.tr,.li,.opt,.go,.q button{-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;touch-action:manipulation}
+.btn,button,.logo,.links a,.go{-webkit-user-select:none;user-select:none}
+.ad input:focus{border-color:var(--bl);outline:0}
+
+/* --- رسومات تفاعلية --- */
+.mock{position:relative;overflow:hidden;isolation:isolate;transition:border-color .3s,box-shadow .3s}
+.mock::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .35s;background:radial-gradient(280px circle at var(--mx,50%) var(--my,50%),rgba(8,120,201,.17),transparent 70%)}
+.mock>.win{position:relative;z-index:1;transform:perspective(900px) rotateX(var(--ry,0deg)) rotateY(var(--rx,0deg)) translateY(var(--ty,0px));transition:transform .3s cubic-bezier(.2,.7,.2,1),box-shadow .3s}
+.mock.near,.mock.live{border-color:#b9d9ef}
+.mock.near::before,.mock.live::before{opacity:1}
+.mock.near>.win{--ty:-5px;box-shadow:0 24px 48px -12px rgba(7,91,152,.25)}
+
+@keyframes mk-fill{from{width:0}}
+@keyframes mk-pulse{50%{transform:scale(1.2)}}
+@keyframes mk-rise{from{opacity:0;transform:translateY(12px)}}
+@keyframes mk-pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}}
+@keyframes mk-glow{50%{box-shadow:0 0 0 5px rgba(8,120,201,.18)}}
+
+.mock.near .pb i,.mock.live .pb i{animation:mk-fill 1.3s cubic-bezier(.2,.7,.2,1)}
+.mock.near .vid svg,.mock.live .vid svg{animation:mk-pulse 1.4s ease-in-out infinite}
+.mock.near .bdg span:not(.off),.mock.live .bdg span:not(.off){animation:mk-pop .55s both}
+.bdg span:nth-child(2){animation-delay:.12s!important}.bdg span:nth-child(3){animation-delay:.24s!important}
+.mock.near .go,.mock.live .go{animation:mk-glow 1.7s ease-in-out infinite}
+.mock.near .li.on,.mock.near .tr.on,.mock.near .opt.on,.mock.live .li.on,.mock.live .tr.on,.mock.live .opt.on{animation:mk-glow 1.7s ease-in-out infinite}
+.mock.live .win>*{animation:mk-rise .55s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*70ms)}
+
+.li,.tr,.opt{cursor:pointer;transition:transform .2s,border-color .2s,background .2s}
+.li:active,.tr:active,.opt:active{transform:scale(.98)}
+@media(hover:hover){
+  .li:hover,.tr:hover,.opt:hover{border-color:var(--bl);background:#F2F8FD;transform:translateX(-4px)}
+  .bdg span{transition:transform .2s}.bdg span:hover{transform:scale(1.15) rotate(-8deg)}
+  .go{cursor:pointer;transition:background .2s,transform .2s}.go:hover{background:var(--bd);transform:scale(1.06)}
+  .av{transition:transform .2s}.av:hover{transform:scale(1.12)}
+  .feat{transition:transform .25s,opacity .7s}.feat.in:hover{transform:translateY(-3px)}
+}
+@media(prefers-reduced-motion:reduce){.mock *,.mock::before{animation:none!important}.mock>.win{transform:none}}
+
+@keyframes sh2{to{transform:translateX(-85px)}}
+
+/* --- موبايل / تابلت --- */
+@media(max-width:900px){
+  #show{display:grid;gap:18px}
+  .show{background:#fff;border:1px solid var(--bo);border-radius:24px;padding:20px 16px 16px;gap:16px;box-shadow:0 12px 32px -16px rgba(7,91,152,.25)}
+  .show>div:first-child{display:grid;grid-template-columns:auto 1fr;column-gap:14px;align-items:center}
+  .show .ico{margin:0;width:46px;height:46px;border-radius:14px}
+  .show h3{margin:0;font-size:21px}
+  .show p{grid-column:1/-1;margin-top:10px;font-size:15px;max-width:none}
+  .show .mock{padding:14px;border-radius:18px}
+
+  .sec{padding:60px 0}
+  .sec-head{margin-bottom:30px}
+  #features .sec-head[style]{margin-top:44px!important}
+  .more{font-size:20px}
+
+  .feats{grid-template-columns:1fr 1fr;gap:12px;border-top:0}
+  .feat{background:#fff;border:1px solid var(--bo);border-radius:20px;padding:18px 14px;box-shadow:0 10px 24px -16px rgba(7,91,152,.3)}
+  .feat svg{width:46px;height:46px;padding:11px;border-radius:14px;background:#EAF4FB;margin-bottom:12px}
+  .feat h3{font-size:16px}
+  .feat p{font-size:13.5px;line-height:1.7}
+  .feat.fade.in{transition:opacity .7s,transform .2s}
+  .feat:active{transform:scale(.97)}
+
+  .subs{gap:12px}
+  .sb{padding:20px 10px;border-radius:18px}
+  .sb:last-child:nth-child(odd){grid-column:1/-1}
+  .sb:active{transform:scale(.97)}
+
+  .sup{grid-template-columns:1fr;gap:12px}
+  .sup>div{background:#fff;border:1px solid var(--bo);border-radius:20px;padding:20px 16px}
+
+  .hero-img{margin-block:14px}
+  .hero-img .mock{padding:18px 14px}
+  .chip{font-size:12.5px;padding:6px 12px;border-radius:10px}
+  .chip strong{font-size:17px}
+  .c1{bottom:-14px;right:10px}.c2{top:-14px;left:10px}
+}
+
+@media(max-width:560px){
+  h1{font-size:clamp(34px,10vw,44px)}
+  h2{font-size:clamp(24px,7vw,30px)}
+  .lead{font-size:16px;margin-bottom:26px}
+  .btns .btn{flex:1;text-align:center;padding:13px 16px}
+  .hero{padding:36px 0 44px}
+
+  .win{padding:12px;gap:9px;font-size:13px;border-radius:12px}
+  .vid{aspect-ratio:16/7.5}.vid svg{width:32px;height:32px}
+  .li,.tr,.opt{padding:7px 10px;gap:8px;border-radius:9px}
+  .li em,.tr small{font-size:12px}
+  .av{width:28px;height:28px;font-size:12px}
+  .bub{gap:8px}.bub p{font-size:13px;padding:7px 10px}
+  .big{font-size:32px}
+  .bdg{gap:8px}.bdg span{width:38px;height:38px}
+  .inp{padding:7px 10px;font-size:13px}.inp.tall{min-height:56px}
+  .go{padding:3px 12px;font-size:12px}
+  .dash{padding:20px;gap:28px}
+  .kpi b{font-size:34px}
+
+  .book{width:170px;height:232px}
+  .pgs{font-size:21px}
+  .f{font-size:24px}.f svg{width:34px;height:34px}
+  .bw{animation-name:sh2}
+}
+
+
+/* ===== v5: كروت طولية بسحب (شكل شاشات التعريف) على الموبايل + زر ابدأ ===== */
+.onb{display:none}
+@media(max-width:900px){
+  #show{display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:4px 0 18px}
+  #show::-webkit-scrollbar{display:none}
+  .show{flex:0 0 86%;scroll-snap-align:center;scroll-snap-stop:always;display:flex;flex-direction:column;text-align:center;min-height:min(560px,74vh);padding:26px 18px 18px;gap:0;border-radius:28px}
+  .show>div:first-child{display:block}
+  .show .ico{width:64px;height:64px;border-radius:20px;margin:0 auto 14px}
+  .show .ico svg{width:30px;height:30px}
+  .show h3{font-size:23px;margin:0 0 8px}
+  .show p{margin:0 auto 20px;font-size:15px;max-width:30ch}
+  .show .mock{margin-top:auto;padding:12px;border-radius:20px;text-align:right}
+  .onb{display:block;text-align:center}
+  .dots{display:flex;justify-content:center;gap:8px;margin:2px 0 22px}
+  .dots i{width:8px;height:8px;border-radius:99px;background:#cfdbe6;transition:width .3s,background .3s}
+  .dots i.on{width:26px;background:var(--bl)}
+  .onb-btn{display:block;width:100%;max-width:420px;margin:0 auto;padding:15px;font-size:18px;border-radius:14px;box-shadow:0 14px 28px -14px rgba(8,120,201,.7)}
+  .onb-btn:active{transform:scale(.98)}
+}
