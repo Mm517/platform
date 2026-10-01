@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الرئيسية | أكاديمية</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
+<body class="cr" data-p="home"><main class="pg" id="m"><h1>أهلًا بك 👋</h1><p class="muted">كمّل من حيث وقفت واكسب نقاط.</p><div id="o"><p class="empty">جارٍ التحميل...</p></div></main>
+<script src="config.js"></script><script src="lib.js"></script>
+<script>
+topbar();
+const need=()=>U()?false:(location.href='auth.html#login',true);
+
+const u=U();if(u)$('h1').textContent='أهلًا '+(u.name||'').split(' ')[0]+' 👋';
+Promise.all([get('edu_courses_v?order=is_featured.desc,id&limit=6'),u?get('edu_profiles?select=points'):[]]).then(([c,p])=>{const n=p[0]?.points||0;
+$('#o').innerHTML=`<div class="stat"><div class="box"><b>${n}</b>نقطة</div><div class="box"><b>${lvl(n)}</b>المستوى</div><div class="box"><div class="pbar"><i style="width:${n%100}%"></i></div><small class="muted">${100-n%100} نقطة للمستوى التالي</small></div></div>
+<a class="btn btn-p" href="courses.html">ابدأ اختيار المادة والدرس</a><h2 class="lsn">كورسات مميزة</h2><div class="grid">${c.map(x=>`<a class="cc" href="course.html?id=${x.id}"><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${x.is_free?'f':'p'}">${x.is_free?'مجاني':'مميز'}</span></div><div class="cb"><h3>${esc(x.title)}</h3><p class="tg">${esc(x.teacher_name)}</p><div class="rt">${x.reviews_count?stars(x.rating)+` ${x.rating}`:''}</div></div></a>`).join('')}</div>`}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
+</script></body></html>

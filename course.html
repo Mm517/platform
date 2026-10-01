@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الكورس | أكاديمية</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
+<body class="cr" data-p="courses"><main class="pg" id="m"><p class="empty">جارٍ التحميل...</p></main>
+<script src="config.js"></script><script src="lib.js"></script>
+<script>
+topbar();
+const id=+new URLSearchParams(location.search).get('id'),T=['وصف الكورس','الملفات والمذكرات','فيديوهات الحل','الأسئلة','التقييمات'];
+let c,files=[],sols=[],qs=[],rv=[],tab=0;
+const embed=u=>{if(!u)return'';const m=u.match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/);return m?`<iframe src="https://www.youtube.com/embed/${m[1]}" allowfullscreen></iframe>`:`<video controls src="${esc(u)}"></video>`};
+const date=d=>new Date(d).toLocaleDateString('ar-EG');
+const need=()=>U()?false:(location.href='auth.html#login',true);
+function tabHtml(){
+ if(tab==0)return `<div class="box">${esc(c.description||'لا يوجد وصف.')}</div>`;
+ if(tab==1)return files.length?files.map(f=>`<div class="box row"><span>📄 ${esc(f.title)}</span>${f.url?`<a class="btn btn-p btn-s" data-aw="file:${f.id}" target="_blank" rel="noopener" href="${esc(f.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`).join(''):'<p class="empty">لا توجد ملفات.</p>';
+ if(tab==2)return sols.length?sols.map(s=>`<div class="box"><div class="row"><b>▶ ${esc(s.title)}</b>${s.video_url?`<button class="btn btn-o btn-s" data-sol="${s.id}">مشاهدة</button>`:'<span class="muted">قريبًا</span>'}</div><div class="vid" id="sv${s.id}" hidden></div></div>`).join(''):'<p class="empty">لا توجد فيديوهات حل.</p>';
+ if(tab==3)return `<div class="box fm"><b>اسأل المدرس</b><textarea id="qb" maxlength="600" placeholder="اكتب سؤالك هنا"></textarea><button class="btn btn-p btn-s" id="qs">إرسال السؤال</button> <span class="msg" id="qm"></span></div>`+(qs.length?qs.map(q=>`<div class="box"><div>${esc(q.body)}</div><small class="muted">${date(q.created_at)}</small>${q.answer?`<div class="ans"><b>رد المدرس:</b> ${esc(q.answer)}</div>`:''}</div>`).join(''):'<p class="empty">لا توجد أسئلة بعد، كن أول من يسأل.</p>');
+ return `<div class="box fm"><b>قيّم الكورس</b><div><select id="rs">${[5,4,3,2,1].map(n=>`<option value="${n}">${'★'.repeat(n)}</option>`).join('')}</select></div><textarea id="rc" maxlength="600" placeholder="رأيك في الكورس (اختياري)"></textarea><button class="btn btn-p btn-s" id="rb">حفظ التقييم</button> <span class="msg" id="rm"></span></div>`+(rv.length?rv.map(r=>`<div class="box"><div class="rt">${stars(r.rating)}</div><div>${esc(r.comment||'')}</div><small class="muted">${date(r.created_at)}</small></div>`).join(''):'<p class="empty">لا توجد تقييمات بعد.</p>')}
+function draw(){
+ $('#m').innerHTML=`<div class="crumbs"><a href="courses.html#${c.subject_id}">${esc(c.subject_name||'المادة')}</a><i>›</i><a href="courses.html#${c.subject_id}-${c.lesson_id}">${esc(c.lesson_title||'')}</a><i>›</i><a href="courses.html#${c.subject_id}-${c.lesson_id}-${c.teacher_id}">${esc(c.teacher_name)}</a></div><div class="vid" style="margin-top:10px">${c.video_url?embed(c.video_url):'<span>فيديو الشرح سيُضاف قريبًا</span>'}</div>
+ <div class="row" style="margin-top:14px;flex-wrap:wrap"><div><h1>${esc(c.title)}</h1><div class="muted"><a href="teachers.html?id=${c.teacher_id}" style="color:var(--bl);font-weight:600">${esc(c.teacher_name)}</a> • ${esc(c.lesson_title)}</div><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div><div><span class="bd f" style="position:static;${c.is_free?'':'background:#f59e0b'}">${c.is_free?'مجاني':'مميز'}</span> <button class="btn btn-p" id="done">أنهيت المشاهدة (+10 نقاط)</button></div></div>
+ <a class="tcard" href="teachers.html?id=${c.teacher_id}"><div class="av">${esc((c.teacher_name||'').replace(/^أ\.\s*/,'').charAt(0))}</div><div><b>${esc(c.teacher_name)}</b><div class="muted" style="font-size:14px">عرض صفحة المدرس وكل كورساته ←</div></div></a>
+ <div class="tabs">${T.map((t,i)=>`<button class="${i==tab?'on':''}" data-tb="${i}">${t}</button>`).join('')}</div><div id="tc">${tabHtml()}</div>`}
+async function load(){[c]=await get('edu_courses_v?id=eq.'+id);if(!c)throw 0;
+ [files,sols,qs,rv]=await Promise.all([get('edu_course_files?course_id=eq.'+id),get('edu_course_solutions?course_id=eq.'+id),get('edu_questions?course_id=eq.'+id+'&order=created_at.desc'),get('edu_reviews?course_id=eq.'+id+'&order=created_at.desc')]);
+ document.title=c.title+' | أكاديمية';draw()}
+document.addEventListener('click',async e=>{const t=e.target;
+ if(t.dataset.tb!=null){tab=+t.dataset.tb;return draw()}
+ if(t.id=='done'){if(need())return;await award('watch',id);t.textContent='تم حفظ تقدمك ✓';t.disabled=true}
+ if(t.dataset.aw){award(...t.dataset.aw.split(':'))}
+ if(t.dataset.sol){const s=sols.find(x=>x.id==t.dataset.sol),b=$('#sv'+s.id);b.innerHTML=embed(s.video_url);b.hidden=false;award('solution',s.id)}
+ if(t.id=='qs'){if(need())return;const b=$('#qb').value.trim();if(b.length<2)return $('#qm').textContent='اكتب سؤالك أولًا.';
+  const r=await post('edu_questions',{course_id:id,user_id:U().id,body:b});if(!r.ok)return $('#qm').textContent='تعذر الإرسال.';await award('question',id+':'+Date.now()%1e6);await load();tab=3;draw()}
+ if(t.id=='rb'){if(need())return;const body={course_id:id,user_id:U().id,rating:+$('#rs').value,comment:$('#rc').value.trim()};
+  let r=await post('edu_reviews',body);if(r.status==409)r=await rest('edu_reviews?course_id=eq.'+id+'&user_id=eq.'+U().id,{method:'PATCH',body:JSON.stringify({rating:body.rating,comment:body.comment})});
+  if(!r.ok)return $('#rm').textContent='تعذر الحفظ.';await award('review',id);await load();tab=4;draw()}
+});
+load().catch(()=>$('#m').innerHTML='<p class="empty">الكورس غير موجود. <a href="courses.html" style="color:var(--bl)">العودة</a></p>');
+</script></body></html>
