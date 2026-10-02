@@ -12,4 +12,5 @@ const need=()=>U()?false:(location.href='auth.html#login',true);
 $('#o').innerHTML=`<div class="box fm"><input id="sj" maxlength="100" placeholder="الموضوع"><textarea id="sb2" maxlength="800" placeholder="اشرح مشكلتك"></textarea><button class="btn btn-p btn-s" id="sd">إرسال</button> <span class="msg" id="sm"></span></div>`;
 $('#sd').onclick=async()=>{if(need())return;const b=$('#sb2').value.trim();if(b.length<3)return $('#sm').textContent='اكتب رسالتك.';
 const r=await post('edu_support',{user_id:U().id,subject:$('#sj').value.trim(),body:b});$('#sm').textContent=r.ok?'تم الإرسال ✓':'تعذر الإرسال.';if(r.ok){$('#sb2').value=''}}
+get('edu_staff?select=role').then(s=>{if(s[0]&&s[0].role=='admin'){$('#m').insertAdjacentHTML('beforeend','<h2 style="margin:28px 0 10px">📥 رسائل الطلاب (للأدمن)</h2><div id="inb"></div>');supportInbox($('#inb'))}}).catch(()=>{});
 </script></body></html>

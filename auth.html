@@ -87,7 +87,7 @@ body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 
   <div class="au-btns"><button type="button" class="btn btn-o" id="back" hidden>رجوع</button><button class="btn btn-p" id="nx">التالي</button></div>
  </form>
  <form id="fl" novalidate hidden>
-  <label for="lph">رقم الموبايل</label><div class="au-ph"><span>+20</span><input id="lph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="username" maxlength="14" placeholder="01XXXXXXXXX"></div>
+  <label for="lph">رقم الموبايل أو الإيميل</label><div class="au-ph" id="lphw"><span id="lpre">+20</span><input id="lph" data-y=".7" type="text" inputmode="email" dir="ltr" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="80" placeholder="01XXXXXXXXX أو admin@mail.com"></div>
   <label for="lpw">كلمة السر</label><div class="au-pw"><input id="lpw" data-y="1" type="password" dir="ltr" autocomplete="current-password" maxlength="64"><button type="button" id="leye" aria-label="إظهار كلمة السر"></button></div>
   <p class="au-err" id="le" role="alert"></p>
   <div class="au-btns"><button class="btn btn-p" id="lb">دخول</button></div>
@@ -102,14 +102,15 @@ const $$=s=>[...document.querySelectorAll(s)],sleep=ms=>new Promise(r=>setTimeou
 const sv=$('#bsvg'),pu=$$('.pu'),mo=$('#mo'),bub=$('#bub'),card=$('#card');
 const MO={n:'M93 118Q105 129 117 118',h:'M91 115Q105 138 119 115',s:'M94 127Q105 117 116 127'};
 const PR=['أهلًا بك! ما اسمك؟','رائع! وما رقم موبايلك؟','اختر كلمة سر لا يعرفها غيرك'];
-const MSG={user_already_exists:'هذا الرقم مسجّل بالفعل، سجّل دخولك.',invalid_credentials:'رقم الموبايل أو كلمة السر غير صحيحة.',weak_password:'كلمة السر ضعيفة، اختر أقوى.',over_request_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',over_email_send_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',email_not_confirmed:'الحساب غير مفعّل، تواصل مع الدعم.',confirm:'تم إنشاء الحساب لكن التفعيل مطلوب، تواصل مع الدعم.',profile:'تم إنشاء الحساب لكن تعذر حفظ بياناتك، حاول تسجيل الدخول.',signup_disabled:'التسجيل غير متاح حاليًا.'};
+const MSG={user_already_exists:'هذا الرقم مسجّل بالفعل، سجّل دخولك.',invalid_credentials:'بيانات الدخول أو كلمة السر غير صحيحة.',weak_password:'كلمة السر ضعيفة، اختر أقوى.',over_request_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',over_email_send_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',email_not_confirmed:'الحساب غير مفعّل، تواصل مع الدعم.',confirm:'تم إنشاء الحساب لكن التفعيل مطلوب، تواصل مع الدعم.',profile:'تم إنشاء الحساب لكن تعذر حفظ بياناتك، حاول تسجيل الدخول.',signup_disabled:'التسجيل غير متاح حاليًا.'};
 const EYE='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const EYEOFF='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
 const norm=v=>v.replace(/[٠-٩]/g,x=>"٠١٢٣٤٥٦٧٨٩".indexOf(x)).replace(/^\+?20/,"0").replace(/\D/g,"");
 const okPh=v=>/^01[0125]\d{8}$/.test(v),mail=p=>`u${p}@academy-users.com`;
 let pend=false,step=0;
 
-$$('#ph,#lph').forEach(el=>el.addEventListener('input',()=>{el.value=el.value.replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[^\d+]/g,'')}));
+$('#ph').addEventListener('input',e=>{const el=e.target;el.value=el.value.replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[^\d+]/g,'')});
+$('#lph').addEventListener('input',e=>{const el=e.target;el.value=el.value.replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x));const m=/[a-z@]/i.test(el.value);$('#lpre').style.display=m?'none':'';el.parentNode.querySelector('input').style.paddingInlineStart=m?'14px':''});
 /* الكتاب */
 const look=(x,y)=>pu.forEach(p=>p.style.transform=`translate(${x*6}px,${y*5}px)`);
 const face=m=>mo.setAttribute('d',MO[m]);
@@ -134,7 +135,7 @@ $('#pw').addEventListener('input',e=>{const v=e.target.value,s=(v.length>=6)+(v.
 
 /* الخادم (Supabase Auth) */
 async function api(path,body){const r=await fetch(SUPA_URL+path,{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw j;return j}
-const save=(j,name,phone)=>setU({id:j.user&&j.user.id,name,phone,token:j.access_token,refresh:j.refresh_token});
+const save=(j,name,phone,email)=>setU({id:j.user&&j.user.id,name,phone,email,token:j.access_token,refresh:j.refresh_token});
 async function profile(j,name,phone,grade){const r=await fetch(SUPA_URL+'/rest/v1/edu_profiles?on_conflict=id',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+j.access_token,'Content-Type':'application/json',Prefer:'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify({id:j.user.id,name:name||'طالب',phone,grade:grade||'prep3'})});if(!r.ok)throw{error_code:'profile'}}
 async function win(t){const f=matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1;cover(false);look(0,.3);await sleep(450*f);face('h');say(t+' ✓');await sleep(1200*f);$('#sp').classList.add('spin');await sleep(450*f);$('#bk').classList.add('ok');await sleep(1400*f);location.href='home.html'}
 async function run(btn,el,pw,fn,msg){
@@ -157,10 +158,14 @@ $('#fs').addEventListener('submit',e=>{e.preventDefault();if(pend)return;
 
 /* تسجيل الدخول */
 $('#fl').addEventListener('submit',e=>{e.preventDefault();if(pend)return;
- const phone=norm($('#lph').value);
- if(!okPh(phone))return fail($('#le'),'أدخل رقم موبايل مصري صحيح من 11 رقمًا.');
+ const v=$('#lph').value.trim(),isMail=v.includes('@'),phone=isMail?'':norm(v);
+ if(isMail?!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v):!okPh(phone))return fail($('#le'),'أدخل رقم موبايل مصري صحيح من 11 رقمًا، أو إيميل صحيح.');
  if(!$('#lpw').value)return fail($('#le'),'اكتب كلمة السر.');
- run($('#lb'),$('#le'),$('#lpw'),async()=>{const j=await api('/auth/v1/token?grant_type=password',{email:mail(phone),password:$('#lpw').value});const nm=(j.user&&j.user.user_metadata&&j.user.user_metadata.name)||'';await profile(j,nm,phone,'prep3');save(j,nm,phone)},'تم التحقق من كلمة السر')});
+ run($('#lb'),$('#le'),$('#lpw'),async()=>{
+  if(isMail){/* دخول بالإيميل (الأدمن): لا نعدّل بيانات الملف الشخصي إلا لو تعذّر فلا نوقف الدخول */
+   const em=v.toLowerCase(),j=await api('/auth/v1/token?grant_type=password',{email:em,password:$('#lpw').value}),md=(j.user&&j.user.user_metadata)||{},nm=md.name||em.split('@')[0];
+   try{await profile(j,nm,null,'prep3')}catch(_){}save(j,nm,'',em);return}
+  const j=await api('/auth/v1/token?grant_type=password',{email:mail(phone),password:$('#lpw').value});const nm=(j.user&&j.user.user_metadata&&j.user.user_metadata.name)||'';await profile(j,nm,phone,'prep3');save(j,nm,phone)},'تم التحقق من كلمة السر')});
 
 /* التبديل بين الوضعين */
 function mode(){const l=location.hash==='#login';$('#fs').hidden=l;$('#fl').hidden=!l;

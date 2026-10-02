@@ -25,7 +25,7 @@ function shell(active){const u=U();
  const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
  const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth.html#login'};
  if(u)get('edu_profiles?select=points').then(r=>{if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
- if(u)get('edu_staff?select=role').then(r=>{if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff.html" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>لوحة المدرس</span></a>`)}).catch(()=>{})}
+ if(u)get('edu_staff?select=role').then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff.html" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend','<span class="pt" style="align-self:flex-start">👑 أدمن</span>')}}).catch(()=>{})}
 const topbar=()=>shell(document.body.dataset.p||'');
 const lvl=p=>Math.floor(p/100)+1;
 
@@ -89,3 +89,9 @@ function mountVideo(box,url,opt={}){if(!box)return;box.innerHTML='';box.classNam
    onReady:()=>{clearTimeout(t0);A={play:()=>P.playVideo(),pause:()=>P.pauseVideo(),seek:t=>P.seekTo(t,true),cur:()=>P.getCurrentTime()||0,dur:()=>P.getDuration()||0,rate:r=>P.setPlaybackRate(r),mute:m=>m?P.mute():P.unMute(),muted:()=>P.isMuted()};tick()},
    onStateChange:e=>{const s=e.data;if(s==1)setSt('play');else if(s==2)setSt('pause');else if(s==0)setSt('end')},
    onError:e=>fail([101,150,153].includes(e.data)?'صاحب الفيديو لا يسمح بتشغيله داخل المواقع':'الفيديو غير متاح أو محذوف')}})}).catch(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'))}
+
+/* صندوق رسائل الدعم للأدمن (يستخدم دالة edu_admin_support من setup_admin_panel.sql) */
+async function supportInbox(el){el.innerHTML='<p class="empty">جارٍ التحميل...</p>';
+ let a;try{const r=await post('rpc/edu_admin_support',{});if(!r.ok)throw 0;a=await r.json()}catch(_){el.innerHTML='<p class="empty">تعذر تحميل الرسائل — شغّل setup_admin_panel.sql وتأكد أنك أدمن.</p>';return}
+ el.innerHTML=a.length?a.map(x=>`<div class="box"><div class="row"><b>${esc(x.subject||'بدون موضوع')}</b><button class="btn btn-o btn-s" data-sd="${x.id}">حذف</button></div><p style="white-space:pre-wrap;margin:6px 0">${esc(x.body)}</p><small class="muted">${esc(x.name||'—')} · <span dir="ltr">${esc(x.phone||x.email||'')}</span> · ${new Date(x.created_at).toLocaleString('ar-EG')}</small></div>`).join(''):'<p class="empty">لا توجد رسائل دعم.</p>';
+ el.onclick=async e=>{const id=e.target.dataset&&e.target.dataset.sd;if(!id||!confirm('حذف الرسالة؟'))return;await rest('edu_support?id=eq.'+id,{method:'DELETE'});supportInbox(el)}}
