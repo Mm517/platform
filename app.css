@@ -62,3 +62,35 @@ body.cr{padding-inline-start:244px}
 .sf{display:grid;gap:8px;margin:10px 0}.sf input,.sf select,.sf textarea{width:100%;font:inherit;border:1.5px solid var(--bo);border-radius:12px;padding:10px;background:#fff}
 .vid video{object-fit:contain;background:#000}.vid iframe{aspect-ratio:16/9}
 .up{display:grid;gap:4px}.up input[type=file]{padding:8px}
+
+/* ===== مشغّل الفيديو الخاص ===== */
+.vid.pl{position:relative;display:block;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;background:#000}
+.pl-m,.pl-m iframe,.pl-m video{position:absolute;inset:0;width:100%;height:100%;border:0}
+.pl-m iframe{pointer-events:none}
+.pl-poster{position:absolute;inset:0;z-index:1;background:#000 center/cover no-repeat;pointer-events:none}
+.pl-sh{position:absolute;inset:0;z-index:2;cursor:pointer}
+.pl-big{position:absolute;z-index:3;top:50%;left:50%;transform:translate(-50%,-50%);width:72px;height:72px;border-radius:50%;border:0;background:rgba(8,120,201,.95);display:grid;place-items:center;cursor:pointer;box-shadow:0 8px 28px rgba(0,0,0,.35);transition:.15s}
+.pl-big:hover{transform:translate(-50%,-50%) scale(1.07)}
+.pl.playing .pl-big{display:none}
+.pl-bar{position:absolute;z-index:4;left:0;right:0;bottom:0;display:flex;align-items:center;gap:8px;padding:22px 12px 8px;background:linear-gradient(transparent,rgba(0,0,0,.72));color:#fff;direction:ltr;font-size:13px;transition:opacity .25s}
+.pl.idle.playing .pl-bar{opacity:0;pointer-events:none}.pl.idle.playing .pl-sh{cursor:none}
+.pl-bar .pb{background:none;border:0;color:#fff;font-size:16px;min-width:32px;height:32px;cursor:pointer;border-radius:8px}
+.pl-bar .pb:hover{background:rgba(255,255,255,.18)}.pl-bar .pr{font-size:13px;font-weight:700}
+.pl-s{flex:1;accent-color:#0878C9;height:4px;cursor:pointer;min-width:0}
+.pl-t,.pl-d{font-variant-numeric:tabular-nums;min-width:38px;text-align:center}
+.pl-end{position:absolute;inset:0;z-index:5;background:rgba(6,38,66,.97);display:grid;place-items:center;text-align:center;color:#fff;padding:16px;direction:rtl;overflow:auto}
+.pl-end[hidden]{display:none}
+.nx{background:#0878C9;border:2px solid #fff;border-radius:14px;padding:12px 18px;margin:14px auto;max-width:420px}
+.nx small{display:block;opacity:.85}.nx b{font-size:18px}
+.vid.pl:fullscreen{border-radius:0}.vid.pl:-webkit-full-screen{border-radius:0}
+@media(max-width:560px){.pl-big{width:56px;height:56px}.pl-bar{gap:4px;padding:18px 6px 6px}.pl-t,.pl-d{min-width:32px;font-size:12px}.nx b{font-size:15px}}
+
+/* ===== مربع الدرس القادم في جدول الدروس ===== */
+.pk{position:relative}
+.pk.hl{border:3px solid #0878C9;background:#eaf5ff;box-shadow:0 0 0 6px rgba(8,120,201,.2);animation:hlp 1.3s ease-in-out 3}
+.hl-t{position:absolute;top:-13px;right:14px;background:#0878C9;color:#fff;font-size:12px;font-weight:700;padding:3px 12px;border-radius:20px}
+@keyframes hlp{50%{box-shadow:0 0 0 12px rgba(8,120,201,.08)}}
+
+/* ===== لافتة الإعلانات: عريضة ===== */
+.ad{height:auto!important;aspect-ratio:4/1;min-height:92px;max-height:190px;padding:10px 18px!important;font-size:clamp(15px,2.6vw,24px)!important}
+.ad small{font-size:clamp(11px,1.6vw,14px)!important}

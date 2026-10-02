@@ -10,13 +10,13 @@
 topbar();
 const tid=+new URLSearchParams(location.search).get('id');
 const stat=cs=>{const n=cs.reduce((a,c)=>a+ +c.reviews_count,0),s=cs.reduce((a,c)=>a+c.rating*c.reviews_count,0);return n?`<div class="rt">${stars(s/n)} ${(s/n).toFixed(1)} <span>(${n} تقييم)</span></div>`:'<div class="rt"><span>لا توجد تقييمات بعد</span></div>'};
-const av=n=>`<div class="av">${esc(n.replace(/^أ\.\s*/,'').charAt(0))}</div>`;
+const av=(n,im)=>im?`<div class="av" style="background:#fff url('${esc(im)}') center/cover"></div>`:`<div class="av">${esc(n.replace(/^أ\.\s*/,'').charAt(0))}</div>`;
 const card=c=>`<a class="cc" href="course.html?id=${c.id}"><div class="cv2" style="${c.image?`background-image:url('${esc(c.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${c.is_free?'f':'p'}">${c.is_free?'مجاني':'مميز'}</span></div><div class="cb"><h3>${esc(c.title)}</h3><p>${esc(c.lesson_title)}</p><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div></a>`;
 Promise.all([get('edu_teachers?order=id'),get('edu_courses_v?select=*&order=id'),get('edu_subjects?select=id,name')]).then(([ts,cs,ss])=>{
  const t=ts.find(x=>x.id==tid);
- if(!t){$('#m').innerHTML=`<h1>المدرسون</h1><p class="muted">اختر مدرسك وشاهد كل كورساته.</p><div class="grid" style="margin-top:20px">${ts.map(t=>{const mc=cs.filter(c=>c.teacher_id==t.id);return `<a class="cc tc" href="teachers.html?id=${t.id}">${av(t.name)}<h3>${esc(t.name)}</h3><p>${esc(t.bio||'')}</p><p>${mc.length} كورس</p>${stat(mc)}</a>`}).join('')}</div>`;return}
+ if(!t){$('#m').innerHTML=`<h1>المدرسون</h1><p class="muted">اختر مدرسك وشاهد كل كورساته.</p><div class="grid" style="margin-top:20px">${ts.map(t=>{const mc=cs.filter(c=>c.teacher_id==t.id);return `<a class="cc tc" href="teachers.html?id=${t.id}">${av(t.name,t.image)}<h3>${esc(t.name)}</h3><p>${esc(t.bio||'')}</p><p>${mc.length} كورس</p>${stat(mc)}</a>`}).join('')}</div>`;return}
  const mc=cs.filter(c=>c.teacher_id==t.id);document.title=t.name+' | أكاديمية';
- $('#m').innerHTML=`<a href="teachers.html" class="muted">← كل المدرسين</a><div class="th">${av(t.name)}<div><h1>${esc(t.name)}</h1><p class="muted">${esc(t.bio||'')}</p>${stat(mc)}</div></div>`+
+ $('#m').innerHTML=`<a href="teachers.html" class="muted">← كل المدرسين</a><div class="th">${av(t.name,t.image)}<div><h1>${esc(t.name)}</h1><p class="muted">${esc(t.bio||'')}</p>${stat(mc)}</div></div>`+
   (ss.map(s=>{const l=mc.filter(c=>c.subject_id==s.id);return l.length?`<h2 class="lsn">${esc(s.name)} <small>${l.length} كورس</small></h2><div class="grid">${l.map(card).join('')}</div>`:''}).join('')||'<p class="empty">لا توجد كورسات لهذا المدرس بعد.</p>')
 }).catch(()=>$('#m').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>');
 </script></body></html>

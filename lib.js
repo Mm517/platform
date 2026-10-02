@@ -36,3 +36,56 @@ async function upload(file,folder,onp){await refresh();const u=U();if(!u||!u.tok
   x.setRequestHeader('apikey',SUPA_KEY);x.setRequestHeader('Authorization','Bearer '+u.token);x.setRequestHeader('Content-Type',file.type||'application/octet-stream');x.setRequestHeader('Cache-Control','max-age=31536000');
   x.upload.onprogress=e=>{if(e.lengthComputable&&onp)onp(Math.round(e.loaded/e.total*100))};
   x.onload=()=>x.status<300?ok(SUPA_URL+'/storage/v1/object/public/academy/'+path):no(x.responseText);x.onerror=()=>no('network');x.send(file)})}
+
+
+/* ===== مشغّل فيديو آمن للتضمين (يوتيوب / درايف / فيميو / mp4) =====
+   - يرسل referrer صحيح (يحل خطأ 153) ويستخدم IFrame API لالتقاط أخطاء "التضمين غير مسموح"
+   - لو الفيديو ممنوع تضمينه أو تأخر التحميل يظهر كارت بزر "شاهد على يوتيوب" بدل شاشة سوداء */
+const ytId=u=>{const m=String(u||'').match(/(?:youtu\.be\/|v=|embed\/|shorts\/|live\/)([\w-]{11})/);return m?m[1]:null};
+let _ytP=null;
+const ytApi=()=>_ytP||(_ytP=new Promise((ok,no)=>{if(window.YT&&YT.Player)return ok();
+ const prev=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{prev&&prev();ok()};
+ const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.onerror=()=>no();document.head.appendChild(s);setTimeout(no,10000)}));
+function ytFallback(box,id,why){const url='https://www.youtube.com/watch?v='+id;
+ box.innerHTML=`<a href="${url}" target="_blank" rel="noopener" style="position:relative;display:grid;place-items:center;width:100%;height:100%;background:#000 url('https://i.ytimg.com/vi/${id}/hqdefault.jpg') center/cover;color:#fff;text-decoration:none;text-align:center"><span style="background:rgba(0,0,0,.72);padding:14px 18px;border-radius:12px;max-width:90%;line-height:1.8"><b style="display:block;font-size:16px">▶ شاهد الفيديو على يوتيوب</b><small>${esc(why||'صاحب الفيديو لا يسمح بتشغيله داخل المواقع')}</small></span></a>`}
+const fmtT=t=>{t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
+/* مشغّل بواجهة الموقع: أزرار تحكم خاصة + درع يمنع النقر على عناصر يوتيوب + شاشة نهاية (opt.end يرجع HTML) */
+function mountVideo(box,url,opt={}){if(!box)return;box.innerHTML='';box.className='vid';const id=ytId(url),raw=!id&&!/drive\.google\.com|vimeo\.com/.test(url||'');
+ if(!id&&!raw){let m=String(url).match(/drive\.google\.com\/file\/d\/([\w-]+)/);
+  if(m)return void(box.innerHTML=`<iframe src="https://drive.google.com/file/d/${m[1]}/preview" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>`);
+  m=String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);return void(box.innerHTML=`<iframe src="https://player.vimeo.com/video/${m[1]}?title=0&byline=0&portrait=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>`)}
+ box.classList.add('pl');
+ box.innerHTML=`<div class="pl-m"></div>${id?`<div class="pl-poster" style="background-image:url('https://i.ytimg.com/vi/${id}/hqdefault.jpg')"></div>`:''}<div class="pl-sh"></div><button class="pl-big" data-c="pp" aria-label="تشغيل"><svg width="30" height="30" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></button>
+ <div class="pl-bar"><button data-c="pp" class="pb" aria-label="تشغيل/إيقاف">▶</button><span class="pl-t">0:00</span><input type="range" class="pl-s" min="0" max="1000" value="0" aria-label="التقدم"><span class="pl-d">0:00</span><button data-c="rate" class="pb pr">1×</button><button data-c="mute" class="pb">🔊</button><button data-c="fs" class="pb">⛶</button></div><div class="pl-end" hidden></div>`;
+ const q=s=>box.querySelector(s),mEl=q('.pl-m'),sl=q('.pl-s'),end=q('.pl-end');let A=null,state='pause',drag=false,idleT,started=false;
+ const RATES=[1,1.25,1.5,2,0.75];let ri=0;
+ const setSt=s=>{state=s;box.classList.toggle('playing',s=='play');q('.pb').textContent=s=='play'?'❚❚':'▶';
+  if(s=='play'&&!started){started=true;const p=q('.pl-poster');p&&p.remove()}
+  if(s=='end'){end.innerHTML=opt.end?opt.end():'<div><div style="font-size:20px;font-weight:700">انتهى الفيديو</div><button class="btn btn-s" style="background:#fff;color:#075B98;margin-top:10px" data-c="replay">إعادة المشاهدة</button></div>';end.hidden=false}else end.hidden=true};
+ const wake=()=>{box.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>box.classList.add('idle'),2600)};
+ const toggle=()=>{if(!A)return;state=='play'?A.pause():A.play()};
+ const tick=()=>{if(!A||drag)return;const d=A.dur(),c=A.cur();if(d>0){sl.value=c/d*1000;q('.pl-d').textContent=fmtT(d)}q('.pl-t').textContent=fmtT(c)};
+ box.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(b&&box.contains(b)){const k=b.dataset.c;
+   if(k=='pp')toggle();
+   if(k=='replay'){A.seek(0);A.play()}
+   if(k=='rate'){ri=(ri+1)%RATES.length;A.rate(RATES[ri]);b.textContent=RATES[ri]+'×'}
+   if(k=='mute'){const m=!A.muted();A.mute(m);b.textContent=m?'🔇':'🔊'}
+   if(k=='fs'){const f=document.fullscreenElement||document.webkitFullscreenElement;if(f)(document.exitFullscreen||document.webkitExitFullscreen).call(document);else{const r=box.requestFullscreen||box.webkitRequestFullscreen;if(r)r.call(box);else if(A.native)A.native()}}
+   return}
+  if(e.target.classList.contains('pl-sh')){toggle()}});
+ box.addEventListener('dblclick',e=>{if(e.target.classList.contains('pl-sh'))q('[data-c=fs]').click()});
+ box.addEventListener('contextmenu',e=>{if(e.target.classList.contains('pl-sh'))e.preventDefault()});
+ ['mousemove','touchstart','keydown'].forEach(n=>box.addEventListener(n,wake,{passive:true}));wake();
+ sl.addEventListener('input',()=>{drag=true;const d=A?A.dur():0;q('.pl-t').textContent=fmtT(sl.value/1000*d)});
+ sl.addEventListener('change',()=>{if(A)A.seek(sl.value/1000*A.dur());drag=false});
+ setInterval(()=>{if(!box.isConnected)return;tick()},300);
+ if(raw){const v=document.createElement('video');v.playsInline=true;v.preload='metadata';v.src=url;mEl.appendChild(v);
+  A={play:()=>v.play(),pause:()=>v.pause(),seek:t=>{v.currentTime=t},cur:()=>v.currentTime,dur:()=>v.duration||0,rate:r=>{v.playbackRate=r},mute:m=>{v.muted=m},muted:()=>v.muted,native:()=>v.webkitEnterFullscreen&&v.webkitEnterFullscreen()};
+  v.onplay=()=>setSt('play');v.onpause=()=>{if(!v.ended)setSt('pause')};v.onended=()=>setSt('end');v.onloadedmetadata=tick;v.onerror=()=>{mEl.innerHTML='<span style="color:#fff;display:grid;place-items:center;height:100%">تعذر تشغيل الفيديو</span>'};return}
+ const fail=why=>{clearTimeout(t0);ytFallback(box,id,why)};let t0=setTimeout(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'),9000);
+ ytApi().then(()=>{const holder=document.createElement('div');mEl.appendChild(holder);
+  const pv={controls:0,disablekb:1,fs:0,rel:0,modestbranding:1,iv_load_policy:3,playsinline:1,cc_load_policy:0,hl:'ar'};if(/^https?:$/.test(location.protocol))pv.origin=location.origin;
+  const P=new YT.Player(holder,{videoId:id,width:'100%',height:'100%',playerVars:pv,events:{
+   onReady:()=>{clearTimeout(t0);A={play:()=>P.playVideo(),pause:()=>P.pauseVideo(),seek:t=>P.seekTo(t,true),cur:()=>P.getCurrentTime()||0,dur:()=>P.getDuration()||0,rate:r=>P.setPlaybackRate(r),mute:m=>m?P.mute():P.unMute(),muted:()=>P.isMuted()};tick()},
+   onStateChange:e=>{const s=e.data;if(s==1)setSt('play');else if(s==2)setSt('pause');else if(s==0)setSt('end')},
+   onError:e=>fail([101,150,153].includes(e.data)?'صاحب الفيديو لا يسمح بتشغيله داخل المواقع':'الفيديو غير متاح أو محذوف')}})}).catch(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'))}

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex"><title>استيراد الدروس | أكاديمية</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
+<body class="cr" data-p="staff"><main class="pg"><h1>استيراد الدروس من Excel</h1>
+<div id="o"><p class="empty">جارٍ التحميل...</p></div></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="config.js"></script><script src="lib.js"></script>
+<script>
+if(!U())location.replace('auth.html#login');
+topbar();
+const KEY={'لغة عربية':'عرب','لغة إنجليزية':'انجليز|إنجليز|english','رياضيات':'رياض','علوم':'علوم','دراسات اجتماعية':'دراسات'};
+const norm=s=>String(s||'').replace(/^(أ\.|م\.|مستر|مس|د\.)\s*/,'').replace(/[إأآ]/g,'ا').replace(/\s+/g,' ').trim().toLowerCase();
+let subs=[],ls=[],ts=[],cs=[],rows=null,log=[];
+const say=t=>{log.push(t);$('#lg').innerHTML=log.map(esc).join('<br>')};
+const subId=n=>{const re=new RegExp(KEY[n]||esc(n),'i');return subs.find(s=>re.test(s.name))?.id};
+function draw(){$('#o').innerHTML=`<div class="box fm"><b>١) اختر ملف الإكسل (academy_prep3_2027_lessons.xlsx)</b><input type="file" id="f" accept=".xlsx"><small class="muted">يجب أن يكون حسابك «admin». الفيديوهات بدون اسم مدرس يتم تجاهلها.</small></div><div id="pv"></div><div class="box" id="lg" style="display:none"></div>`}
+async function load(){[subs,ls,ts,cs]=await Promise.all([get('edu_subjects?grade=eq.prep3'),get('edu_lessons?order=id'),get('edu_teachers?order=id'),get('edu_courses_v?select=id,video_url,lesson_id,teacher_id')])}
+document.addEventListener('change',async e=>{if(e.target.id!='f')return;const f=e.target.files[0];if(!f)return;
+ const wb=XLSX.read(await f.arrayBuffer());const sh=n=>XLSX.utils.sheet_to_json(wb.Sheets[n]||{},{defval:''});
+ rows={t:sh('المدرسون'),l:sh('الدروس'),v:sh('الفيديوهات')};
+ const ok=rows.v.filter(v=>v['المدرس']&&v.youtube_url),skip=rows.v.length-ok.length,noSub=[...new Set(rows.l.map(l=>l['المادة']).concat(rows.v.map(v=>v['المادة'])))].filter(n=>!subId(n));
+ $('#pv').innerHTML=`<div class="box"><b>المعاينة</b><br>مدرسين: ${rows.t.length} • دروس: ${rows.l.length} • فيديوهات ستُضاف: ${ok.length} • متجاهَلة (بدون مدرس): ${skip}${noSub.length?`<br><span class="msg">مواد غير موجودة في الموقع: ${esc(noSub.join('، '))}</span>`:''}</div><button class="btn btn-p" id="go" ${noSub.length?'disabled':''}>٢) ابدأ الاستيراد</button>`});
+document.addEventListener('click',async e=>{if(e.target.id!='go')return;e.target.disabled=true;$('#lg').style.display='block';log=[];
+ try{
+ // مدرسون
+ const tid={};for(const t of rows.t){const n=String(t.name).trim();if(!n)continue;let m=ts.find(x=>norm(x.name)==norm(n));
+  if(!m){const r=await post('edu_teachers',{name:n,bio:t.bio||null},'return=representation');if(!r.ok){say('تعذر إضافة المدرس '+n);continue}m=(await r.json())[0];ts.push(m);say('+ مدرس: '+n)}
+  tid[norm(n)]=m.id;if(t.image_url){const r=await rest('edu_teachers?id=eq.'+m.id,{method:'PATCH',body:JSON.stringify({image:t.image_url})});if(!r.ok)say('الصورة لم تُحفظ — شغّل setup_teacher_image.sql أولًا')}}
+ // دروس
+ const lid={};for(const l of rows.l){const sid=subId(l['المادة']),t=String(l['عنوان الدرس']).trim();if(!sid||!t)continue;let m=ls.find(x=>x.subject_id==sid&&norm(x.title)==norm(t));
+  if(!m){const r=await post('edu_lessons',{subject_id:sid,title:t,sort:+l['الترتيب']||ls.length+1},'return=representation');if(!r.ok){say('تعذر إضافة الدرس '+t);continue}m=(await r.json())[0];ls.push(m);say('+ درس: '+t)}
+  lid[sid+'|'+norm(t)]=m.id}
+ // فيديوهات
+ for(const v of rows.v){const tn=norm(v['المدرس']);if(!tn||!v.youtube_url)continue;const sid=subId(v['المادة']),l=lid[sid+'|'+norm(v['الدرس'])],t=tid[tn]||ts.find(x=>norm(x.name)==tn)?.id;
+  if(!l||!t){say('تخطّي: '+v['عنوان الفيديو']+' (درس أو مدرس غير موجود)');continue}
+  if(cs.some(c=>c.video_url==v.youtube_url&&c.lesson_id==l&&c.teacher_id==t)){say('موجود مسبقًا: '+v['عنوان الفيديو']);continue}
+  const body={lesson_id:l,teacher_id:t,title:v['عنوان الفيديو'],description:v['النوع']?'نوع المحتوى: '+v['النوع']:null,image:v.thumbnail||null,video_url:v.youtube_url,is_free:true};
+  const r=await post('edu_courses',body,'return=representation');if(!r.ok){say('تعذر إضافة: '+v['عنوان الفيديو']);continue}cs.push((await r.json())[0]);say('+ كورس: '+v['عنوان الفيديو'])}
+ say('انتهى ✓ — افتح courses.html وراجع النتيجة')}catch(_){say('حدث خطأ — تأكد أنك مسجّل كـ admin وأن ملفات SQL اتشغّلت')}});
+get('edu_staff?select=role').catch(()=>[]).then(async s=>{if(!s[0]||s[0].role!='admin')return $('#o').innerHTML='<p class="empty">هذه الصفحة للإدارة (admin) فقط.</p>';await load();draw()});
+</script></body></html>
