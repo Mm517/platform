@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8"><script>try{if(JSON.parse(localStorage.getItem('acad_user')||'null')?.token)location.replace('home.html')}catch(_){}</script>
+<meta charset="UTF-8"><script>try{if(JSON.parse(localStorage.getItem('acad_user')||'null')?.token)location.replace('home')}catch(_){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>أكاديمية | منصة تعليمية مجانية للطلاب</title>
-<meta name="description" content="منصة تعليمية عربية مجانية تساعدك على فهم دروسك، متابعة تقدمك، حل الامتحانات، والتواصل مع مجتمع من الطلاب والمدرسين.">
+<title>أكاديمية | منصة تعليمية مجانية للصف الثالث الإعدادي - دروس وامتحانات</title>
+<meta name="description" content="منصة أكاديمية: دروس لكل مواد الصف الثالث الإعدادي من أكثر من مدرس، امتحانات، نظام نقاط، وسؤال مباشر للمدرس. مجانًا بالكامل.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://mm517.github.io/platform/">
+
 <meta property="og:title" content="أكاديمية | تعلم أكثر. أنجز أكثر.">
-<meta property="og:description" content="منصة تعليمية عربية مجانية للطلاب.">
+<meta property="og:description" content="دروس الصف الثالث الإعدادي من أكثر من مدرس، امتحانات ونظام نقاط. مجانًا.">
 <meta property="og:type" content="website">
+<meta property="og:locale" content="ar_AR">
+<meta property="og:site_name" content="أكاديمية">
+<meta property="og:url" content="https://mm517.github.io/platform/">
+<meta property="og:image" content="https://mm517.github.io/platform/favicon.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="أكاديمية | منصة تعليمية مجانية للصف الثالث الإعدادي">
+<meta name="twitter:description" content="دروس وامتحانات ونقاط وسؤال مباشر للمدرس، كل ذلك مجانًا.">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"أكاديمية","url":"https://mm517.github.io/platform/","inLanguage":"ar"},{"@type":"EducationalOrganization","name":"أكاديمية","url":"https://mm517.github.io/platform/","description":"منصة تعليمية عربية مجانية لطلاب الصف الثالث الإعدادي."}]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -20,11 +33,11 @@
   <div class="wrap nav-in">
     <a href="#home" class="logo" aria-label="الرئيسية"><span class="logo-mark" aria-hidden="true"></span><span data-brand>أكاديمية</span></a>
     <nav class="links" id="links" aria-label="التنقل الرئيسي">
-      <a href="#home">الرئيسية</a><a href="home.html">منصتي</a><a href="courses.html">الكورسات</a><a href="teachers.html">المدرسون</a><a href="#features">المميزات</a><a href="#community">المجتمع</a><a href="#subjects">المواد</a><a href="#faq">الأسئلة الشائعة</a><a href="auth.html#login" class="ml">تسجيل الدخول</a>
+      <a href="#home">الرئيسية</a><a href="home">منصتي</a><a href="courses">الكورسات</a><a href="teachers">المدرسون</a><a href="#features">المميزات</a><a href="#community">المجتمع</a><a href="#subjects">المواد</a><a href="#faq">الأسئلة الشائعة</a><a href="auth#login" class="ml">تسجيل الدخول</a>
     </nav>
     <div class="nav-act">
-      <a href="auth.html#login" class="login">تسجيل الدخول</a>
-      <a href="auth.html#signup" class="btn btn-p btn-s">إنشاء حساب</a>
+      <a href="auth#login" class="login">تسجيل الدخول</a>
+      <a href="auth#signup" class="btn btn-p btn-s">إنشاء حساب</a>
       <button class="burger" id="burger" aria-label="فتح القائمة" aria-expanded="false"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
     </div>
   </div>
@@ -36,7 +49,7 @@
       <span class="badge">مجانية للصف الثالث الإعدادي</span>
       <h1>تعلم أكثر.<br>أنجز أكثر.</h1>
       <p class="lead">منصة لطلاب الصف الثالث الإعدادي: دروس لكل المواد من أكثر من مدرس، امتحانات، نظام نقاط، وسؤال مباشر للمدرس، وكل ذلك في مكان واحد.</p>
-      <div class="btns"><a href="auth.html#signup" class="btn btn-p">أنشئ حسابك مجانًا</a><a href="#features" class="btn btn-o">اكتشف المنصة</a></div>
+      <div class="btns"><a href="auth#signup" class="btn btn-p">أنشئ حسابك مجانًا</a><a href="#features" class="btn btn-o">اكتشف المنصة</a></div>
     </div>
     <div class="hero-img fade">
       <div class="mock" id="heroGfx" role="img" aria-label="لقطة من درس داخل المنصة"></div>
@@ -55,7 +68,7 @@
   <section class="sec wrap" id="features">
     <div class="sec-head fade"><h2>كل ما تحتاجه في الإعدادية، في مكان واحد</h2><p>شاهد كيف تبدو كل ميزة داخل المنصة.</p></div>
     <div id="show"></div>
-    <div class="onb" id="onb"><div class="dots" id="dots" aria-hidden="true"></div><a href="auth.html#signup" class="btn btn-p onb-btn">ابدأ</a></div>
+    <div class="onb" id="onb"><div class="dots" id="dots" aria-hidden="true"></div><a href="auth#signup" class="btn btn-p onb-btn">ابدأ</a></div>
     <div class="sec-head fade" style="margin-top:72px"><h3 class="more">وأكثر من ذلك</h3></div>
     <div class="feats" id="feats"></div>
   </section>
@@ -75,7 +88,7 @@
         <h2>مجتمعك التعليمي، مجانًا</h2>
         <p class="lead">مكان يجمع الطلاب للتعلم، مشاركة الأسئلة، تبادل الخبرات ومساعدة بعضهم البعض.</p>
         <ul class="list" id="clist"></ul>
-        <a href="auth.html#signup" class="btn btn-p">انضم للمجتمع</a>
+        <a href="auth#signup" class="btn btn-p">انضم للمجتمع</a>
       </div>
     </div>
   </section>
@@ -105,7 +118,7 @@
     <div class="wrap fade">
       <h2>ابدأ التعلم مجانًا</h2>
       <p>سجّل رقمك الآن لتكون من أوائل المنضمين.</p>
-      <a href="auth.html#signup" class="btn btn-w">أنشئ حسابك</a>
+      <a href="auth#signup" class="btn btn-w">أنشئ حسابك</a>
     </div>
   </section>
 </main>

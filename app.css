@@ -249,3 +249,20 @@ body.sbc .sbo{display:grid;place-items:center;position:fixed;top:12px;inset-inli
 .pl-set{z-index:9;touch-action:manipulation}.pl-sp{touch-action:pan-y}
 .pl.ad::after{display:none!important}
 @media(max-width:560px){.pl-ads{clip-path:polygon(0 0,100% 0,100% calc(100% - 100px),calc(100% - 190px) calc(100% - 100px),calc(100% - 190px) 100%,0 100%)}}
+
+/* ===== مشغّل يوتيوب العادي ===== */
+.vid.yt{position:relative;display:block;background:#000}
+.vid.yt .pl-m iframe{pointer-events:auto}
+/* ===== شريط تبويبات لوحة الإدارة ===== */
+.adm .ktabs{position:static;flex-wrap:wrap;overflow:visible;gap:6px;padding:8px;box-shadow:0 2px 10px rgba(16,24,40,.05)}
+.adm .ktabs button{flex:0 0 auto;padding:9px 14px}
+@media(max-width:720px){
+ .adm .ktabs{position:sticky;top:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;overscroll-behavior-x:contain;box-shadow:0 6px 18px rgba(16,24,40,.08)}
+ .adm .ktabs::-webkit-scrollbar{display:none;height:0}
+ .adm .ktabs button{scroll-snap-align:center}
+}
+/* ===== الدرس التالي ===== */
+.lc.nx{border-color:var(--bl);background:#eaf5ff;box-shadow:0 0 0 3px rgba(8,120,201,.12)}
+.lc .nt{background:var(--bl);color:#fff;border-radius:20px;font-size:12px;font-weight:700;padding:2px 10px;margin-inline-start:6px}
+.dn-b{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#ecfdf3;border:1px solid #86efac;color:#166534;border-radius:14px;padding:12px 14px;margin:0 0 14px}
+.tags em.op{background:#f1f5f9;color:#64748b}

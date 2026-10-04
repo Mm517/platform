@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /staff
+Disallow: /home
+Disallow: /profile
+Disallow: /support
+Disallow: /analytics
+
+Sitemap: https://mm517.github.io/platform/sitemap.xml

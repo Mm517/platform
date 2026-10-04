@@ -22,19 +22,19 @@ const ago=d=>{const s=(Date.now()-new Date(d))/1000;return s<60?'الآن':s<360
 function toast(t,bad){let h=$('#tst');if(!h){document.body.insertAdjacentHTML('beforeend','<div id="tst" role="status" aria-live="polite"></div>');h=$('#tst')}const e=document.createElement('div');e.className='ts'+(bad?' bad':'');e.innerHTML=ic(bad?'x':'check',16)+'<span>'+esc(t)+'</span>';h.appendChild(e);setTimeout(()=>e.remove(),3800)}
 const ICON={book:'<path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/>',globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',math:'<path d="M6 6h6M9 3v6M14 8h6M6 17h6M15 15l5 5M20 15l-5 5"/>',flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3M8 15h8"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14"/>'};
 const ico=(k,s=28)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[k]||ICON.book}</svg>`;
-const NAV=[['home','الرئيسية','home.html','<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>'],['courses','الكورسات','courses.html','<path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/>'],['books','الكتب','books.html','<path d="M5 3h11a3 3 0 013 3v15H8a3 3 0 01-3-3zM5 18a3 3 0 013-3h11"/>'],['files','الملفات','files.html','<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8zM14 3v5h5"/>'],['updates','التحديثات','updates.html','<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/>'],['analytics','التحليلات','analytics.html','<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'],['support','الدعم','support.html','<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>'],['profile','البروفايل','profile.html','<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>']];
+const NAV=[['home','الرئيسية','home','<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>'],['courses','الكورسات','courses','<path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/>'],['books','الكتب','books','<path d="M5 3h11a3 3 0 013 3v15H8a3 3 0 01-3-3zM5 18a3 3 0 013-3h11"/>'],['files','الملفات','files','<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8zM14 3v5h5"/>'],['updates','التحديثات','updates','<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/>'],['analytics','التحليلات','analytics','<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'],['support','الدعم','support','<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>'],['profile','البروفايل','profile','<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>']];
 function shell(active){const u=U();
  const li=NAV.map(([k,t,h,p])=>`<a href="${h}" class="sl ${k==active?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg><span>${t}</span></a>`).join('');
- document.body.insertAdjacentHTML('afterbegin',`<div class="mbar"><button id="mb" aria-label="القائمة">${ic('menu',24)}</button><a href="home.html" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><span class="mb-r"><button class="bell" aria-label="الإشعارات">${ic('bell',22)}<i class="bell-n" hidden></i></button><span class="pt">${ic('star',14,'fill amber')} <b class="pts">0</b></span></span></div><div class="ov" id="ov"></div>
- <aside class="sb" id="sb"><div class="sb-h"><a href="home.html" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><span style="display:flex;gap:4px"><button class="bell" aria-label="الإشعارات">${ic('bell',20)}<i class="bell-n" hidden></i></button><button class="bell sbx" id="sbc" aria-label="إخفاء القائمة" title="إخفاء القائمة">${ic('right',20)}</button></span></div><nav>${li}</nav>
- <div class="sb-f">${u?`<div class="pt">${ic('star',14,'fill amber')} <b class="pts" id="pts">0</b> نقطة</div><div class="sb-n">${esc(u.name||'')}</div><button id="lo" class="btn btn-o btn-s">تسجيل الخروج</button>`:'<a class="btn btn-p btn-s" href="auth.html#login">تسجيل الدخول</a>'}</div></aside>`);
+ document.body.insertAdjacentHTML('afterbegin',`<div class="mbar"><button id="mb" aria-label="القائمة">${ic('menu',24)}</button><a href="home" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><span class="mb-r"><button class="bell" aria-label="الإشعارات">${ic('bell',22)}<i class="bell-n" hidden></i></button><span class="pt">${ic('star',14,'fill amber')} <b class="pts">0</b></span></span></div><div class="ov" id="ov"></div>
+ <aside class="sb" id="sb"><div class="sb-h"><a href="home" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><span style="display:flex;gap:4px"><button class="bell" aria-label="الإشعارات">${ic('bell',20)}<i class="bell-n" hidden></i></button><button class="bell sbx" id="sbc" aria-label="إخفاء القائمة" title="إخفاء القائمة">${ic('right',20)}</button></span></div><nav>${li}</nav>
+ <div class="sb-f">${u?`<div class="pt">${ic('star',14,'fill amber')} <b class="pts" id="pts">0</b> نقطة</div><div class="sb-n">${esc(u.name||'')}</div><button id="lo" class="btn btn-o btn-s">تسجيل الخروج</button>`:'<a class="btn btn-p btn-s" href="auth#login">تسجيل الدخول</a>'}</div></aside>`);
  document.body.insertAdjacentHTML('beforeend',`<button id="sbo" class="sbo" aria-label="إظهار القائمة" title="إظهار القائمة">${ic('menu',22)}</button>`);
  const sc=v=>{document.body.classList.toggle('sbc',v);try{localStorage.setItem('acad_sbc',v?'1':'')}catch(_){}};try{if(localStorage.getItem('acad_sbc'))document.body.classList.add('sbc')}catch(_){}
  $('#sbc').onclick=e=>{e.stopPropagation();sc(true)};$('#sbo').onclick=()=>sc(false);
  notifInit();const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
- const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth.html#login'};
- if(u)get('edu_profiles?select=points,banned').then(r=>{if(r[0]&&r[0].banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth.html#login';return}if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
- if(u)get('edu_staff?select=role').then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff.html" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
+ const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth#login'};
+ if(u)get('edu_profiles?select=points,banned').then(r=>{if(r[0]&&r[0].banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth#login';return}if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
+ if(u)get('edu_staff?select=role').then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
 const topbar=()=>shell(document.body.dataset.p||'');
 const lvl=p=>Math.floor(p/100)+1;
 
@@ -62,10 +62,29 @@ function ytFallback(box,id,why,opt={}){const url='https://www.youtube.com/watch?
  box.querySelector('[data-yd]').onclick=()=>{opt.onend&&opt.onend();const e=box.querySelector('.fe');e.innerHTML=opt.end?opt.end():'';e.hidden=false;e.style.marginTop='12px';e.style.color='#fff';box.querySelector('.yf-a').remove();box.querySelector('.yf-s').remove();const n=box.querySelector('.yf-n');if(n)n.hidden=true}}
 const fmtT=t=>{t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 const NE=u=>/#noembed\b/.test(String(u||'')),cleanU=u=>String(u||'').replace(/#noembed\b/,'').trim();
+
+/* مشغّل يوتيوب العادي (بأزراره وإعلاناته وزر "تخطي" الأصلي) + التقاط انتهاء الفيديو وحفظ التقدم */
+function mountYT(box,id,opt={}){
+ box.className='vid yt';box.innerHTML='<div class="pl-m"></div><div class="pl-end" hidden></div>';
+ const mEl=box.querySelector('.pl-m'),end=box.querySelector('.pl-end');let P=null,iv=null,tries=0,t0=null,mainDur=0,fired=false;
+ const fail=why=>{clearInterval(iv);clearTimeout(t0);try{P&&P.destroy()}catch(_){}ytFallback(box,id,why,opt)};
+ const showEnd=()=>{if(!fired){fired=true;opt.onend&&opt.onend()}end.innerHTML=opt.end?opt.end():'<div><div style="font-size:20px;font-weight:700">انتهى الفيديو</div><button class="btn btn-s" style="background:#fff;color:#075B98;margin-top:10px" data-c="replay">إعادة المشاهدة</button></div>';end.hidden=false};
+ box.addEventListener('click',e=>{const b=e.target.closest('[data-c=replay]');if(b&&P){end.hidden=true;fired=false;P.seekTo(0,true);P.playVideo()}});
+ const isAd=()=>{try{const vd=P.getVideoData(),d=P.getDuration()||0;return !!(vd&&vd.video_id&&vd.video_id!==id)||(mainDur>5&&d>0&&Math.abs(d-mainDur)>3)}catch(_){return false}};
+ t0=setTimeout(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'),12000);
+ const mk=host=>{mEl.innerHTML='';const h=document.createElement('div');mEl.appendChild(h);
+  const pv={controls:1,fs:1,rel:0,playsinline:1,hl:'ar',cc_load_policy:0};if(/^https?:$/.test(location.protocol))pv.origin=location.origin;if(opt.start>5)pv.start=Math.floor(opt.start);
+  const cfg={videoId:id,width:'100%',height:'100%',playerVars:pv,events:{
+   onReady:()=>{clearTimeout(t0);mainDur=P.getDuration()||0;
+    iv=setInterval(()=>{if(!box.isConnected)return clearInterval(iv);try{if(P.getPlayerState()!==1)return;const d=P.getDuration()||0;if(!mainDur&&d>60)mainDur=d;if(isAd())return;opt.ontick&&opt.ontick(P.getCurrentTime()||0,d)}catch(_){}},1000)},
+   onStateChange:e=>{if(e.data===1){end.hidden=true}else if(e.data===0&&!isAd())showEnd()},
+   onError:e=>{if([101,150,153].includes(e.data)&&!tries++){try{P.destroy()}catch(_){}return mk('https://www.youtube-nocookie.com')}fail([101,150,153].includes(e.data)?'هذا الفيديو غير مسموح بتشغيله داخل الموقع':'الفيديو غير متاح أو محذوف')}}};
+  if(host)cfg.host=host;P=new YT.Player(h,cfg)};
+ ytApi().then(()=>mk()).catch(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'))}
 const QL={hd2160:'2160p',hd1440:'1440p',hd1080:'1080p',hd720:'720p',large:'480p',medium:'360p',small:'240p',tiny:'144p'},RATES=[0.5,0.75,1,1.25,1.5,1.75,2];
 /* مشغّل بواجهة الموقع: تحكم خاص + إعدادات (سرعة/جودة/صوت/تقديم/وقت محدد) + إطار إعلان خاص + بطاقة للفيديو الممنوع تضمينه */
 function mountVideo(box,url0,opt={}){if(!box)return;const flag=NE(url0),url=cleanU(url0);box.innerHTML='';box.className='vid';const id=ytId(url),raw=!id&&!/drive\.google\.com|vimeo\.com/.test(url||'');
- if(id&&flag)return ytFallback(box,id,'هذا الفيديو غير مسموح بتشغيله داخل الموقع',opt);
+ if(id)return flag?ytFallback(box,id,'هذا الفيديو غير مسموح بتشغيله داخل الموقع',opt):mountYT(box,id,opt);
  if(!id&&!raw){let m=String(url).match(/drive\.google\.com\/file\/d\/([\w-]+)/);
   if(m)return void(box.innerHTML=`<iframe src="https://drive.google.com/file/d/${m[1]}/preview" allow="autoplay; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>`);
   m=String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);return void(box.innerHTML=`<iframe src="https://player.vimeo.com/video/${m[1]}?title=0&byline=0&portrait=0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" loading="lazy"></iframe>`)}
@@ -117,14 +136,7 @@ function mountVideo(box,url0,opt={}){if(!box)return;const flag=NE(url0),url=clea
  const iv=setInterval(()=>{if(!box.isConnected)return clearInterval(iv);tick()},300);
  if(raw){const v=document.createElement('video');v.playsInline=true;v.preload='metadata';v.src=url;mEl.appendChild(v);
   A={play:()=>v.play(),pause:()=>v.pause(),seek:t=>{v.currentTime=t},cur:()=>v.currentTime,dur:()=>v.duration||0,rate:r=>{v.playbackRate=r},mute:m=>{v.muted=m},muted:()=>v.muted,vol:x=>{v.volume=x/100},getvol:()=>v.volume*100,native:()=>v.webkitEnterFullscreen&&v.webkitEnterFullscreen()};
-  v.onplay=()=>setSt('play');v.onpause=()=>{if(!v.ended)setSt('pause')};v.onended=()=>setSt('end');v.onloadedmetadata=()=>{if(opt.start>5&&opt.start<v.duration-5)v.currentTime=opt.start;tick()};v.onerror=()=>{mEl.innerHTML='<span style="color:#fff;display:grid;place-items:center;height:100%">تعذر تشغيل الفيديو</span>'};return}
- const fail=why=>{clearTimeout(t0);ytFallback(box,id,why,opt)};let t0=setTimeout(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'),9000);
- ytApi().then(()=>{const holder=document.createElement('div');mEl.appendChild(holder);
-  const pv={controls:0,disablekb:1,fs:0,rel:0,modestbranding:1,iv_load_policy:3,playsinline:1,cc_load_policy:0,hl:'ar'};if(/^https?:$/.test(location.protocol))pv.origin=location.origin;
-  let tries=0;const mk=(hd,hold)=>{const cfg={videoId:id,width:'100%',height:'100%',playerVars:pv,events:{
-   onReady:()=>{clearTimeout(t0);A={play:()=>P.playVideo(),pause:()=>P.pauseVideo(),seek:t=>P.seekTo(t,true),cur:()=>P.getCurrentTime()||0,dur:()=>P.getDuration()||0,rate:r=>P.setPlaybackRate(r),mute:m=>m?P.mute():P.unMute(),muted:()=>P.isMuted(),vol:x=>P.setVolume(x),getvol:()=>P.getVolume(),quals:()=>P.getAvailableQualityLevels()||[],getq:()=>P.getPlaybackQuality(),setq:x=>{P.setPlaybackQuality(x);P.setPlaybackQualityRange&&P.setPlaybackQualityRange(x,x)},ad:()=>{try{const vd=P.getVideoData(),d=P.getDuration()||0;if(!mainDur&&P.getPlayerState()!=1)mainDur=d;return !!(vd&&vd.video_id&&vd.video_id!==id)||(mainDur>5&&d>0&&Math.abs(d-mainDur)>3&&state=='play')}catch(_){return false}}};mainDur=P.getDuration()||0;if(opt.start>5)P.seekTo(opt.start,true);tick()},
-   onStateChange:e=>{const s=e.data;if(s==1)setSt('play');else if(s==2)setSt('pause');else if(s==0)setSt('end')},
-   onError:e=>{if([101,150,153].includes(e.data)&&!tries++){try{P.destroy()}catch(_){}const h2=document.createElement('div');mEl.innerHTML='';mEl.appendChild(h2);return mk(null,h2)}fail([101,150,153].includes(e.data)?'هذا الفيديو غير مسموح بتشغيله داخل الموقع':'الفيديو غير متاح أو محذوف')}}};if(hd)cfg.host=hd;P=new YT.Player(hold,cfg)};let P;mk('https://www.youtube-nocookie.com',holder)}).catch(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'))}
+  v.onplay=()=>setSt('play');v.onpause=()=>{if(!v.ended)setSt('pause')};v.onended=()=>setSt('end');v.onloadedmetadata=()=>{if(opt.start>5&&opt.start<v.duration-5)v.currentTime=opt.start;tick()};v.onerror=()=>{mEl.innerHTML='<span style="color:#fff;display:grid;place-items:center;height:100%">تعذر تشغيل الفيديو</span>'};return}}
 
 
 /* ===== الإشعارات: جرس + لوحة + عدّاد غير المقروء ===== */
@@ -147,13 +159,14 @@ function notifInit(){if(!U())return;document.body.insertAdjacentHTML('beforeend'
 
 /* مكان الطالب: آخر جزء شاهده -> يكمّل منه، أو الجزء/الدرس التالي */
 async function resume(){if(!U())return null;try{
- const[pg,cs,ls]=await Promise.all([get('edu_progress?select=course_id,done&order=updated_at.desc&limit=1'),get('edu_courses?select=id,lesson_id,teacher_id,title&order=sort,id'),get('edu_lessons?select=id,subject_id,title&order=sort,id')]);
- const p=pg[0],c=p&&cs.find(x=>x.id==p.course_id),l=c&&ls.find(x=>x.id==c.lesson_id);if(!l)return null;
- if(!p.done)return{t:'أنت هنا — كمّل من حيث وقفت',h:'course.html?id='+c.id,a:l.title,b:c.title};
- const sib=cs.filter(x=>x.lesson_id==c.lesson_id&&x.teacher_id==c.teacher_id),n=sib[sib.findIndex(x=>x.id==c.id)+1];
- if(n)return{t:'الجزء التالي',h:'course.html?id='+n.id,a:l.title,b:n.title};
+ const[pg,cs,ls]=await Promise.all([get('edu_progress?select=course_id,done&order=updated_at.desc'),get('edu_courses?select=id,lesson_id,teacher_id,title&order=sort,id'),get('edu_lessons?select=id,subject_id,title&order=sort,id')]);
+ const p=pg[0],dn=new Set(pg.filter(x=>x.done).map(x=>x.course_id)),c=p&&cs.find(x=>x.id==p.course_id),l=c&&ls.find(x=>x.id==c.lesson_id);if(!l)return null;
+ const lessonDone=cs.filter(x=>x.lesson_id==l.id).some(x=>{const m=cs.filter(y=>y.lesson_id==l.id&&y.teacher_id==x.teacher_id);return m.every(y=>dn.has(y.id))});
+ if(!p.done)return{t:'أنت هنا — كمّل من حيث وقفت',h:'course?id='+c.id,a:l.title,b:c.title};
+ const sib=cs.filter(x=>x.lesson_id==c.lesson_id&&x.teacher_id==c.teacher_id),n=lessonDone?null:sib[sib.findIndex(x=>x.id==c.id)+1];
+ if(n)return{t:'الجزء التالي',h:'course?id='+n.id,a:l.title,b:n.title};
  const sl=ls.filter(x=>x.subject_id==l.subject_id),nl=sl.slice(sl.findIndex(x=>x.id==l.id)+1).find(x=>cs.some(y=>y.lesson_id==x.id));
- return nl?{t:'خلّصت «'+l.title+'» — الدرس التالي',h:'courses.html#'+l.subject_id+'-'+nl.id,a:nl.title,b:''}:{t:'خلّصت كل دروس المادة',h:'courses.html#'+l.subject_id,a:l.title,b:''}}catch(_){return null}}
+ return nl?{t:'خلّصت «'+l.title+'» — الدرس التالي',h:'courses#'+l.subject_id+'-'+nl.id,a:nl.title,b:''}:{t:'خلّصت كل دروس المادة',h:'courses#'+l.subject_id,a:l.title,b:''}}catch(_){return null}}
 const resumeBox=r=>r?`<a class="box row" href="${r.h}" style="border-color:var(--bl);background:#eaf5ff"><span><small class="muted">${esc(r.t)}</small><br><b>${esc(r.a)}</b>${r.b?' — '+esc(r.b):''}</span>${ic('left',20)}</a>`:'';
 /* تحويل رابط (درايف / pdf / مستندات) لرابط يتفتح داخل iframe */
 const embedUrl=u=>{u=String(u||'');let m=u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([\w-]+)/);if(m)return'https://drive.google.com/file/d/'+m[1]+'/preview';

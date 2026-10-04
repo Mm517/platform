@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>الدروس | أكاديمية</title>
+<title>دروس الصف الثالث الإعدادي | أكاديمية</title>
+<meta name="description" content="تصفح دروس كل مواد الصف الثالث الإعدادي: شرح بالفيديو، مذكرات وملخصات، وامتحانات من أفضل المدرسين.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://mm517.github.io/platform/courses">
+
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css">
 <style>
@@ -29,17 +35,23 @@ const goto=()=>{location.hash=[S,L,T].filter(Boolean).join('-')||'';if(!location
 const pl=n=>n==1?'جزء واحد':n==2?'جزئين':n+' أجزاء';
 const uniq=a=>[...new Set(a)];
 const isDone=p=>p.length&&p.every(c=>pg[c.id]?.done);
+/* الدرس يعتبر خلص لو الطالب خلّص كل أجزاء أي مدرس واحد - مش لازم يشوف الكل */
+const lessonDone=l=>{const m=cs.filter(c=>c.lesson_id==l.id);return uniq(m.map(c=>c.teacher_id)).some(t=>isDone(m.filter(c=>c.teacher_id==t)))};
+const hasC=l=>cs.some(c=>c.lesson_id==l.id);
+const nextOf=l=>{const a=ls.filter(x=>x.subject_id==l.subject_id),i=a.findIndex(x=>x.id==l.id);return a.slice(i+1).find(hasC)||null};
+const doneBanner=(l,who)=>{if(!lessonDone(l))return'';const n=nextOf(l);return `<div class="dn-b"><span>${ic('check',18)} <b>أحسنت! خلّصت هذا الدرس${who?' مع '+esc(who):''}</b> — مش لازم تشوف باقي المدرسين.</span>${n?`<button class="btn btn-p btn-s" data-nl="${n.id}">الدرس التالي: ${esc(n.title)}</button>`:`<span>خلّصت كل دروس المادة</span>`}</div>`};
+let NX=0;
 function lessonCard(l,i){const m=cs.filter(c=>c.lesson_id==l.id),tids=uniq(m.map(c=>c.teacher_id)),ids=new Set(m.map(c=>c.id)),
- ex=qz.filter(q=>ids.has(q.course_id)).length,done=tids.some(t=>isDone(m.filter(c=>c.teacher_id==t))),st=m.some(c=>pg[c.id]);
- return `<button class="lc ${done?'done':''}" data-l="${l.id}"><span class="n">${done?ic('check',18):i+1}</span><span class="t"><b>${esc(l.title)}</b><small>${m.length?`${tids.length} مدرس • ${m.length} فيديو${ex?' • '+ex+' امتحان':''}${st&&!done?' • بدأت فيه':''}`:'لم يُضف محتوى بعد'}</small></span><span class="avs">${tids.slice(0,3).map(t=>av(tch[t])).join('')}</span>${ic('left',18)}</button>`}
-function teacherCard(t,m){const p=m.filter(c=>c.teacher_id==t),ids=new Set(p.map(c=>c.id)),T0=tch[t],ex=qz.filter(q=>ids.has(q.course_id)).length,f=fl.filter(x=>ids.has(x.course_id)&&x.url).length,done=isDone(p),st=p.some(c=>pg[c.id]);
- return `<button class="tcd" data-t="${t}">${av(T0)}<span class="t"><b>${esc(T0?.name||'')}</b>${T0?.bio?`<small>${esc(T0.bio)}</small>`:''}<span class="tags"><em>${pl(p.length)}</em>${f?`<em>${f} مذكرة</em>`:''}${ex?`<em class="x">${ex==1?'امتحان':ex+' امتحانات'}</em>`:''}${done?'<em class="ok">تمت المشاهدة</em>':st?'<em class="w">بدأت فيه</em>':''}</span></span>${ic('left',18)}</button>`}
+ ex=qz.filter(q=>ids.has(q.course_id)).length,done=lessonDone(l),st=m.some(c=>pg[c.id]),nx=l.id==NX&&!done;
+ return `<button class="lc ${done?'done':''} ${nx?'nx':''}" data-l="${l.id}"><span class="n">${done?ic('check',18):i+1}</span><span class="t"><b>${esc(l.title)}</b>${nx?'<span class="nt">التالي</span>':''}<small>${m.length?`${tids.length} مدرس • ${m.length} فيديو${ex?' • '+ex+' امتحان':''}${st&&!done?' • بدأت فيه':''}`:'لم يُضف محتوى بعد'}</small></span><span class="avs">${tids.slice(0,3).map(t=>av(tch[t])).join('')}</span>${ic('left',18)}</button>`}
+function teacherCard(t,m){const p=m.filter(c=>c.teacher_id==t),ids=new Set(p.map(c=>c.id)),T0=tch[t],ld=m[0]&&lessonDone(ls.find(x=>x.id==m[0].lesson_id)||{id:0}),ex=qz.filter(q=>ids.has(q.course_id)).length,f=fl.filter(x=>ids.has(x.course_id)&&x.url).length,done=isDone(p),st=p.some(c=>pg[c.id]);
+ return `<button class="tcd" data-t="${t}">${av(T0)}<span class="t"><b>${esc(T0?.name||'')}</b>${T0?.bio?`<small>${esc(T0.bio)}</small>`:''}<span class="tags"><em>${pl(p.length)}</em>${f?`<em>${f} مذكرة</em>`:''}${ex?`<em class="x">${ex==1?'امتحان':ex+' امتحانات'}</em>`:''}${done?'<em class="ok">تمت المشاهدة</em>':ld?'<em class="op">اختياري — الدرس خلص</em>':st?'<em class="w">بدأت فيه</em>':''}</span></span>${ic('left',18)}</button>`}
 function content(l,t){const p=cs.filter(c=>c.lesson_id==l.id&&c.teacher_id==t).sort((a,b)=>(a.sort||0)-(b.sort||0)||a.id-b.id),ids=new Set(p.map(c=>c.id)),
  files=fl.filter(f=>ids.has(f.course_id)&&f.url),exams=qz.filter(q=>ids.has(q.course_id));
  const vids=p.length?`<h4>${ic('video',16)} الشرح <span class="sp">${pl(p.length)}</span></h4>`+(p.length>1?'<p class="muted" style="margin:0 0 8px">اختر الجزء اللي عايز تشوفه</p>':'')+p.map((c,k)=>{const g=pg[c.id],pc=g&&g.duration?Math.min(100,Math.round(g.position/g.duration*100)):0;
-  return `<a class="pr" href="course.html?id=${c.id}"><span class="${g?.done?'ok':''}">${ic(g?.done?'check':'play',20)}</span><span class="t">${p.length>1?`الجزء ${k+1}: `:''}${esc(c.title)}${g&&!g.done&&pc?`<div class="pbar"><i style="width:${pc}%"></i></div>`:''}</span><small class="muted">${g?.done?'تمت المشاهدة':pc?'كمّل ('+pc+'%)':c.video_url?'ابدأ':'قريبًا'}</small></a>`}).join(''):'';
+  return `<a class="pr" href="course?id=${c.id}"><span class="${g?.done?'ok':''}">${ic(g?.done?'check':'play',20)}</span><span class="t">${p.length>1?`الجزء ${k+1}: `:''}${esc(c.title)}${g&&!g.done&&pc?`<div class="pbar"><i style="width:${pc}%"></i></div>`:''}</span><small class="muted">${g?.done?'تمت المشاهدة':pc?'كمّل ('+pc+'%)':c.video_url?'ابدأ':'قريبًا'}</small></a>`}).join(''):'';
  const notes=files.map(f=>`<div class="pr" style="display:block"><div class="row"><span>${ic(f.kind=='summary'?'note':'file',18)} ${esc(f.title)}</span><button class="btn btn-p btn-s" data-vw="${f.id}">فتح</button></div><div id="vw${f.id}"></div></div>`).join('');
- const ex=exams.map(q=>{const b=at.filter(a=>a.quiz_id==q.id).sort((x,y)=>y.score-x.score)[0];return `<a class="pr" href="course.html?id=${q.course_id}&tab=5"><span>${ic('quiz',20)}</span><span class="t">${esc(q.title)}<br><small class="muted">${q.edu_quiz_questions?.[0]?.count??''} سؤال</small></span><small class="muted">${b?'أفضل نتيجة '+b.score+'/'+b.total:'ابدأ'}</small></a>`}).join('');
+ const ex=exams.map(q=>{const b=at.filter(a=>a.quiz_id==q.id).sort((x,y)=>y.score-x.score)[0];return `<a class="pr" href="course?id=${q.course_id}&tab=5"><span>${ic('quiz',20)}</span><span class="t">${esc(q.title)}<br><small class="muted">${q.edu_quiz_questions?.[0]?.count??''} سؤال</small></span><small class="muted">${b?'أفضل نتيجة '+b.score+'/'+b.total:'ابدأ'}</small></a>`}).join('');
  return vids+(notes?`<h4>${ic('note',16)} المذكرات والملخصات</h4>${notes}`:'')+(ex?`<h4>${ic('quiz',16)} الامتحانات</h4>${ex}`:'')||'<p class="empty">لا يوجد محتوى لهذا المدرس في الدرس بعد.</p>'}
 function draw(){
  const s=subs.find(x=>x.id==S),l=s&&ls.find(x=>x.id==L&&x.subject_id==S),m=l?cs.filter(c=>c.lesson_id==l.id):[],t=l&&T&&m.some(c=>c.teacher_id==T)?T:0;
@@ -47,12 +59,13 @@ function draw(){
  if(l)cr+=`<i>${ic('left',14)}</i>`+(t?`<a data-n="2">${esc(l.title)}</a>`:`<span>${esc(l.title)}</span>`);if(t)cr+=`<i>${ic('left',14)}</i><span>${esc(tch[t]?.name||'')}</span>`;
  $('#cr').innerHTML=cr;let h='';
  if(!s){h=`<p class="muted" style="margin-bottom:14px">اختر المادة</p><div class="pick">`+subs.map(x=>`<button class="pk" data-s="${x.id}"><div class="ic" style="background:${x.color||'#0878C9'}">${ico(x.icon,28)}</div><h3>${esc(x.name)}</h3><small>${ls.filter(y=>y.subject_id==x.id).length} درس</small></button>`).join('')+'</div>'}
- else if(!l){const a=ls.filter(x=>x.subject_id==S);let un=null;h=(RS?resumeBox(RS):'')+`<p class="muted" style="margin-bottom:10px">اختر الدرس</p>`;a.forEach((x,i)=>{if(x.unit&&x.unit!=un){un=x.unit;h+=`<div class="un">${esc(un)}</div>`}h+=lessonCard(x,i)});if(!a.length)h='<p class="empty">لا توجد دروس بعد.</p>'}
- else if(!t){const tids=uniq(m.map(c=>c.teacher_id));h=`<h2 class="lh2">${esc(l.title)}</h2><p class="muted" style="margin-bottom:12px">اختر المدرس</p>`+(tids.length?tids.map(x=>teacherCard(x,m)).join(''):'<p class="empty">لا يوجد مدرسين لهذا الدرس بعد.</p>')}
- else h=`<h2 class="lh2">${esc(l.title)}</h2><div class="tb">${av(tch[t])}<span><a href="teachers.html?id=${t}"><b>${esc(tch[t]?.name||'')}</b></a></span></div><div class="lb">${content(l,t)}</div>`;
+ else if(!l){const a=ls.filter(x=>x.subject_id==S);NX=(a.find(x=>hasC(x)&&!lessonDone(x))||{}).id||0;let un=null;h=(RS?resumeBox(RS):'')+`<p class="muted" style="margin-bottom:10px">اختر الدرس</p>`;a.forEach((x,i)=>{if(x.unit&&x.unit!=un){un=x.unit;h+=`<div class="un">${esc(un)}</div>`}h+=lessonCard(x,i)});if(!a.length)h='<p class="empty">لا توجد دروس بعد.</p>'}
+ else if(!t){const tids=uniq(m.map(c=>c.teacher_id));h=`<h2 class="lh2">${esc(l.title)}</h2>${doneBanner(l)}<p class="muted" style="margin-bottom:12px">اختر المدرس</p>`+(tids.length?tids.map(x=>teacherCard(x,m)).join(''):'<p class="empty">لا يوجد مدرسين لهذا الدرس بعد.</p>')}
+ else h=`<h2 class="lh2">${esc(l.title)}</h2>${doneBanner(l,isDone(m.filter(c=>c.teacher_id==t))?tch[t]?.name:'')}<div class="tb">${av(tch[t])}<span><a href="teachers?id=${t}"><b>${esc(tch[t]?.name||'')}</b></a></span></div><div class="lb">${content(l,t)}</div>`;
  $('#out').innerHTML=h}
-document.addEventListener('click',e=>{const t=e.target.closest('[data-s],[data-l],[data-t],[data-n],[data-vw]');if(!t)return;
+document.addEventListener('click',e=>{const t=e.target.closest('[data-s],[data-l],[data-t],[data-n],[data-vw],[data-nl]');if(!t)return;
  if(t.dataset.n!=null){const n=+t.dataset.n;if(n<1)S=0;if(n<2)L=0;T=0;return goto()}
+ if(t.dataset.nl){L=+t.dataset.nl;T=0;return goto()}
  if(t.dataset.s){S=+t.dataset.s;L=T=0;return goto()}
  if(t.dataset.l){L=+t.dataset.l;T=0;return goto()}
  if(t.dataset.t){T=+t.dataset.t;return goto()}

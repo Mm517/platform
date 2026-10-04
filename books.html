@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>الكتب | أكاديمية</title>
+<title>الكتب والمراجع | أكاديمية</title>
+<meta name="description" content="كتب المدرسة والمراجع للصف الثالث الإعدادي في مكان واحد.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://mm517.github.io/platform/books">
+
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
 <body class="cr" data-p="books"><main class="pg" id="m"><h1>الكتب</h1><p class="muted">كتب المدرسة والمراجع.</p><div id="o"><div class="skw" aria-busy="true"><div class="sk sk-h"></div><div class="sk sk-ln" style="width:50%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div></div></main>
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
 topbar();
-const need=()=>U()?false:(location.href='auth.html#login',true);
+const need=()=>U()?false:(location.href='auth#login',true);
 
 get('edu_books?order=id.desc').then(b=>$('#o').innerHTML=b.length?`<div class="grid">${b.map(x=>`<a class="cc" target="_blank" rel="noopener" href="${esc(x.url||'#')}"><div class="cv2" style="${x.cover?`background-image:url('${esc(x.cover)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}">${x.cover?'':ico('book',44)}</div><div class="cb"><h3>${esc(x.title)}</h3><p>${esc(x.subject||'')}</p></div></a>`).join('')}</div>`:'<p class="empty">لا توجد كتب بعد.</p>').catch(()=>$('#o').innerHTML='<p class="empty">لا توجد كتب بعد.</p>');
 </script></body></html>

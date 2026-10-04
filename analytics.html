@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>التحليلات | أكاديمية</title>
+<meta name="description" content="التحليلات | أكاديمية">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
 <body class="cr" data-p="analytics"><main class="pg" id="m"><h1>تحليلات تقدمك</h1><p class="muted">نقاطك ومستواك.</p><div id="o"><div class="skw" aria-busy="true"><div class="sk sk-h"></div><div class="sk sk-ln" style="width:50%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div></div></main>
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
 topbar();
-const need=()=>U()?false:(location.href='auth.html#login',true);
+const need=()=>U()?false:(location.href='auth#login',true);
 
 if(!need())get('edu_profiles?select=points').then(p=>{const n=p[0]?.points||0;
 $('#o').innerHTML=`<div class="stat"><div class="box"><b>${n}</b>إجمالي النقاط</div><div class="box"><b>${lvl(n)}</b>المستوى</div></div><div class="box"><div class="row"><span>التقدم للمستوى ${lvl(n)+1}</span><b>${n%100}/100</b></div><div class="pbar"><i style="width:${n%100}%"></i></div></div><div class="box muted">تكسب نقاط: مشاهدة الدرس، فتح الملفات، حل الأسئلة، الأسئلة للمدرس، والتقييمات.</div>`}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');

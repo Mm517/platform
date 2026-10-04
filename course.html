@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>الكورس | أكاديمية</title>
+<meta name="description" content="شاهد الكورس: فيديو الشرح والملفات وفيديوهات الحل والاختبارات على منصة أكاديمية.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
 <body class="cr" data-p="courses"><main class="pg" id="m"><div class="skw" aria-busy="true"><div class="sk sk-vid"></div><div class="sk sk-h" style="margin-top:14px"></div><div class="sk sk-ln" style="width:45%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div></main>
@@ -10,7 +15,7 @@ topbar();
 const id=+new URLSearchParams(location.search).get('id'),T=['وصف الكورس','الملفات والملخصات','فيديوهات الحل','الأسئلة','التقييمات','الاختبارات'];
 let lsn=[],c,files=[],sols=[],qs=[],rv=[],tab=+new URLSearchParams(location.search).get('tab')||0,pr=null,sib=[],T0=null,sub=false,quizzes=[],att=[],qa=null,res=null;
 const date=d=>new Date(d).toLocaleDateString('ar-EG');
-const need=()=>U()?false:(location.href='auth.html#login',true);
+const need=()=>U()?false:(location.href='auth#login',true);
 function quizHtml(){
  if(qa){const q=quizzes.find(x=>x.id==qa),qx=q.edu_quiz_questions;
   if(res)return `<div class="box"><b>${esc(q.title)}</b><div class="stat"><div class="box"><b>${res.s}/${res.t}</b>نتيجتك</div></div>${qx.map((x,i)=>`<div class="box"><b>${i+1}) ${esc(x.q)}</b>${x.options.map((o,j)=>`<div class="${j==x.answer?'ans':''}" style="padding:4px 8px">${j==x.answer?ic('check',16,'ok'):res.a[i]==j?ic('x',16,'no'):'<span style="display:inline-block;width:16px"></span>'} ${esc(o)}</div>`).join('')}</div>`).join('')}<button class="btn btn-p btn-s" data-qz="back">رجوع للاختبارات</button></div>`;
@@ -25,17 +30,17 @@ function tabHtml(){
  return `<div class="box fm"><b>قيّم الكورس</b><div><select id="rs">${[5,4,3,2,1].map(n=>`<option value="${n}">${n+' من 5'}</option>`).join('')}</select></div><textarea id="rc" maxlength="600" placeholder="رأيك في الكورس (اختياري)"></textarea><button class="btn btn-p btn-s" id="rb">حفظ التقييم</button> <span class="msg" id="rm"></span></div>`+(rv.length?rv.map(r=>`<div class="box"><div class="rt">${stars(r.rating)}</div><div>${esc(r.comment||'')}</div><small class="muted">${date(r.created_at)}</small></div>`).join(''):'<p class="empty">لا توجد تقييمات بعد.</p>')}
 let lastSave=0;const tickP=(p,d)=>{const n=Date.now();if(n-lastSave<10000)return;lastSave=n;saveProg(id,p,d,false);pr={position:p,duration:d,done:false}};
 const endP=()=>{saveProg(id,0,pr?.duration||0,true);pr={position:0,duration:pr?.duration||0,done:true};award('watch',id)};
-const partsBar=()=>`<div class="box"><b>${ic('layers',18)} الدرس مقسم إلى ${sib.length} ${sib.length==2?'جزئين':'أجزاء'} — اختر الجزء</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${sib.map((x,k)=>`<a class="btn ${x.id==id?'btn-p':'btn-o'} btn-s" href="course.html?id=${x.id}">الجزء ${k+1}</a>`).join('')}</div></div>`;
+const partsBar=()=>`<div class="box"><b>${ic('layers',18)} الدرس مقسم إلى ${sib.length} ${sib.length==2?'جزئين':'أجزاء'} — اختر الجزء</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${sib.map((x,k)=>`<a class="btn ${x.id==id?'btn-p':'btn-o'} btn-s" href="course?id=${x.id}">الجزء ${k+1}</a>`).join('')}</div></div>`;
 const endHtml=()=>{const k=sib.findIndex(x=>x.id==id),np=sib[k+1],nl=lsn[lsn.findIndex(l=>l.id==c.lesson_id)+1],
  b=(h,t)=>`<a class="btn btn-s" style="background:#fff;color:#075B98" href="${h}">${t} ${ic('left',16)}</a>`,rp=`<button class="btn btn-s" style="background:transparent;color:#fff;border:1.5px solid #fff" data-c="replay">إعادة المشاهدة</button>`;
- return np?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الجزء ${k+1}</div><div class="nx"><small>الجزء التالي</small><b>${esc(np.title)}</b></div>${b('course.html?id='+np.id,'الجزء التالي')} ${rp}</div>`
- :nl?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الدرس</div><div class="nx"><small>الدرس القادم</small><b>${esc(nl.title)}</b></div>${b('courses.html#'+c.subject_id+'-'+nl.id,'الدرس القادم')} ${rp}</div>`
- :`<div><div style="font-size:22px;font-weight:700">ما شاء الله! خلّصت كل دروس المادة</div><p style="margin:10px 0"></p>${b('courses.html#'+c.subject_id,'كل الدروس')} ${rp}</div>`};
+ return np?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الجزء ${k+1}</div><div class="nx"><small>الجزء التالي</small><b>${esc(np.title)}</b></div>${b('course?id='+np.id,'الجزء التالي')} ${rp}</div>`
+ :nl?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الدرس</div><div class="nx"><small>الدرس القادم</small><b>${esc(nl.title)}</b></div>${b('courses#'+c.subject_id+'-'+nl.id,'الدرس القادم')} ${rp}</div>`
+ :`<div><div style="font-size:22px;font-weight:700">ما شاء الله! خلّصت كل دروس المادة</div><p style="margin:10px 0"></p>${b('courses#'+c.subject_id,'كل الدروس')} ${rp}</div>`};
 function draw(){
- if(!$('#mainv')){$('#m').innerHTML=`<div class="crumbs"><a href="courses.html#${c.subject_id}">${esc(c.subject_name||'المادة')}</a><i>${ic('left',14)}</i><a href="courses.html#${c.subject_id}-${c.lesson_id}">${esc(c.lesson_title||'')}</a><i>${ic('left',14)}</i><a href="courses.html#${c.subject_id}-${c.lesson_id}-${c.teacher_id}">${esc(c.teacher_name)}</a></div><div class="vid" id="mainv" style="margin-top:10px"></div><div id="dyn"></div>`;
+ if(!$('#mainv')){$('#m').innerHTML=`<div class="crumbs"><a href="courses#${c.subject_id}">${esc(c.subject_name||'المادة')}</a><i>${ic('left',14)}</i><a href="courses#${c.subject_id}-${c.lesson_id}">${esc(c.lesson_title||'')}</a><i>${ic('left',14)}</i><a href="courses#${c.subject_id}-${c.lesson_id}-${c.teacher_id}">${esc(c.teacher_name)}</a></div><div class="vid" id="mainv" style="margin-top:10px"></div><div id="dyn"></div>`;
   if(c.video_url)mountVideo($('#mainv'),c.video_url,{end:endHtml,start:pr&&!pr.done?pr.position:0,ontick:tickP,onend:endP});else $('#mainv').innerHTML='<span>فيديو الشرح سيُضاف قريبًا</span>'}
- $('#dyn').innerHTML=`<div class="row" style="margin-top:14px;flex-wrap:wrap"><div><h1>${esc(c.title)}</h1><div class="muted"><a href="teachers.html?id=${c.teacher_id}" style="color:var(--bl);font-weight:600">${esc(c.teacher_name)}</a> • ${esc(c.lesson_title)}</div><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div><div><span class="bd f" style="position:static;${c.is_free?'':'background:#f59e0b'}">${c.is_free?'مجاني':'مميز'}</span> <button class="btn btn-o" id="sub">${sub?ic('check',16)+' مشترك':ic('plus',16)+' اشترك'}</button> <button class="btn btn-p" id="done">أنهيت المشاهدة (+10 نقاط)</button></div></div>
- ${sib.length>1?partsBar():''}<a class="tcard" href="teachers.html?id=${c.teacher_id}"><div class="av" ${T0&&T0.image?`style="background:#fff url('${esc(T0.image)}') center/cover"`:''}>${T0&&T0.image?'':esc((c.teacher_name||'').replace(/^أ\.\s*/,'').charAt(0))}</div><div><b>${esc(c.teacher_name)}</b><div class="muted" style="font-size:14px">عرض صفحة المدرس وكل كورساته</div></div></a>
+ $('#dyn').innerHTML=`<div class="row" style="margin-top:14px;flex-wrap:wrap"><div><h1>${esc(c.title)}</h1><div class="muted"><a href="teachers?id=${c.teacher_id}" style="color:var(--bl);font-weight:600">${esc(c.teacher_name)}</a> • ${esc(c.lesson_title)}</div><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div><div><span class="bd f" style="position:static;${c.is_free?'':'background:#f59e0b'}">${c.is_free?'مجاني':'مميز'}</span> <button class="btn btn-o" id="sub">${sub?ic('check',16)+' مشترك':ic('plus',16)+' اشترك'}</button> <button class="btn btn-p" id="done">أنهيت المشاهدة (+10 نقاط)</button></div></div>
+ ${sib.length>1?partsBar():''}<a class="tcard" href="teachers?id=${c.teacher_id}"><div class="av" ${T0&&T0.image?`style="background:#fff url('${esc(T0.image)}') center/cover"`:''}>${T0&&T0.image?'':esc((c.teacher_name||'').replace(/^أ\.\s*/,'').charAt(0))}</div><div><b>${esc(c.teacher_name)}</b><div class="muted" style="font-size:14px">عرض صفحة المدرس وكل كورساته</div></div></a>
  <div class="tabs">${T.map((t,i)=>`<button class="${i==tab?'on':''}" data-tb="${i}">${t}</button>`).join('')}</div><div id="tc">${tabHtml()}</div>`}
 async function load(){[c]=await get('edu_courses_v?id=eq.'+id);if(!c)throw 0;
  [files,sols,qs,rv]=await Promise.all([get('edu_course_files?course_id=eq.'+id),get('edu_course_solutions?course_id=eq.'+id),get('edu_questions?course_id=eq.'+id+'&order=created_at.desc'),get('edu_reviews?course_id=eq.'+id+'&order=created_at.desc')]);
@@ -45,7 +50,7 @@ async function load(){[c]=await get('edu_courses_v?id=eq.'+id);if(!c)throw 0;
  lsn=await get('edu_lessons?subject_id=eq.'+c.subject_id+'&order=sort,id').catch(()=>[]);sib=await get('edu_courses?select=id,title,sort&lesson_id=eq.'+c.lesson_id+'&teacher_id=eq.'+c.teacher_id+'&order=sort,id').catch(()=>[]);T0=(await get('edu_teachers?id=eq.'+c.teacher_id).catch(()=>[]))[0];
  pr=U()?(await get('edu_progress?course_id=eq.'+id).catch(()=>[]))[0]||null:null;document.title=c.title+' | أكاديمية';draw()}
 document.addEventListener('click',async e=>{const t=e.target;
- if(t.dataset.nx){try{sessionStorage.setItem('acad_hl',t.dataset.nx)}catch(_){}location.href='courses.html#'+c.subject_id;return}
+ if(t.dataset.nx){try{sessionStorage.setItem('acad_hl',t.dataset.nx)}catch(_){}location.href='courses#'+c.subject_id;return}
  if(t.dataset.tb!=null){tab=+t.dataset.tb;qa=null;res=null;return draw()}
  if(t.dataset.qz){const k=t.dataset.qz;if(k=='start'){if(need())return;qa=+t.dataset.id;res=null;return draw()}if(k=='back'){qa=null;res=null;return draw()}
   if(k=='submit'){const q=quizzes.find(x=>x.id==qa),a=q.edu_quiz_questions.map((_,i)=>{const r=document.querySelector(`input[name=a${i}]:checked`);return r?+r.value:-1});
@@ -62,5 +67,5 @@ document.addEventListener('click',async e=>{const t=e.target;
   let r=await post('edu_reviews',body);if(r.status==409)r=await rest('edu_reviews?course_id=eq.'+id+'&user_id=eq.'+U().id,{method:'PATCH',body:JSON.stringify({rating:body.rating,comment:body.comment})});
   if(!r.ok)return $('#rm').textContent='تعذر الحفظ.';await award('review',id);await load();tab=4;draw()}
 });
-load().catch(()=>$('#m').innerHTML='<p class="empty">الكورس غير موجود. <a href="courses.html" style="color:var(--bl)">العودة</a></p>');
+load().catch(()=>$('#m').innerHTML='<p class="empty">الكورس غير موجود. <a href="courses" style="color:var(--bl)">العودة</a></p>');
 </script></body></html>
