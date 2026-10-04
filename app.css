@@ -139,3 +139,69 @@ body.cr{padding-inline-start:244px}
 body.sbc{padding-inline-start:0}body.sbc .sb{transform:translateX(100%)}
 body.sbc .sbo{display:grid;place-items:center;position:fixed;top:12px;inset-inline-start:12px;width:42px;height:42px;border-radius:12px;background:#fff;border:1px solid var(--bo);box-shadow:0 2px 8px #0001;z-index:41;cursor:pointer;color:var(--bd)}}
 
+
+/* وضع الإعلان: نشيل الدرع والأزرار عشان زر "تخطي الإعلان" يبان ويتضغط */
+.pl.ad .pl-sh,.pl.ad .pl-bar,.pl.ad .pl-big{display:none}
+.pl.ad .pl-m iframe{pointer-events:auto}
+.pl.ad::after{content:'إعلان من يوتيوب — اضغط «تخطي الإعلان» لما الزر يظهر';position:absolute;top:8px;left:8px;right:8px;z-index:6;background:rgba(0,0,0,.78);color:#fff;font-size:13px;padding:6px 10px;border-radius:8px;text-align:center;pointer-events:none}
+@keyframes pls{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}50%{box-shadow:0 0 0 10px rgba(255,255,255,0)}}
+[data-yd].pulse{animation:pls 1.2s infinite}
+
+/* بطاقة الفيديو الممنوع تضمينه */
+.yf{position:relative;display:grid;place-items:center;width:100%;height:100%;background:#0b2a45 center/cover no-repeat}
+.yf-c{display:grid;gap:10px;justify-items:center;background:rgba(6,38,66,.9);backdrop-filter:blur(4px);padding:20px 24px;border-radius:16px;max-width:min(92%,460px);color:#fff;text-align:center;line-height:1.8}
+.yf-i{width:48px;height:48px;border-radius:50%;background:rgba(245,158,11,.18);color:#fbbf24;display:grid;place-items:center}
+.yf-c b{font-size:17px}
+.yf-s{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:4px;font-size:14px;color:#dbeafe;text-align:start}
+.yf-s li{counter-increment:s;display:flex;gap:8px;align-items:center}
+.yf-s li::before{content:counter(s);width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.16);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+.yf-n{display:flex;gap:6px;align-items:center;color:#86efac;font-weight:600}
+.yf-n[hidden]{display:none}
+.yf-a{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.yf-a .btn{display:inline-flex;align-items:center;gap:6px}
+.yf-d{background:#fff;color:#075B98}
+.pl-bar .pr{display:inline-flex;align-items:center;gap:4px}
+
+/* ===== لوحة الإدارة / المدرس ===== */
+.adm{max-width:1100px}
+.adm h1{padding-bottom:4px}
+.adm .ktabs{position:sticky;top:8px;z-index:20;box-shadow:0 6px 18px rgba(16,24,40,.07);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+.adm .ktabs button{white-space:nowrap}
+.adm .ktabs button.on{background:var(--bl);color:#fff}
+.adm .ktabs button.on .cnt{background:#fff;color:var(--bl)}
+.adm .box,.adm .card,.adm .kc{box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.adm .box{background:#fff;border:1px solid var(--bo);padding:14px 16px;margin-bottom:10px;transition:border-color .15s,box-shadow .15s}
+.adm .box:hover{border-color:#cfe3f3}
+.adm .box.sf{background:#f7fbff;border-color:#cfe3f3}
+.adm .box.sf>b,.adm .sf>b{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--bd)}
+.adm .box.sf>b::before{content:'';width:4px;height:16px;border-radius:2px;background:var(--bl)}
+.adm .lsn{display:flex;align-items:center;gap:10px;margin:26px 0 10px;font-size:18px}
+.adm .lsn::before{content:'';width:5px;height:20px;border-radius:3px;background:var(--bl)}
+.adm .lsn small{margin-inline-start:auto;font-size:13px;font-weight:600;color:var(--mu);background:#fff;border:1px solid var(--bo);border-radius:99px;padding:2px 10px}
+.adm .btn,.adm .bt{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.adm .btn-o,.adm .bt{background:#fff;border:1px solid var(--bo);color:var(--tx,#1f2937)}
+.adm .btn-o:hover,.adm .bt:hover{border-color:var(--bl);color:var(--bl);background:#f4faff}
+.adm .btn-p,.adm .bt.p{background:var(--bl);border-color:var(--bl);color:#fff}
+.adm .btn-p:hover,.adm .bt.p:hover{background:var(--bd);color:#fff}
+.adm [data-a^="del"]:hover,.adm [data-a="sjd"]:hover,.adm .ib.dg:hover{border-color:#dc2626;color:#dc2626;background:#fef2f2}
+.adm .btn:disabled,.adm .bt:disabled{opacity:.55;cursor:not-allowed}
+.adm .lg{padding:8px 0;border-top:1px dashed var(--bo);display:flex;justify-content:space-between;flex-wrap:wrap}
+.adm .lg:first-of-type{margin-top:8px}
+.adm .box>.row{flex-wrap:wrap;gap:10px}
+.adm textarea{font:inherit;border:1.5px solid var(--bo);border-radius:10px;padding:9px 12px;background:#fff;width:100%}
+.adm textarea:focus{outline:0;border-color:var(--bl);box-shadow:0 0 0 3px rgba(8,120,201,.12)}
+.adm .kc{transition:transform .15s}.adm .kc:hover{transform:translateY(-2px)}
+.adm .empty{padding:28px 16px}
+.mdl{animation:mfd .15s ease}.mdl>.mb{animation:mup .18s ease}
+@keyframes mfd{from{opacity:0}}@keyframes mup{from{transform:translateY(12px);opacity:0}}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#cbd5e1;margin-inline-end:8px}.dot.on{background:#16a34a}
+
+/* صفحة المدرسين حسب المادة */
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+.chips a{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:99px;background:#fff;border:1px solid var(--bo);font-weight:600;font-size:14px;color:inherit;transition:.15s}
+.chips a:hover{border-color:var(--bl);color:var(--bl)}
+.chips .si{width:22px;height:22px;border-radius:50%}
+.si{width:30px;height:30px;border-radius:9px;display:inline-grid;place-items:center;color:#fff;flex:none}
+.ts-sec{scroll-margin-top:80px}
+.ts-sec .lsn{display:flex;align-items:center;gap:10px}
+.ts-sec .lsn small{margin-inline-start:auto}
