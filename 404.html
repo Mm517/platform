@@ -1,1 +1,78 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>الصفحة غير موجودة | أكاديمية</title><link rel="icon" href="/platform/favicon.svg"><style>body{font-family:system-ui,Tahoma,sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#f8fafc;color:#0f172a;text-align:center}a{display:inline-block;margin-top:14px;background:#0878C9;color:#fff;padding:10px 22px;border-radius:12px;text-decoration:none;font-weight:600}</style></head><body><div><h1>الصفحة غير موجودة</h1><p>الرابط اللي فتحته مش موجود.</p><a href="/platform/">الرجوع للرئيسية</a></div></body></html>
+<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="theme-color" content="#0878C9"><title>الصفحة غير موجودة | أكاديمية</title><link rel="icon" href="/platform/favicon.svg">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bl:#0878C9;--bd:#075B98;--tx:#0f172a;--mu:#5b6b7d;--bg:#f4f9ff}
+@media(prefers-color-scheme:dark){:root{--tx:#e8f1fb;--mu:#9db3c9;--bg:#06131f}}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:'IBM Plex Sans Arabic',system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--tx);display:grid;place-items:center;overflow:hidden;position:relative;padding:20px}
+/* خلفية متحركة */
+.bg{position:fixed;inset:0;overflow:hidden;pointer-events:none}
+.bg::before,.bg::after{content:'';position:absolute;border-radius:50%;filter:blur(70px);opacity:.55;animation:blob 14s ease-in-out infinite}
+.bg::before{width:46vmax;height:46vmax;background:#9bd0ff;top:-18vmax;inset-inline-start:-12vmax}
+.bg::after{width:40vmax;height:40vmax;background:#ffd9a0;bottom:-16vmax;inset-inline-end:-10vmax;animation-delay:-7s}
+@media(prefers-color-scheme:dark){.bg::before{background:#0b4a80;opacity:.6}.bg::after{background:#4a2f08;opacity:.5}}
+@keyframes blob{50%{transform:translate(6vmax,4vmax) scale(1.12)}}
+.sym{position:absolute;bottom:-60px;font-weight:700;color:var(--bl);opacity:0;animation:rise linear infinite;user-select:none}
+@keyframes rise{0%{transform:translateY(0) rotate(0);opacity:0}12%{opacity:.22}85%{opacity:.18}100%{transform:translateY(-110vh) rotate(40deg);opacity:0}}
+/* المحتوى */
+.w{position:relative;z-index:1;text-align:center;max-width:560px;width:100%;animation:in .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes in{from{opacity:0;transform:translateY(24px) scale(.97)}}
+.n{display:flex;justify-content:center;align-items:center;gap:clamp(2px,1.5vw,12px);direction:ltr;font-size:clamp(96px,26vw,190px);font-weight:700;line-height:1;margin-bottom:6px}
+.n span{background:linear-gradient(160deg,var(--bl),var(--bd));-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block;animation:bob 3.2s ease-in-out infinite;filter:drop-shadow(0 12px 18px rgba(8,120,201,.25))}
+.n span:last-child{animation-delay:-1.6s}
+@keyframes bob{50%{transform:translateY(-12px)}}
+/* الصفر = قبعة تخرج متحركة */
+.z{position:relative;width:.78em;height:.9em;display:inline-grid;place-items:center;animation:bob 3.2s ease-in-out -.8s infinite}
+.z svg{width:100%;height:100%;overflow:visible}
+.z .ring{transform-origin:50% 50%;animation:spin 9s linear infinite}
+.z .cap{transform-origin:50% 50%;animation:tilt 3.2s ease-in-out infinite}
+.z .tas{transform-origin:78px 46px;animation:sw 1.8s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes tilt{50%{transform:rotate(-7deg) translateY(-3px)}}
+@keyframes sw{50%{transform:rotate(14deg)}}
+h1{font-size:clamp(22px,4.4vw,30px);margin:8px 0 8px}
+p{color:var(--mu);line-height:1.9;margin-bottom:22px}
+.a{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.b{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:14px;font:inherit;font-weight:600;text-decoration:none;transition:transform .18s,box-shadow .18s,background .18s;cursor:pointer;border:0}
+.b.p{background:var(--bl);color:#fff;box-shadow:0 10px 24px rgba(8,120,201,.32)}
+.b.p:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(8,120,201,.4);background:var(--bd)}
+.b.o{background:transparent;color:var(--bl);box-shadow:inset 0 0 0 1.5px var(--bl)}
+.b.o:hover{transform:translateY(-3px);background:rgba(8,120,201,.08)}
+.b svg{width:18px;height:18px}
+.u{margin-top:22px;font-size:13px;color:var(--mu);direction:ltr;opacity:.75;word-break:break-all}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}.sym{display:none}}
+</style></head><body>
+<div class="bg" id="bg" aria-hidden="true"></div>
+<main class="w">
+ <div class="n" aria-label="404">
+  <span>4</span>
+  <span class="z" aria-hidden="true"><svg viewBox="0 0 120 130" fill="none">
+   <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0878C9"/><stop offset="1" stop-color="#075B98"/></linearGradient></defs>
+   <g class="ring"><circle cx="60" cy="72" r="46" stroke="url(#g)" stroke-width="12" stroke-dasharray="210 80" stroke-linecap="round"/></g>
+   <g class="cap"><path d="M60 14L112 40 60 66 8 40z" fill="url(#g)"/><path d="M30 54v20c0 8 13 15 30 15s30-7 30-15V54L60 70z" fill="#0b6db3"/><g class="tas"><path d="M108 42v26" stroke="#f59e0b" stroke-width="4" stroke-linecap="round"/><circle cx="108" cy="72" r="6" fill="#f59e0b"/></g></g>
+  </svg></span>
+  <span>4</span>
+ </div>
+ <h1>الصفحة دي مش موجودة</h1>
+ <p>الرابط اللي فتحته ممكن يكون اتغيّر أو اتحذف. ارجع للرئيسية وكمّل مذاكرتك.</p>
+ <div class="a">
+  <a class="b p" href="/platform/"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>الرجوع للرئيسية</a>
+  <a class="b o" href="/platform/courses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/></svg>تصفّح الكورسات</a>
+ </div>
+ <div class="u" id="u"></div>
+</main>
+<script>
+(function(){
+ var S=['π','∑','√','∞','x²','÷','%','∫','Δ','+','=','θ'],bg=document.getElementById('bg');
+ for(var i=0;i<16;i++){var e=document.createElement('span');e.className='sym';e.textContent=S[i%S.length];
+  e.style.left=(Math.random()*96)+'%';e.style.fontSize=(18+Math.random()*34)+'px';
+  e.style.animationDuration=(9+Math.random()*10)+'s';e.style.animationDelay=(-Math.random()*16)+'s';bg.appendChild(e)}
+ try{document.getElementById('u').textContent=location.pathname}catch(_){}
+ /* حركة خفيفة مع الماوس */
+ var w=document.querySelector('.w');
+ if(matchMedia('(hover:hover)').matches&&!matchMedia('(prefers-reduced-motion:reduce)').matches){
+  addEventListener('mousemove',function(ev){var x=(ev.clientX/innerWidth-.5)*14,y=(ev.clientY/innerHeight-.5)*10;w.style.transform='translate('+x+'px,'+y+'px)'});
+  w.style.transition='transform .25s ease-out'}
+})();
+</script></body></html>
