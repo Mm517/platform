@@ -7,7 +7,7 @@
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
 topbar();
-const id=+new URLSearchParams(location.search).get('id'),T=['وصف الكورس','الملفات والمذكرات','فيديوهات الحل','الأسئلة','التقييمات','الاختبارات'];
+const id=+new URLSearchParams(location.search).get('id'),T=['وصف الكورس','الملفات والملخصات','فيديوهات الحل','الأسئلة','التقييمات','الاختبارات'];
 let lsn=[],c,files=[],sols=[],qs=[],rv=[],tab=0,sub=false,quizzes=[],att=[],qa=null,res=null;
 const date=d=>new Date(d).toLocaleDateString('ar-EG');
 const need=()=>U()?false:(location.href='auth.html#login',true);
@@ -18,7 +18,7 @@ function quizHtml(){
  return quizzes.length?quizzes.map(q=>{const b=att.filter(a=>a.quiz_id==q.id).sort((x,y)=>y.score-x.score)[0];return `<div class="box row"><span>📝 <b>${esc(q.title)}</b><br><small class="muted">${q.edu_quiz_questions.length} سؤال${b?` • أفضل نتيجة ${b.score}/${b.total}`:''}</small></span><button class="btn btn-p btn-s" data-qz="start" data-id="${q.id}">ابدأ</button></div>`}).join(''):'<p class="empty">لا توجد اختبارات لهذا الكورس بعد.</p>'}
 function tabHtml(){
  if(tab==0)return `<div class="box">${esc(c.description||'لا يوجد وصف.')}</div>`;
- if(tab==1)return files.length?files.map(f=>`<div class="box row"><span>📄 ${esc(f.title)}</span>${f.url?`<a class="btn btn-p btn-s" data-aw="file:${f.id}" target="_blank" rel="noopener" href="${esc(f.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`).join(''):'<p class="empty">لا توجد ملفات.</p>';
+ if(tab==1)return files.length?files.map(f=>`<div class="box row"><span>${f.kind=='summary'?'🧾 ملخص: ':'📄 '}${esc(f.title)}</span>${f.url?`<a class="btn btn-p btn-s" data-aw="file:${f.id}" target="_blank" rel="noopener" href="${esc(f.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`).join(''):'<p class="empty">لا توجد ملفات.</p>';
  if(tab==2)return sols.length?sols.map(s=>`<div class="box"><div class="row"><b>▶ ${esc(s.title)}</b>${s.video_url?`<button class="btn btn-o btn-s" data-sol="${s.id}">مشاهدة</button>`:'<span class="muted">قريبًا</span>'}</div><div class="vid" id="sv${s.id}" hidden></div></div>`).join(''):'<p class="empty">لا توجد فيديوهات حل.</p>';
  if(tab==3)return `<div class="box fm"><b>اسأل المدرس</b><textarea id="qb" maxlength="600" placeholder="اكتب سؤالك هنا"></textarea><button class="btn btn-p btn-s" id="qs">إرسال السؤال</button> <span class="msg" id="qm"></span></div>`+(qs.length?qs.map(q=>`<div class="box"><div>${esc(q.body)}</div><small class="muted">${date(q.created_at)}</small>${q.answer?`<div class="ans"><b>رد المدرس:</b> ${esc(q.answer)}</div>`:''}</div>`).join(''):'<p class="empty">لا توجد أسئلة بعد، كن أول من يسأل.</p>');
  if(tab==5)return quizHtml();

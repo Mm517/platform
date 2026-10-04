@@ -24,7 +24,7 @@ function shell(active){const u=U();
  <div class="sb-f">${u?`<div class="pt">⭐ <b class="pts" id="pts">0</b> نقطة</div><div class="sb-n">${esc(u.name||'')}</div><button id="lo" class="btn btn-o btn-s">تسجيل الخروج</button>`:'<a class="btn btn-p btn-s" href="auth.html#login">تسجيل الدخول</a>'}</div></aside>`);
  const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
  const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth.html#login'};
- if(u)get('edu_profiles?select=points').then(r=>{if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
+ if(u)get('edu_profiles?select=points,banned').then(r=>{if(r[0]&&r[0].banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth.html#login';return}if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
  if(u)get('edu_staff?select=role').then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff.html" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend','<span class="pt" style="align-self:flex-start">👑 أدمن</span>')}}).catch(()=>{})}
 const topbar=()=>shell(document.body.dataset.p||'');
 const lvl=p=>Math.floor(p/100)+1;
