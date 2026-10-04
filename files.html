@@ -10,6 +10,6 @@ topbar();
 const need=()=>U()?false:(location.href='auth.html#login',true);
 
 Promise.all([get('edu_course_files?order=id.desc'),get('edu_courses_v?select=id,title,teacher_name')]).then(([f,c])=>{const m=Object.fromEntries(c.map(x=>[x.id,x]));
-$('#o').innerHTML=f.length?f.map(x=>`<div class="box row"><span>📄 ${esc(x.title)}<br><small class="muted">${esc(m[x.course_id]?.title||'')} • ${esc(m[x.course_id]?.teacher_name||'')}</small></span>${x.url?`<a class="btn btn-p btn-s" target="_blank" rel="noopener" data-aw="file:${x.id}" href="${esc(x.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`).join(''):'<p class="empty">لا توجد ملفات بعد.</p>'}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
+$('#o').innerHTML=f.length?f.map(x=>`<div class="box row"><span>${ic('file',18)} ${esc(x.title)}<br><small class="muted">${esc(m[x.course_id]?.title||'')} • ${esc(m[x.course_id]?.teacher_name||'')}</small></span>${x.url?`<a class="btn btn-p btn-s" target="_blank" rel="noopener" data-aw="file:${x.id}" href="${esc(x.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`).join(''):'<p class="empty">لا توجد ملفات بعد.</p>'}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
 document.addEventListener('click',e=>{const a=e.target.dataset.aw;if(a)award(...a.split(':'))});
 </script></body></html>

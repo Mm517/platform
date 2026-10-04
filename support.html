@@ -3,14 +3,36 @@
 <title>الدعم | أكاديمية</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
-<body class="cr" data-p="support"><main class="pg" id="m"><h1>الدعم</h1><p class="muted">اكتب مشكلتك وهنرد عليك.</p><div id="o"><p class="empty">جارٍ التحميل...</p></div></main>
+<body class="cr" data-p="support"><main class="pg adm" id="m"><div id="o"><p class="empty">جارٍ التحميل...</p></div></main>
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
+if(!U())location.replace('auth.html#login');
 topbar();
-const need=()=>U()?false:(location.href='auth.html#login',true);
-
-$('#o').innerHTML=`<div class="box fm"><input id="sj" maxlength="100" placeholder="الموضوع"><textarea id="sb2" maxlength="800" placeholder="اشرح مشكلتك"></textarea><button class="btn btn-p btn-s" id="sd">إرسال</button> <span class="msg" id="sm"></span></div>`;
-$('#sd').onclick=async()=>{if(need())return;const b=$('#sb2').value.trim();if(b.length<3)return $('#sm').textContent='اكتب رسالتك.';
-const r=await post('edu_support',{user_id:U().id,subject:$('#sj').value.trim(),body:b});$('#sm').textContent=r.ok?'تم الإرسال ✓':'تعذر الإرسال.';if(r.ok){$('#sb2').value=''}}
-get('edu_staff?select=role').then(s=>{if(s[0]&&s[0].role=='admin'){$('#m').insertAdjacentHTML('beforeend','<h2 style="margin:28px 0 10px">📥 رسائل الطلاب (للأدمن)</h2><div id="inb"></div>');supportInbox($('#inb'))}}).catch(()=>{});
+const CAT={general:'استفسار عام',tech:'مشكلة تقنية',account:'الحساب',content:'المحتوى والدروس',idea:'اقتراح'},ST={open:'قيد المراجعة',answered:'تم الرد',closed:'مغلقة'};
+let tk=[],cur=+new URLSearchParams(location.search).get('t')||0,msgs=[],nw=false;
+const bd=t=>`<span class="bg ${t.status}">${ST[t.status]}</span>`;
+async function list(){tk=await get('edu_tickets?select=id,subject,category,status,created_at,updated_at&order=updated_at.desc')}
+function draw(){
+ if(cur){const t=tk.find(x=>x.id==cur);if(!t){cur=0;return draw()}
+  $('#o').innerHTML=`<button class="bt" id="bk">${ic('right',16)} كل التذاكر</button>
+  <div class="card" style="margin-top:14px"><div class="ch"><span><b>${esc(t.subject)}</b><br><small class="muted">${CAT[t.category]||'تذكرة'} - ${new Date(t.created_at).toLocaleDateString('ar-EG')}</small></span><span class="acts">${bd(t)}${t.status!='closed'?`<button class="bt" id="cl">${ic('check',16)} إغلاق التذكرة</button>`:''}</span></div>
+  <div class="thr">${msgs.map(m=>`<div class="bub ${m.is_staff?'st':'me'}">${esc(m.body)}<small>${m.is_staff?'فريق الدعم':'أنت'} - ${ago(m.created_at)}</small></div>`).join('')||'<p class="empty">جارٍ التحميل...</p>'}</div>
+  ${t.status!='closed'?`<div class="rp"><textarea id="rb" maxlength="1500" placeholder="اكتب ردك"></textarea><button class="bt p" id="rs">${ic('send',16)} إرسال</button></div>`:'<p class="muted" style="padding:12px 16px">هذه التذكرة مغلقة. افتح تذكرة جديدة لو عندك مشكلة أخرى.</p>'}</div>`;return}
+ $('#o').innerHTML=`<h1>${ic('ticket',26)} الدعم</h1><p class="sub">افتح تذكرة بمشكلتك وفريق الدعم هيرد عليك هنا، وهيوصلك إشعار عند الرد.</p>
+ <div class="card"><div class="ch"><b>تذكرة جديدة</b><button class="bt ${nw?'':'p'}" id="nt">${nw?'إخفاء':ic('plus',16)+' فتح تذكرة'}</button></div>
+ ${nw?`<div class="cbd form"><div class="g2"><div><label>القسم</label><select id="tc">${Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div><div><label>الموضوع</label><input id="ts" maxlength="100" placeholder="عنوان المشكلة"></div></div><label>التفاصيل</label><textarea id="tb" rows="5" maxlength="1500" placeholder="اشرح مشكلتك بالتفصيل"></textarea><div><button class="bt p" id="tsd">${ic('send',16)} إرسال التذكرة</button></div></div>`:''}</div>
+ <div class="card">${tk.length?tk.map(t=>`<a class="tr" href="?t=${t.id}" data-t="${t.id}"><span class="t">${ic('msg',18)}<span><b>${esc(t.subject)}</b><br><small>${CAT[t.category]||'تذكرة'} - ${ago(t.updated_at)}</small></span></span>${bd(t)}</a>`).join(''):'<p class="empty">لا توجد تذاكر بعد.</p>'}</div>`}
+async function open_(id){cur=id;msgs=[];draw();msgs=await get('edu_ticket_messages?ticket_id=eq.'+id+'&order=created_at');draw()}
+document.addEventListener('click',async e=>{const b=e.target.closest('button,a[data-t]');if(!b)return;
+ if(b.dataset.t){e.preventDefault();history.pushState(0,'','?t='+b.dataset.t);return open_(+b.dataset.t)}
+ if(b.id=='bk'){history.pushState(0,'','support.html');cur=0;return draw()}
+ if(b.id=='nt'){nw=!nw;return draw()}
+ if(b.id=='tsd'){const s=$('#ts').value.trim(),t=$('#tb').value.trim();if(s.length<3||t.length<5)return toast('اكتب الموضوع والتفاصيل.',1);b.disabled=true;
+  const r=await post('edu_tickets',{user_id:U().id,subject:s,category:$('#tc').value},'return=representation');if(!r.ok){b.disabled=false;return toast('تعذر إرسال التذكرة.',1)}
+  const id=(await r.json())[0].id,r2=await post('edu_ticket_messages',{ticket_id:id,sender_id:U().id,body:t});if(!r2.ok){await rest('edu_tickets?id=eq.'+id,{method:'DELETE'});b.disabled=false;return toast('تعذر إرسال التذكرة.',1)}
+  toast('تم إرسال التذكرة.');nw=false;await list();return open_(id)}
+ if(b.id=='rs'){const t=$('#rb').value.trim();if(t.length<2)return;b.disabled=true;const r=await post('edu_ticket_messages',{ticket_id:cur,sender_id:U().id,body:t});if(!r.ok){b.disabled=false;return toast('تعذر الإرسال.',1)}await list();return open_(cur)}
+ if(b.id=='cl'&&confirm('إغلاق التذكرة؟')){await rest('edu_tickets?id=eq.'+cur,{method:'PATCH',body:JSON.stringify({status:'closed'})});await list();toast('تم إغلاق التذكرة.');draw()}});
+addEventListener('popstate',()=>{cur=+new URLSearchParams(location.search).get('t')||0;cur?open_(cur):draw()});
+list().then(()=>cur?open_(cur):draw()).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>');
 </script></body></html>

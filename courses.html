@@ -12,20 +12,20 @@ topbar();
 let subs=[],cs=[],ls=[],S=0,L=0,T=0;
 const pts=()=>location.hash=[S,L,T].filter(Boolean).join('-')||'';
 const card=(c,col)=>{const bg=c.image?`background-image:url('${esc(c.image)}')`:`background:linear-gradient(135deg,${col||'#0878C9'},#075B98)`;
- return `<a class="cc" href="course.html?id=${c.id}"><div class="cv2" style="${bg}">${c.image?'':ico(subs.find(s=>s.id==c.subject_id)?.icon,44)}<span class="bd ${c.is_free?'f':'p'}">${c.is_free?'مجاني':'مميز'}</span>${c.is_featured?'<span class="ft">★ مختار</span>':''}</div><div class="cb"><h3>${esc(c.title)}</h3><p class="tg">${esc(c.teacher_name)}</p><p>${esc(c.lesson_title||'')}</p><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count} تقييم)</span>`:'<span>لا توجد تقييمات بعد</span>'}</div></div></a>`};
+ return `<a class="cc" href="course.html?id=${c.id}"><div class="cv2" style="${bg}">${c.image?'':ico(subs.find(s=>s.id==c.subject_id)?.icon,44)}<span class="bd ${c.is_free?'f':'p'}">${c.is_free?'مجاني':'مميز'}</span>${c.is_featured?`<span class="ft">${ic('star',12,'fill')} مختار</span>`:''}</div><div class="cb"><h3>${esc(c.title)}</h3><p class="tg">${esc(c.teacher_name)}</p><p>${esc(c.lesson_title||'')}</p><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count} تقييم)</span>`:'<span>لا توجد تقييمات بعد</span>'}</div></div></a>`};
 const pk=(a,d,ic,h,sm)=>`<button class="pk" data-${a}="${d}">${ic}<h3>${h}</h3><small>${sm}</small></button>`;
 function draw(){
  const s=subs.find(x=>x.id==S),l=ls.find(x=>x.id==L),t=cs.find(x=>x.teacher_id==T);
  let c=`<a onclick="S=L=T=0;pts()">المواد</a>`;
- if(s)c+=`<i>›</i>${L?`<a onclick="L=T=0;pts()">${esc(s.name)}</a>`:`<span>${esc(s.name)}</span>`}`;
- if(l)c+=`<i>›</i>${T?`<a onclick="T=0;pts()">${esc(l.title)}</a>`:`<span>${esc(l.title)}</span>`}`;
- if(T&&t)c+=`<i>›</i><span>${esc(t.teacher_name)}</span>`;
+ if(s)c+=`<i>${ic('left',14)}</i>${L?`<a onclick="L=T=0;pts()">${esc(s.name)}</a>`:`<span>${esc(s.name)}</span>`}`;
+ if(l)c+=`<i>${ic('left',14)}</i>${T?`<a onclick="T=0;pts()">${esc(l.title)}</a>`:`<span>${esc(l.title)}</span>`}`;
+ if(T&&t)c+=`<i>${ic('left',14)}</i><span>${esc(t.teacher_name)}</span>`;
  $('#cr').innerHTML=c;let h='';
  if(!S){h=`<p class="muted" style="margin-bottom:14px">١) اختر المادة</p><div class="pick">`+subs.map(x=>pk('s',x.id,`<div class="ic" style="background:${x.color||'#0878C9'}">${ico(x.icon,28)}</div>`,esc(x.name),cs.filter(c=>c.subject_id==x.id).length+' كورس')).join('')+'</div>'}
  else if(!L){const a=ls.filter(x=>x.subject_id==S);h=`<p class="muted" style="margin-bottom:14px">٢) اختر الدرس</p><div class="pick">`+(a.map(x=>pk('l',x.id,`<div class="ic" style="background:${s.color||'#0878C9'}">${ico(s.icon,28)}</div>`,esc(x.title),cs.filter(c=>c.lesson_id==x.id).length+' كورس')).join('')||'<p class="empty">لا توجد دروس بعد.</p>')+'</div>'}
  else if(!T){const lc=cs.filter(c=>c.lesson_id==L),rr=id=>{const m=lc.filter(c=>c.teacher_id==id),r=m.reduce((a,c)=>a+ +c.reviews_count,0);return r?m.reduce((a,c)=>a+c.rating*c.reviews_count,0)/r:0},ts=[...new Map(lc.map(c=>[c.teacher_id,c.teacher_name]))].sort((a,b)=>rr(b[0])-rr(a[0]));
   h=`<p class="muted" style="margin-bottom:14px">٣) اختر المدرس</p><div class="pick">`+(ts.map(([id,n])=>{const m=lc.filter(c=>c.teacher_id==id),r=m.reduce((a,c)=>a+ +c.reviews_count,0),q=m.reduce((a,c)=>a+c.rating*c.reviews_count,0);
-   return pk('t',id,`<div class="av">${esc(n.replace(/^أ\.\s*/,'').charAt(0))}</div>`,esc(n),m.length+' كورس'+(r?` • ★ ${(q/r).toFixed(1)}`:''))}).join('')||'<p class="empty">لا يوجد مدرسون لهذا الدرس حاليًا.</p>')+'</div>'}
+   return pk('t',id,`<div class="av">${esc(n.replace(/^أ\.\s*/,'').charAt(0))}</div>`,esc(n),m.length+' كورس'+(r?` • تقييم ${(q/r).toFixed(1)}`:''))}).join('')||'<p class="empty">لا يوجد مدرسون لهذا الدرس حاليًا.</p>')+'</div>'}
  else{const m=cs.filter(c=>c.lesson_id==L&&c.teacher_id==T).sort((a,b)=>(a.sort||0)-(b.sort||0));h=`<p class="muted" style="margin-bottom:14px">٤) اختر الكورس <a href="teachers.html?id=${T}" style="color:var(--bl);font-weight:600">• صفحة المدرس</a></p><div class="grid">${m.map(c=>card(c,s.color)).join('')}</div>`}
  $('#out').innerHTML=h;
  try{const hl=sessionStorage.getItem('acad_hl');if(hl&&S&&!L){sessionStorage.removeItem('acad_hl');const b=document.querySelector('.pk[data-l="'+hl+'"]');if(b){b.classList.add('hl');b.insertAdjacentHTML('afterbegin','<span class="hl-t">الدرس القادم</span>');setTimeout(()=>b.scrollIntoView({block:'center',behavior:'smooth'}),150)}}}catch(_){}}

@@ -54,7 +54,7 @@ body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 
 </head>
 <body class="au">
 <main class="au-main">
-<a class="au-back" href="index.html">← الرئيسية</a>
+<a class="au-back" href="index.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px"><path d="M9 6l6 6-6 6"/></svg> الرئيسية</a>
 <div class="au-book" id="bk"><div class="au-spin" id="sp">
 <svg id="bsvg" viewBox="0 0 190 236" role="img" aria-label="كتاب لطيف يتابع ما تكتبه">
  <rect x="34" y="40" width="140" height="160" rx="12" fill="#fff" stroke="#c9dceb" stroke-width="2"/>
@@ -137,7 +137,7 @@ $('#pw').addEventListener('input',e=>{const v=e.target.value,s=(v.length>=6)+(v.
 async function api(path,body){const r=await fetch(SUPA_URL+path,{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw j;return j}
 const save=(j,name,phone,email)=>setU({id:j.user&&j.user.id,name,phone,email,token:j.access_token,refresh:j.refresh_token});
 async function profile(j,name,phone,grade){const r=await fetch(SUPA_URL+'/rest/v1/edu_profiles?on_conflict=id',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+j.access_token,'Content-Type':'application/json',Prefer:'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify({id:j.user.id,name:name||'طالب',phone,grade:grade||'prep3'})});if(!r.ok)throw{error_code:'profile'}}
-async function win(t){const f=matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1;cover(false);look(0,.3);await sleep(450*f);face('h');say(t+' ✓');await sleep(1200*f);$('#sp').classList.add('spin');await sleep(450*f);$('#bk').classList.add('ok');await sleep(1400*f);location.href='home.html'}
+async function win(t){const f=matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1;cover(false);look(0,.3);await sleep(450*f);face('h');say(t);await sleep(1200*f);$('#sp').classList.add('spin');await sleep(450*f);$('#bk').classList.add('ok');await sleep(1400*f);location.href='home.html'}
 async function run(btn,el,pw,fn,msg){
  pend=true;btn.disabled=true;el.textContent='';cover(pw.type==='password');say('لحظة من فضلك...');
  try{await fn()}catch(e){pend=false;btn.disabled=false;cover(false);say('حدث خطأ، حاول مرة أخرى');return fail(el,MSG[e.error_code]||MSG[e.code]||'تعذر الاتصال، حاول مرة أخرى.')}

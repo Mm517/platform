@@ -16,7 +16,7 @@ Promise.all([get('edu_teachers?order=id'),get('edu_courses_v?select=*&order=id')
  const t=ts.find(x=>x.id==tid);
  if(!t){$('#m').innerHTML=`<h1>المدرسون</h1><p class="muted">اختر مدرسك وشاهد كل كورساته.</p><div class="grid" style="margin-top:20px">${ts.map(t=>{const mc=cs.filter(c=>c.teacher_id==t.id);return `<a class="cc tc" href="teachers.html?id=${t.id}">${av(t.name,t.image)}<h3>${esc(t.name)}</h3><p>${esc(t.bio||'')}</p><p>${mc.length} كورس</p>${stat(mc)}</a>`}).join('')}</div>`;return}
  const mc=cs.filter(c=>c.teacher_id==t.id);document.title=t.name+' | أكاديمية';
- $('#m').innerHTML=`<a href="teachers.html" class="muted">← كل المدرسين</a><div class="th">${av(t.name,t.image)}<div><h1>${esc(t.name)}</h1><p class="muted">${esc(t.bio||'')}</p>${stat(mc)}</div></div>`+
+ $('#m').innerHTML=`<a href="teachers.html" class="muted">${ic('right',16)} كل المدرسين</a><div class="th">${av(t.name,t.image)}<div><h1>${esc(t.name)}</h1><p class="muted">${esc(t.bio||'')}</p>${stat(mc)}</div></div>`+
   (ss.map(s=>{const l=mc.filter(c=>c.subject_id==s.id);return l.length?`<h2 class="lsn">${esc(s.name)} <small>${l.length} كورس</small></h2><div class="grid">${l.map(card).join('')}</div>`:''}).join('')||'<p class="empty">لا توجد كورسات لهذا المدرس بعد.</p>')
 }).catch(()=>$('#m').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>');
 </script></body></html>

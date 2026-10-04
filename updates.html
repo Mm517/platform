@@ -10,5 +10,5 @@ topbar();
 const need=()=>U()?false:(location.href='auth.html#login',true);
 
 Promise.all([get('edu_courses_v?order=id.desc&limit=5'),get('edu_updates?order=created_at.desc').catch(()=>[])]).then(([c,u])=>{
-$('#o').innerHTML=u.map(x=>`<div class="box"><b>📢 ${esc(x.title)}</b><div>${esc(x.body||'')}</div><small class="muted">${new Date(x.created_at).toLocaleDateString('ar-EG')}</small></div>`).join('')+c.map(x=>`<a class="box row" href="course.html?id=${x.id}"><span>🆕 كورس جديد: <b>${esc(x.title)}</b> — ${esc(x.teacher_name)}</span><span class="muted">عرض</span></a>`).join('')||'<p class="empty">لا توجد تحديثات.</p>'});
+$('#o').innerHTML=u.map(x=>`<div class="box"><b>${ic('mega',18)} ${esc(x.title)}</b><div>${esc(x.body||'')}</div><small class="muted">${new Date(x.created_at).toLocaleDateString('ar-EG')}</small></div>`).join('')+c.map(x=>`<a class="box row" href="course.html?id=${x.id}"><span>${ic('plus',16)} كورس جديد: <b>${esc(x.title)}</b> — ${esc(x.teacher_name)}</span><span class="muted">عرض</span></a>`).join('')||'<p class="empty">لا توجد تحديثات.</p>'});
 </script></body></html>
