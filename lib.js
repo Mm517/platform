@@ -25,8 +25,11 @@ const NAV=[['home','الرئيسية','home.html','<path d="M3 11l9-8 9 8M5 10v1
 function shell(active){const u=U();
  const li=NAV.map(([k,t,h,p])=>`<a href="${h}" class="sl ${k==active?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg><span>${t}</span></a>`).join('');
  document.body.insertAdjacentHTML('afterbegin',`<div class="mbar"><button id="mb" aria-label="القائمة">${ic('menu',24)}</button><a href="home.html" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><span class="mb-r"><button class="bell" aria-label="الإشعارات">${ic('bell',22)}<i class="bell-n" hidden></i></button><span class="pt">${ic('star',14,'fill amber')} <b class="pts">0</b></span></span></div><div class="ov" id="ov"></div>
- <aside class="sb" id="sb"><div class="sb-h"><a href="home.html" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><button class="bell" aria-label="الإشعارات">${ic('bell',20)}<i class="bell-n" hidden></i></button></div><nav>${li}</nav>
+ <aside class="sb" id="sb"><div class="sb-h"><a href="home.html" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><span style="display:flex;gap:4px"><button class="bell" aria-label="الإشعارات">${ic('bell',20)}<i class="bell-n" hidden></i></button><button class="bell sbx" id="sbc" aria-label="إخفاء القائمة" title="إخفاء القائمة">${ic('right',20)}</button></span></div><nav>${li}</nav>
  <div class="sb-f">${u?`<div class="pt">${ic('star',14,'fill amber')} <b class="pts" id="pts">0</b> نقطة</div><div class="sb-n">${esc(u.name||'')}</div><button id="lo" class="btn btn-o btn-s">تسجيل الخروج</button>`:'<a class="btn btn-p btn-s" href="auth.html#login">تسجيل الدخول</a>'}</div></aside>`);
+ document.body.insertAdjacentHTML('beforeend',`<button id="sbo" class="sbo" aria-label="إظهار القائمة" title="إظهار القائمة">${ic('menu',22)}</button>`);
+ const sc=v=>{document.body.classList.toggle('sbc',v);try{localStorage.setItem('acad_sbc',v?'1':'')}catch(_){}};try{if(localStorage.getItem('acad_sbc'))document.body.classList.add('sbc')}catch(_){}
+ $('#sbc').onclick=e=>{e.stopPropagation();sc(true)};$('#sbo').onclick=()=>sc(false);
  notifInit();const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
  const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth.html#login'};
  if(u)get('edu_profiles?select=points,banned').then(r=>{if(r[0]&&r[0].banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth.html#login';return}if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
@@ -51,8 +54,10 @@ let _ytP=null;
 const ytApi=()=>_ytP||(_ytP=new Promise((ok,no)=>{if(window.YT&&YT.Player)return ok();
  const prev=window.onYouTubeIframeAPIReady;window.onYouTubeIframeAPIReady=()=>{prev&&prev();ok()};
  const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';s.onerror=()=>no();document.head.appendChild(s);setTimeout(no,10000)}));
-function ytFallback(box,id,why){const url='https://www.youtube.com/watch?v='+id;
- box.innerHTML=`<a href="${url}" target="_blank" rel="noopener" style="position:relative;display:grid;place-items:center;width:100%;height:100%;background:#000 url('https://i.ytimg.com/vi/${id}/hqdefault.jpg') center/cover;color:#fff;text-decoration:none;text-align:center"><span style="background:rgba(0,0,0,.72);padding:14px 18px;border-radius:12px;max-width:90%;line-height:1.8"><b style="display:block;font-size:16px">شاهد الفيديو على يوتيوب</b><small>${esc(why||'صاحب الفيديو لا يسمح بتشغيله داخل المواقع')}</small></span></a>`}
+function ytFallback(box,id,why,opt={}){const url='https://www.youtube.com/watch?v='+id;
+ box.innerHTML=`<div style="position:relative;display:grid;place-items:center;width:100%;height:100%;background:#000 url('https://i.ytimg.com/vi/${id}/hqdefault.jpg') center/cover;color:#fff;text-align:center"><div style="background:rgba(0,0,0,.78);padding:16px 18px;border-radius:12px;max-width:92%;line-height:1.9"><b style="display:block;font-size:16px">${esc(why||'الفيديو لا يعمل داخل الموقع')}</b><small style="display:block;margin-bottom:10px">شاهده على يوتيوب ثم ارجع واضغط «خلّصت المشاهدة» ليتحفظ تقدمك</small><a class="btn btn-p btn-s" data-yt target="_blank" rel="noopener" href="${url}">شاهد على يوتيوب</a> <button class="btn btn-s" data-yd style="background:#fff;color:#075B98">خلّصت المشاهدة</button><div class="fe" hidden></div></div></div>`;
+ box.querySelector('[data-yt]').onclick=()=>{opt.ontick&&opt.ontick(1,1000)};
+ box.querySelector('[data-yd]').onclick=()=>{opt.onend&&opt.onend();const e=box.querySelector('.fe');e.innerHTML=opt.end?opt.end():'';e.hidden=false;e.style.marginTop='12px';e.style.color='#fff';box.querySelector('[data-yd]').remove()}}
 const fmtT=t=>{t=Math.max(0,Math.floor(t||0));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0')};
 /* مشغّل بواجهة الموقع: أزرار تحكم خاصة + درع يمنع النقر على عناصر يوتيوب + شاشة نهاية (opt.end يرجع HTML) */
 function mountVideo(box,url,opt={}){if(!box)return;box.innerHTML='';box.className='vid';const id=ytId(url),raw=!id&&!/drive\.google\.com|vimeo\.com/.test(url||'');
@@ -66,10 +71,10 @@ function mountVideo(box,url,opt={}){if(!box)return;box.innerHTML='';box.classNam
  const RATES=[1,1.25,1.5,2,0.75];let ri=0;
  const setSt=s=>{state=s;box.classList.toggle('playing',s=='play');q('.pb').innerHTML=s=='play'?ic('pause',18):ic('play',18,'fill');
   if(s=='play'&&!started){started=true;const p=q('.pl-poster');p&&p.remove()}
-  if(s=='end'){end.innerHTML=opt.end?opt.end():'<div><div style="font-size:20px;font-weight:700">انتهى الفيديو</div><button class="btn btn-s" style="background:#fff;color:#075B98;margin-top:10px" data-c="replay">إعادة المشاهدة</button></div>';end.hidden=false}else end.hidden=true};
+  if(s=='end'){opt.onend&&opt.onend();end.innerHTML=opt.end?opt.end():'<div><div style="font-size:20px;font-weight:700">انتهى الفيديو</div><button class="btn btn-s" style="background:#fff;color:#075B98;margin-top:10px" data-c="replay">إعادة المشاهدة</button></div>';end.hidden=false}else end.hidden=true};
  const wake=()=>{box.classList.remove('idle');clearTimeout(idleT);idleT=setTimeout(()=>box.classList.add('idle'),2600)};
  const toggle=()=>{if(!A)return;state=='play'?A.pause():A.play()};
- const tick=()=>{if(!A||drag)return;const d=A.dur(),c=A.cur();if(d>0){sl.value=c/d*1000;q('.pl-d').textContent=fmtT(d)}q('.pl-t').textContent=fmtT(c)};
+ const tick=()=>{if(!A||drag)return;const d=A.dur(),c=A.cur();if(d>0){sl.value=c/d*1000;q('.pl-d').textContent=fmtT(d)}q('.pl-t').textContent=fmtT(c);if(state=='play'&&opt.ontick)opt.ontick(c,d)};
  box.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(b&&box.contains(b)){const k=b.dataset.c;
    if(k=='pp')toggle();
    if(k=='replay'){A.seek(0);A.play()}
@@ -86,14 +91,14 @@ function mountVideo(box,url,opt={}){if(!box)return;box.innerHTML='';box.classNam
  setInterval(()=>{if(!box.isConnected)return;tick()},300);
  if(raw){const v=document.createElement('video');v.playsInline=true;v.preload='metadata';v.src=url;mEl.appendChild(v);
   A={play:()=>v.play(),pause:()=>v.pause(),seek:t=>{v.currentTime=t},cur:()=>v.currentTime,dur:()=>v.duration||0,rate:r=>{v.playbackRate=r},mute:m=>{v.muted=m},muted:()=>v.muted,native:()=>v.webkitEnterFullscreen&&v.webkitEnterFullscreen()};
-  v.onplay=()=>setSt('play');v.onpause=()=>{if(!v.ended)setSt('pause')};v.onended=()=>setSt('end');v.onloadedmetadata=tick;v.onerror=()=>{mEl.innerHTML='<span style="color:#fff;display:grid;place-items:center;height:100%">تعذر تشغيل الفيديو</span>'};return}
- const fail=why=>{clearTimeout(t0);ytFallback(box,id,why)};let t0=setTimeout(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'),9000);
+  v.onplay=()=>setSt('play');v.onpause=()=>{if(!v.ended)setSt('pause')};v.onended=()=>setSt('end');v.onloadedmetadata=()=>{if(opt.start>5&&opt.start<v.duration-5)v.currentTime=opt.start;tick()};v.onerror=()=>{mEl.innerHTML='<span style="color:#fff;display:grid;place-items:center;height:100%">تعذر تشغيل الفيديو</span>'};return}
+ const fail=why=>{clearTimeout(t0);ytFallback(box,id,why,opt)};let t0=setTimeout(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'),9000);
  ytApi().then(()=>{const holder=document.createElement('div');mEl.appendChild(holder);
   const pv={controls:0,disablekb:1,fs:0,rel:0,modestbranding:1,iv_load_policy:3,playsinline:1,cc_load_policy:0,hl:'ar'};if(/^https?:$/.test(location.protocol))pv.origin=location.origin;
-  const P=new YT.Player(holder,{videoId:id,width:'100%',height:'100%',playerVars:pv,events:{
-   onReady:()=>{clearTimeout(t0);A={play:()=>P.playVideo(),pause:()=>P.pauseVideo(),seek:t=>P.seekTo(t,true),cur:()=>P.getCurrentTime()||0,dur:()=>P.getDuration()||0,rate:r=>P.setPlaybackRate(r),mute:m=>m?P.mute():P.unMute(),muted:()=>P.isMuted()};tick()},
+  let tries=0;const mk=(hd,hold)=>{const cfg={videoId:id,width:'100%',height:'100%',playerVars:pv,events:{
+   onReady:()=>{clearTimeout(t0);A={play:()=>P.playVideo(),pause:()=>P.pauseVideo(),seek:t=>P.seekTo(t,true),cur:()=>P.getCurrentTime()||0,dur:()=>P.getDuration()||0,rate:r=>P.setPlaybackRate(r),mute:m=>m?P.mute():P.unMute(),muted:()=>P.isMuted()};if(opt.start>5)P.seekTo(opt.start,true);tick()},
    onStateChange:e=>{const s=e.data;if(s==1)setSt('play');else if(s==2)setSt('pause');else if(s==0)setSt('end')},
-   onError:e=>fail([101,150,153].includes(e.data)?'صاحب الفيديو لا يسمح بتشغيله داخل المواقع':'الفيديو غير متاح أو محذوف')}})}).catch(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'))}
+   onError:e=>{if([101,150,153].includes(e.data)&&!tries++){try{P.destroy()}catch(_){}const h2=document.createElement('div');mEl.innerHTML='';mEl.appendChild(h2);return mk(null,h2)}fail([101,150,153].includes(e.data)?'صاحب الفيديو لا يسمح بتشغيله داخل المواقع (كود '+e.data+')':'الفيديو غير متاح أو محذوف')}}};if(hd)cfg.host=hd;P=new YT.Player(hold,cfg)};let P;mk('https://www.youtube-nocookie.com',holder)}).catch(()=>fail('تعذر تحميل المشغّل — افتح الفيديو مباشرة'))}
 
 
 /* ===== الإشعارات: جرس + لوحة + عدّاد غير المقروء ===== */
@@ -108,8 +113,25 @@ async function notifLoad(){const u=U();if(!u)return;
 function notifDraw(){const p=$('#np');
  p.innerHTML=`<div class="np-h"><b>الإشعارات</b><button id="nra" class="lnk">تعليم الكل كمقروء</button></div><div class="np-l">${NT.list.length?NT.list.map(x=>{const t=x.link?'a':'div';return `<${t} ${x.link?`href="${esc(x.link)}"`:''} class="ni ${x.un?'un':''}"><b>${esc(x.title)}</b>${x.body?`<p>${esc(x.body)}</p>`:''}<small>${ago(x.created_at)}</small></${t}>`}).join(''):'<p class="empty">لا توجد إشعارات.</p>'}</div>`}
 function notifInit(){if(!U())return;document.body.insertAdjacentHTML('beforeend','<div id="np" class="np" hidden></div>');
- document.addEventListener('click',async e=>{const b=e.target.closest('.bell'),p=$('#np');
+ document.addEventListener('click',async e=>{const b=e.target.closest('.bell:not(.sbx)'),p=$('#np');
   if(b){p.hidden=!p.hidden;if(!p.hidden)notifDraw();return}
   if(e.target.id=='nra'){await post('edu_notif_state',{user_id:U().id,last_read:new Date().toISOString()},'resolution=merge-duplicates,return=minimal');await notifLoad();return}
   if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
  notifLoad();setInterval(notifLoad,60000)}
+
+/* مكان الطالب: آخر جزء شاهده -> يكمّل منه، أو الجزء/الدرس التالي */
+async function resume(){if(!U())return null;try{
+ const[pg,cs,ls]=await Promise.all([get('edu_progress?select=course_id,done&order=updated_at.desc&limit=1'),get('edu_courses?select=id,lesson_id,teacher_id,title&order=sort,id'),get('edu_lessons?select=id,subject_id,title&order=sort,id')]);
+ const p=pg[0],c=p&&cs.find(x=>x.id==p.course_id),l=c&&ls.find(x=>x.id==c.lesson_id);if(!l)return null;
+ if(!p.done)return{t:'أنت هنا — كمّل من حيث وقفت',h:'course.html?id='+c.id,a:l.title,b:c.title};
+ const sib=cs.filter(x=>x.lesson_id==c.lesson_id&&x.teacher_id==c.teacher_id),n=sib[sib.findIndex(x=>x.id==c.id)+1];
+ if(n)return{t:'الجزء التالي',h:'course.html?id='+n.id,a:l.title,b:n.title};
+ const sl=ls.filter(x=>x.subject_id==l.subject_id),nl=sl.slice(sl.findIndex(x=>x.id==l.id)+1).find(x=>cs.some(y=>y.lesson_id==x.id));
+ return nl?{t:'خلّصت «'+l.title+'» — الدرس التالي',h:'courses.html#'+l.subject_id+'-'+nl.id,a:nl.title,b:''}:{t:'خلّصت كل دروس المادة',h:'courses.html#'+l.subject_id,a:l.title,b:''}}catch(_){return null}}
+const resumeBox=r=>r?`<a class="box row" href="${r.h}" style="border-color:var(--bl);background:#eaf5ff"><span><small class="muted">${esc(r.t)}</small><br><b>${esc(r.a)}</b>${r.b?' — '+esc(r.b):''}</span>${ic('left',20)}</a>`:'';
+/* تحويل رابط (درايف / pdf / مستندات) لرابط يتفتح داخل iframe */
+const embedUrl=u=>{u=String(u||'');let m=u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([\w-]+)/);if(m)return'https://drive.google.com/file/d/'+m[1]+'/preview';
+ m=u.match(/docs\.google\.com\/(document|presentation|spreadsheets)\/d\/([\w-]+)/);if(m)return'https://docs.google.com/'+m[1]+'/d/'+m[2]+'/preview';return u};
+const frameHtml=u=>`<div style="margin-top:10px"><iframe src="${esc(embedUrl(u))}" style="width:100%;height:70vh;border:1px solid var(--bo);border-radius:12px;background:#fff" allow="fullscreen" referrerpolicy="no-referrer" loading="lazy"></iframe><a class="muted" target="_blank" rel="noopener" href="${esc(u)}">فتح في تبويب جديد</a></div>`;
+const saveProg=(cid,pos,dur,done)=>U()&&post('edu_progress?on_conflict=user_id,course_id',{user_id:U().id,course_id:cid,position:pos,duration:dur,done:!!done,updated_at:new Date().toISOString()},'resolution=merge-duplicates,return=minimal').catch(()=>{});
+

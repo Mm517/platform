@@ -30,6 +30,7 @@ Promise.all([get('edu_profiles?select=points,name'),ok(get('edu_points_log?selec
  <h2 class="lsn">${ic('right',20)} إيه القادم</h2>${nxt.length?`<div class="grid">${nxt.map(cc).join('')}</div>`:'<p class="empty">شاهدت كل الدروس المتاحة، ترقّب الجديد!</p>'}
  ${up.map(x=>`<div class="box"><b>${ic('mega',18)} ${esc(x.title)}</b><div>${esc(x.body||'')}</div></div>`).join('')}
  <a class="btn btn-p" style="margin-top:16px" href="courses.html">ابدأ اختيار المادة والدرس</a>`;
+ resume().then(r=>{if(r)$('#o .stat').insertAdjacentHTML('beforebegin',resumeBox(r))});
  let i=0;const t=$('#at'),ds=[...document.querySelectorAll('#ad i')],go=k=>{i=(k+sl.length)%sl.length;t.style.transform=`translateX(-${i*100}%)`;ds.forEach((d,j)=>d.classList.toggle('on',j==i))};
  let tm=setInterval(()=>go(i+1),4000),x0=null;const bx=$('#ads');
  bx.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;clearInterval(tm)},{passive:true});
