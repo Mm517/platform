@@ -18,7 +18,7 @@ const tid=+new URLSearchParams(location.search).get('id');
 const stat=cs=>{const n=cs.reduce((a,c)=>a+ +c.reviews_count,0),s=cs.reduce((a,c)=>a+c.rating*c.reviews_count,0);return n?`<div class="rt">${stars(s/n)} ${(s/n).toFixed(1)} <span>(${n} تقييم)</span></div>`:'<div class="rt"><span>لا توجد تقييمات بعد</span></div>'};
 const av=(n,im)=>im?`<div class="av" style="background:#fff url('${esc(im)}') center/cover"></div>`:`<div class="av">${esc(n.replace(/^أ\.\s*/,'').charAt(0))}</div>`;
 const card=c=>`<a class="cc" href="course?id=${c.id}"><div class="cv2" style="${c.image?`background-image:url('${esc(c.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${c.is_free?'f':'p'}">${c.is_free?'مجاني':'مميز'}</span></div><div class="cb"><h3>${esc(c.title)}</h3><p>${esc(c.lesson_title)}</p><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div></a>`;
-const run=q=>Promise.all([cget('edu_teachers?order=id'),cget('edu_courses_v?select=*&order=id'),cget('edu_subjects?select=id,name,color,icon&order=sort')]).then(([ts,cs,ss])=>{
+const run=q=>Promise.all([cget('edu_teachers?order=id'),cget('edu_courses_v?select=*&order=id',null,1),cget('edu_subjects?select=id,name,color,icon&order=sort')]).then(([ts,cs,ss])=>{
  const t=ts.find(x=>x.id==tid);
  if(!t){
   const tc=(x,m)=>`<a class="cc tc" href="teachers?id=${x.id}">${av(x.name,x.image)}<h3>${esc(x.name)}</h3><p>${esc(x.bio||'')}</p><p>${m.length} كورس</p>${stat(m)}</a>`,

@@ -22,11 +22,11 @@ const BP=[['#0878C9','#075B98'],['#7c3aed','#5b21b6'],['#059669','#047857'],['#e
 const NA=['#f59e0b','#ec4899','#8b5cf6','#10b981','#0ea5e9','#ef4444'],NR=[-1.2,.9,-.6,1.1,-.9,.6];
 const SK='<div class="skw" aria-busy="true"><div class="sk-g" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))"><div class="sk" style="aspect-ratio:3/4.1"></div><div class="sk" style="aspect-ratio:3/4.1"></div><div class="sk" style="aspect-ratio:3/4.1"></div><div class="sk" style="aspect-ratio:3/4.1"></div></div></div>';
 const isImg=u=>/\.(png|jpe?g|webp|gif)(\?|#|$)/i.test(u||'');
-let tab='books',L={books:null,docs:null},P={books:null,docs:null},seq=0,qs='';
+let LIM=40,tab='books',L={books:null,docs:null},P={books:null,docs:null},seq=0,qs='';
 const tabOf=()=>{const h=location.hash.slice(1);return TABS.some(t=>t[0]==h)?h:'books'};
 const ld=g=>g=='books'
-  ?cget('edu_books?order=id.desc',600)
-  :Promise.all([cget('edu_course_files?order=id.desc',300),cget('edu_courses_v?select=id,title,teacher_name',600).catch(()=>[])]).then(([f,c])=>{const m=Object.fromEntries(c.map(x=>[x.id,x]));return f.map(x=>({...x,course:(m[x.course_id]||{}).title||'',teacher:(m[x.course_id]||{}).teacher_name||''}))});
+  ?cget('edu_books?order=id.desc',600,1)
+  :Promise.all([cget('edu_course_files?order=id.desc',300,1),cget('edu_courses_v?select=id,title,teacher_name&order=id',600,1).catch(()=>[])]).then(([f,c])=>{const m=Object.fromEntries(c.map(x=>[x.id,x]));return f.map(x=>({...x,course:(m[x.course_id]||{}).title||'',teacher:(m[x.course_id]||{}).teacher_name||''}))});
 const need=k=>{const g=k=='books'?'books':'docs';
  return L[g]?Promise.resolve(L[g]):(P[g]||(P[g]=ld(g).then(d=>(L[g]=d,drawTabs(),d)).catch(e=>{P[g]=null;throw e})))};
 /* تحديث فوري: بيعيد تحميل اللي اتفتح قبل كده بس، وبيرسم من غير ما يقفل القارئ */
@@ -41,19 +41,20 @@ const bookCard=(x,i)=>{const [c1,c2]=BP[(+x.id||i)%BP.length],T=x.url?'a':'div';
  return `<${T} class="bk" style="--i:${Math.min(i,12)};--c1:${c1};--c2:${c2}" ${x.url?`target="_blank" rel="noopener" href="${esc(x.url)}"`:''}><div class="bk-gl"></div><div class="bk-f"><div class="bk-in" ${x.cover?`style="background-image:url('${esc(x.cover)}')"`:''}>${x.cover?'':`<div class="bk-fb">${ico('book',46)}<b>${esc(x.title)}</b></div>`}<i class="bk-sh"></i><i class="bk-sp"></i>${x.url?`<span class="bk-op">${ic('ext',14)} فتح الكتاب</span>`:''}</div></div><div class="bk-t"><h3>${esc(x.title)}</h3>${x.subject?`<span class="bk-s">${esc(x.subject)}</span>`:''}</div></${T}>`};
 const noteCard=(x,i)=>`<div class="nt" style="--i:${Math.min(i,12)};--a:${NA[(+x.id||i)%NA.length]};--r:${NR[i%NR.length]}deg"><i class="nt-tp"></i><span class="nt-tag">${ic('note',14)} مذكرة</span><h3>${esc(x.title)}</h3><p class="nt-m">${esc(x.course)}${x.teacher?' • '+esc(x.teacher):''}</p>${x.url?`<button class="nt-b" data-rd="${x.id}">${ic('eye',16)} اقرأ المذكرة</button>`:'<span class="nt-soon">قريبًا</span>'}</div>`;
 const fileRow=(x,i)=>{const im=x.kind=='image'||isImg(x.url);return `<div class="fl" style="--i:${Math.min(i,14)}"><span class="fl-i ${im?'im':''}">${ic(im?'image':'file',22)}</span><span class="fl-t"><b>${esc(x.title)}<span class="fl-k">${im?'صورة':'PDF'}</span></b><small>${esc(x.course)}${x.teacher?' • '+esc(x.teacher):''}</small></span>${x.url?`<a class="btn btn-p btn-s" target="_blank" rel="noopener" data-aw="file:${x.id}" href="${esc(x.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`};
+const more=n=>n>LIM?`<p style="text-align:center;margin:18px 0"><button class="btn btn-o" data-more>عرض المزيد (${n-LIM})</button></p>`:'';
 function draw(){let h;
- if(tab=='books'){const a=flt(L.books||[],x=>x.title+' '+(x.subject||''));h=a.length?`<div class="bk-grid">${a.map(bookCard).join('')}</div>`:empty('لا توجد كتب بعد.')}
+ if(tab=='books'){const a=flt(L.books||[],x=>x.title+' '+(x.subject||''));h=a.length?`<div class="bk-grid">${a.slice(0,LIM).map(bookCard).join('')}</div>${more(a.length)}`:empty('لا توجد كتب بعد.')}
  else{const n=tab=='notes',a=flt((L.docs||[]).filter(x=>(x.kind=='summary')==n),x=>x.title+' '+x.course+' '+x.teacher);
-  h=a.length?(n?`<div class="nt-grid">${a.map(noteCard).join('')}</div>`:`<div class="fl-list">${a.map(fileRow).join('')}</div>`):empty(n?'لا توجد مذكرات بعد.':'لا توجد ملفات بعد.')}
+  h=a.length?(n?`<div class="nt-grid">${a.slice(0,LIM).map(noteCard).join('')}</div>`:`<div class="fl-list">${a.slice(0,LIM).map(fileRow).join('')}</div>`)+more(a.length):empty(n?'لا توجد مذكرات بعد.':'لا توجد ملفات بعد.')}
  $('#o').innerHTML=h}
-async function show(){tab=tabOf();const my=++seq;drawTabs();
+async function show(){LIM=40;tab=tabOf();const my=++seq;drawTabs();
  const g=tab=='books'?'books':'docs';
  if(!L[g])$('#o').innerHTML=SK;
  try{await need(tab);if(my!=seq)return;draw()}
  catch(_){if(my!=seq)return;$('#o').innerHTML='<p class="empty">تعذر التحميل. <button class="btn btn-o btn-s" data-retry>حاول تاني</button></p>'}}
 $('#tb').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b||b.dataset.t==tab)return;location.hash=b.dataset.t});
 addEventListener('hashchange',()=>{if(tabOf()!=tab){qs='';$('#q').value='';show()}});
-$('#q').addEventListener('input',e=>{qs=e.target.value;if(L[tab=='books'?'books':'docs'])draw()});
+$('#q').addEventListener('input',e=>{qs=e.target.value;LIM=40;if(L[tab=='books'?'books':'docs'])draw()});
 $('.ic-w').innerHTML=ic('search',17);
 
 /* ميل ثلاثي الأبعاد ولمعان يتبع الماوس على الكتب (على الموبايل اللمعان بيتحرك لوحده) */
@@ -71,6 +72,7 @@ function openRd(x){closeRd();const im=isImg(x.url);
 document.addEventListener('keydown',e=>{if(e.key=='Escape')closeRd()});
 document.addEventListener('click',e=>{
  if(e.target.closest('[data-rdx]'))return closeRd();
+ if(e.target.closest('[data-more]')){LIM+=40;return draw()}
  if(e.target.closest('[data-retry]'))return show();
  const r=e.target.closest('[data-rd]');if(r){const x=(L.docs||[]).find(y=>y.id==r.dataset.rd);if(x)openRd(x);return}
  const a=e.target.closest('[data-aw]');if(a)award(...a.dataset.aw.split(':'))});

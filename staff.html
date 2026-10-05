@@ -13,18 +13,20 @@
 <script>
 if(!U())location.replace('auth#login');
 topbar();
-let R,TID,stf=[],subs=[],ls=[],ts=[],cs=[],ads=[],bks=[],ups=[],sols=[],fls=[],qzs=[],tab='c',P=null,QI=[],QT='',us=[],OL=0;
+const SC=120;let R,TID,stf=[],subs=[],ls=[],ts=[],cs=[],ads=[],bks=[],ups=[],sols=[],fls=[],qzs=[],tab='c',P=null,QI=[],QT='',us=[],OL=0;
 const J=async(p,d=[])=>{const r=await post('rpc/'+p,{});return r.ok?r.json():d};
 const modal=(t,h,ok)=>new Promise(res=>{document.body.insertAdjacentHTML('beforeend',`<div class="mdl" id="md"><div class="mb"><h3>${t}</h3><div class="form">${h}</div><div class="acts" style="margin-top:14px"><button class="bt p" id="mok">حفظ</button><button class="bt" id="mcx">إلغاء</button></div></div></div>`);const c=()=>$('#md').remove();$('#mcx').onclick=()=>{c();res(null)};$('#mok').onclick=async()=>{const b=$('#mok');b.disabled=true;if(await ok()===false){b.disabled=false;return}c();res(true)}});
 const ICL={book:'كتاب',globe:'كرة أرضية',math:'رياضيات',flask:'علوم',map:'خريطة'},TS={open:'قيد المراجعة',answered:'تم الرد',closed:'مغلقة'},TC={general:'استفسار عام',tech:'مشكلة تقنية',account:'الحساب',content:'المحتوى',idea:'اقتراح',legacy:'رسالة قديمة'};
 let tkA=[],qsA=[],rvA=[],ntA=[],TKS=0,TKM=[],TKF='all';
-async function tabLoad(){if(R!='admin'&&tab!='qa')return;
+/* بيانات التبويبات: عند تبديل التبويب بنستخدم نسخة عمرها أقل من دقيقة (soft)، وبعد أي حفظ/إجراء بنجيب نسخة جديدة */
+const TM={},M=(k,soft,fn)=>soft&&TM[k]&&Date.now()-TM[k].t<60000?Promise.resolve(TM[k].d):fn().then(d=>(TM[k]={t:Date.now(),d},d));
+async function tabLoad(soft){if(R!='admin'&&tab!='qa')return;
  if(R=='admin'&&tab=='ab'){const r=await rest('edu_about?id=eq.1').catch(()=>({ok:false}));ABerr=!r.ok;AB=r.ok?((await r.json())[0]||{}):{}}
- if(R=='admin'&&['o','x','n'].includes(tab))us=await J('edu_admin_users');
- if(R=='admin'&&['o','s'].includes(tab))tkA=await J('edu_admin_tickets');
- if(['o','qa'].includes(tab))qsA=(await get('edu_questions?order=created_at.desc&limit=300').catch(()=>[])).filter(x=>cs.some(c=>c.id==x.course_id));
- if(tab=='n')ntA=await get('edu_notifications?order=created_at.desc&limit=60').catch(()=>[]);
- if(tab=='rv')rvA=await get('edu_reviews?order=created_at.desc&limit=200').catch(()=>[]);
+ if(R=='admin'&&['o','x','n'].includes(tab))us=await M('us',soft,()=>J('edu_admin_users'));
+ if(R=='admin'&&['o','s'].includes(tab))tkA=await M('tk',soft,()=>J('edu_admin_tickets'));
+ if(['o','qa'].includes(tab))qsA=(await M('qs',soft,()=>get('edu_questions?order=created_at.desc&limit=300').catch(()=>[]))).filter(x=>cs.some(c=>c.id==x.course_id));
+ if(tab=='n')ntA=await M('nt',soft,()=>get('edu_notifications?order=created_at.desc&limit=60').catch(()=>[]));
+ if(tab=='rv')rvA=await M('rv',soft,()=>get('edu_reviews?order=created_at.desc&limit=200').catch(()=>[]));
  if(tab=='s'&&TKS)TKM=await get('edu_ticket_messages?ticket_id=eq.'+TKS+'&order=created_at').catch(()=>[])}
 const kc=(i,n,l)=>`<div class="kc"><span class="ki">${ic(i,22)}</span><span><b>${n}</b><small>${l}</small></span></div>`;
 const ib=(a,id,i,t,x='')=>`<button class="ib ${x}" data-a="${a}" data-id="${id}" title="${t}" aria-label="${t}">${ic(i,16)}</button>`;
@@ -54,11 +56,11 @@ const sel=(id,a,f)=>`<select id="${id}">${a.map(f).join('')}</select>`,fv=id=>$(
 const fup=(id,acc,lab)=>`<div class="up"><small class="muted">${lab}</small><label class="fpick"><input type="file" id="${id}" accept="${acc}"><span class="fp-b">${ic('upload',16)} اختر ملف</span><span class="fp-n">لم يتم اختيار ملف</span></label><div class="pbar"><i id="${id}_p" style="width:0"></i></div></div>`;
 const up=async(id,folder)=>{const f=$('#'+id)?.files[0];if(!f)return null;return upload(f,folder,v=>{const p=$('#'+id+'_p');if(p)p.style.width=v+'%'})};
 const FA='.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,image/*',VA='video/*,.mp4,.webm,.mov';
-async function load(){[subs,ls,ts,cs]=await Promise.all([get('edu_subjects?order=sort'),get('edu_lessons?order=subject_id,sort,id'),get('edu_teachers?order=id'),get('edu_courses_v?order=id')]);
- const so=await get('edu_courses?select=id,sort').catch(()=>[]),sm=Object.fromEntries(so.map(x=>[x.id,x.sort||0]));cs.forEach(c=>c.sort=sm[c.id]||0);
- if(R=='admin'){[ads,bks,ups,stf]=await Promise.all([get('edu_ads?order=sort,id').catch(()=>[]),get('edu_books?order=id.desc').catch(()=>[]),get('edu_updates?order=created_at.desc').catch(()=>[]),post('rpc/edu_staff_list',{}).then(r=>r.ok?r.json():[]).catch(()=>[])])}else cs=cs.filter(c=>c.teacher_id==TID);
- const ids=new Set(cs.map(c=>c.id));[sols,fls]=(await Promise.all([get('edu_course_solutions?order=id').catch(()=>[]),get('edu_course_files?order=id').catch(()=>[])])).map(a=>a.filter(x=>ids.has(x.course_id)));
- qzs=(await get('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)').catch(()=>[])).filter(q=>ids.has(q.course_id))}
+async function load(){[subs,ls,ts,cs]=await Promise.all([cget('edu_subjects?order=sort',SC),cget('edu_lessons?order=subject_id,sort,id',SC),cget('edu_teachers?order=id',SC),cget('edu_courses_v?order=id',SC,1)]);
+ const so=await cget('edu_courses?select=id,sort&order=id',SC,1).catch(()=>[]),sm=Object.fromEntries(so.map(x=>[x.id,x.sort||0]));cs.forEach(c=>c.sort=sm[c.id]||0);
+ if(R=='admin'){[ads,bks,ups,stf]=await Promise.all([cget('edu_ads?order=sort,id',SC).catch(()=>[]),cget('edu_books?order=id.desc',SC,1).catch(()=>[]),cget('edu_updates?order=created_at.desc',SC).catch(()=>[]),post('rpc/edu_staff_list',{}).then(r=>r.ok?r.json():[]).catch(()=>[])])}else cs=cs.filter(c=>c.teacher_id==TID);
+ const ids=new Set(cs.map(c=>c.id));[sols,fls]=(await Promise.all([cget('edu_course_solutions?order=id',SC,1).catch(()=>[]),cget('edu_course_files?order=id',SC,1).catch(()=>[])])).map(a=>a.filter(x=>ids.has(x.course_id)));
+ qzs=(await cget('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)&order=id',SC,1).catch(()=>[])).filter(q=>ids.has(q.course_id))}
 const opt=(a,f,v)=>a.map(x=>`<option value="${x.id}" ${x.id==v?'selected':''}>${f(x)}</option>`).join('');
 const sel2=(id,a,f,v)=>`<select id="${id}">${opt(a,f,v)}</select>`;
 const mv=(a,id)=>`<button class="btn btn-o btn-s" data-a="${a}" data-id="${id}" data-d="-1" title="أعلى">${ic('up',16)}</button><button class="btn btn-o btn-s" data-a="${a}" data-id="${id}" data-d="1" title="أسفل">${ic('down',16)}</button>`;
@@ -106,7 +108,7 @@ document.addEventListener('change',e=>{const i=e.target;if(!i||i.type!='file')re
  if(/^image\/(jpe?g|png|bmp|webp)$/.test(f.type)){const t=document.createElement('span');t.className='fp-th';t.style.backgroundImage="url('"+URL.createObjectURL(f)+"')";w.insertBefore(t,w.querySelector('.fp-b'));const k=document.createElement('span');k.className='fp-w';k.textContent='WebP';w.appendChild(k)}});
 document.addEventListener('input',e=>{if(e.target.id!='us')return;const q=e.target.value.trim().toLowerCase();document.querySelectorAll('#ul [data-q]').forEach(x=>x.style.display=x.dataset.q.toLowerCase().includes(q)?'':'none')});
 document.addEventListener('click',async e=>{const b=e.target.closest('button');if(!b||!R)return;const a=b.dataset.a,id=b.dataset.id;
- if(b.dataset.t){tab=b.dataset.t;P=null;TKS=0;await tabLoad();draw();window.scrollTo(0,0);return}
+ if(b.dataset.t){tab=b.dataset.t;P=null;TKS=0;await tabLoad(true);draw();window.scrollTo(0,0);return}
  if(a=='close'){P=null;return draw()}
  if(a=='tgl'){OL=OL==id?0:+id;P=null;return draw()}
  if(a=='addl'){const sid=+id,t=fv('ln'+sid);if(t.length<2)return say('اكتب عنوان الدرس.');return run(await post('edu_lessons',{subject_id:sid,title:t,unit:fv('lu'+sid)||null,sort:ls.filter(l=>l.subject_id==sid).length+1}),'تمت إضافة الدرس')}
@@ -198,6 +200,8 @@ document.addEventListener('click',async e=>{const b=e.target.closest('button');i
  if(a=='addu'||a=='saveu'){if(fv('ut').length<2)return say('اكتب العنوان.');const body={title:fv('ut'),body:fv('ub')||null};return run(a=='addu'?await post('edu_updates',body):await rest('edu_updates?id=eq.'+id,{method:'PATCH',body:JSON.stringify(body)}),'تم')}
  if(a=='delu'&&confirm('حذف التحديث؟'))return run(await rest('edu_updates?id=eq.'+id,{method:'DELETE'}));
 });
+/* تحديث فوري للوحة لما أدمن/مدرس تاني يعدّل محتوى: بيجيب الجدول المتغيّر بس، ومبيعملش حاجة لو إنت بتكتب أو فاتح نافذة */
+onLive(async()=>{if(!R||Date.now()-(window._ownW||0)<4000||P||document.querySelector('#md')||/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName))return;try{await load();draw()}catch(_){}});
 get('edu_staff?select=role,teacher_id').catch(()=>[]).then(async s=>{if(!s[0])return $('#o').innerHTML='<p class="empty">هذه الصفحة للمدرسين والإدارة فقط.</p><div class="box" style="max-width:380px;margin:16px auto;text-align:center"><b>عندك حساب إدارة؟</b><p class="muted">سجّل خروج ثم ادخل برقم موبايل وكلمة سر حساب الأدمن.</p><button class="btn btn-p btn-s" onclick="setU(null);location.href=\'auth#login\'">تسجيل الدخول بحساب الإدارة</button></div>';R=s[0].role;TID=s[0].teacher_id;tab=R=='admin'?'o':'c';document.querySelector('h1').innerHTML=ic(R=='admin'?'crown':'cap',26)+(R=='admin'?' لوحة الإدارة':' لوحة المدرس');await load();await tabLoad();draw()}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
 </script>
 <script>new MutationObserver(()=>{const k=document.querySelector('.ktabs'),b=k&&k.querySelector('button.on');if(k&&b&&k.scrollWidth>k.clientWidth+2)k.scrollLeft=b.offsetLeft-(k.clientWidth-b.offsetWidth)/2}).observe(document.getElementById('o'),{childList:true});</script></body></html>

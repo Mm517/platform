@@ -12,15 +12,22 @@ async function rest(path,o={},retry=true){const u=U(),h={apikey:SUPA_KEY,'Conten
  if(u&&u.token)h.Authorization='Bearer '+u.token;
  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{...o,headers:h});
  if(r.status===401&&u&&retry){if(await refresh())return rest(path,o,false);setU(null)}
- if(o.method&&o.method!=='GET'&&r.ok&&CT.has(String(path).split('?')[0]))cClear();
+ if(o.method&&o.method!=='GET'&&r.ok){window._ownW=Date.now();const tb=String(path).split('?')[0];if(CT.has(tb))cDrop(tb)}
  return r}
+/* تنظيف الكاش: يمسح المنتهي (أكتر من ساعة) ولو الإجمالي عدّى ~2.5MB يمسح الأقدم — بيمنع امتلاء localStorage */
+(function cPrune(){try{const L=[];let tot=0;Object.keys(localStorage).forEach(k=>{if(!k.startsWith('acad_c:'))return;const v=localStorage.getItem(k)||'';let t=0;try{t=JSON.parse(v).t||0}catch(_){}
+ if(Date.now()-t>3600000){localStorage.removeItem(k);return}L.push([k,t,v.length]);tot+=v.length});
+ if(tot>2.5e6){L.sort((a,b)=>a[1]-b[1]);for(const x of L){if(tot<=1.8e6)break;localStorage.removeItem(x[0]);tot-=x[2]}}}catch(_){}})();
+/* يجيب كل الصفوف على دفعات 1000 (سقف Supabase) — طلب واحد لو أقل من 1000 صف، ومبيقطعش النتيجة بصمت */
+async function getAll(p,size){size=size||1000;if(/[?&]limit=/.test(p))return get(p);let out=[],off=0;
+ for(let i=0;i<50;i++){const r=await get(p+(p.includes('?')?'&':'?')+'limit='+size+'&offset='+off);out=out.concat(r);if(r.length<size)break;off+=size}return out}
 const _gi=new Map();
 const get=p=>{if(_gi.has(p))return _gi.get(p);const pr=(async()=>{const r=await rest(p);if(!r.ok)throw 0;return r.json()})().finally(()=>_gi.delete(p));_gi.set(p,pr);return pr};
 /* كاش للبيانات اللي بتتغير نادرًا (كتب/كورسات/دروس/مدرسين...): بيحمّلها مرة وبعدها من الجهاز لحد ما المدة تخلص (ثواني) */
-function cget(p,ttl){ttl=ttl==null?300:ttl;const u=U(),k='acad_c:'+(u?u.id:'-')+':'+p;let c=null;
+function cget(p,ttl,all){ttl=ttl==null?300:ttl;const u=U(),k='acad_c:'+(u?u.id:'-')+':'+p;let c=null;
  try{c=JSON.parse(localStorage.getItem(k)||'null')}catch(_){}
  if(c&&(Date.now()-c.t<ttl*1000||(_lvOk&&Date.now()-c.t<3600000)))return Promise.resolve(c.d);
- return get(p).then(d=>{try{localStorage.setItem(k,JSON.stringify({t:Date.now(),d}))}catch(_){}return d}).catch(e=>{if(c)return c.d;throw e})}
+ return (all?getAll(p):get(p)).then(d=>{try{localStorage.setItem(k,JSON.stringify({t:Date.now(),d}))}catch(_){}return d}).catch(e=>{if(c)return c.d;throw e})}
 /* بيانات الطالب الأساسية (نقاط/حظر/تاريخ التسجيل/الاسم) في طلب واحد ومحفوظة دقيقة ونص */
 function ME(force){const u=U();if(!u)return Promise.resolve(null);const k='acad_me:'+u.id;
  if(!force){try{const c=JSON.parse(sessionStorage.getItem(k)||'null');if(c&&Date.now()-c.t<90000)return Promise.resolve(c.d)}catch(_){}}
@@ -49,7 +56,7 @@ function shell(active){const u=U();
  notifInit();liveConnect();const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
  const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth#login'};
  if(u)ME().then(r=>{if(r&&r.banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth#login';return}if(r)document.querySelectorAll('.pts').forEach(e=>e.textContent=r.points)}).catch(()=>{});
- if(u)(()=>{const rk='acad_r:'+u.id;let rc=null;try{rc=sessionStorage.getItem(rk)}catch(_){}return rc!==null?Promise.resolve(rc?[{role:rc}]:[]):get('edu_staff?select=role').then(r=>{try{sessionStorage.setItem(rk,r[0]?r[0].role:'')}catch(_){}return r})})().then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
+ if(u)(()=>{const rk='acad_r:'+u.id;let rc=null;try{rc=sessionStorage.getItem(rk)}catch(_){}return rc!==null?Promise.resolve(rc?[{role:rc}]:[]):get('edu_staff?select=role,teacher_id').then(r=>{try{sessionStorage.setItem(rk,r[0]?r[0].role:'')}catch(_){}return r})})().then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
 const topbar=()=>shell(document.body.dataset.p||'');
 const lvl=p=>Math.floor(p/100)+1;
 
@@ -177,15 +184,15 @@ let _lv=null,_lvOk=false,_lvT=null,_lvHb=null,_lvRetry=0,_lvRef=0,_lvEver=false,
 function liveFlush(){clearTimeout(_lvDeb);clearTimeout(_lvMax);_lvDeb=_lvMax=null;const d=_lvQ;_lvQ=[];if(!d.length)return;
  const go=()=>window.dispatchEvent(new CustomEvent('acad:update',{detail:d}));
  document.hidden?document.addEventListener('visibilitychange',function f(){if(!document.hidden){document.removeEventListener('visibilitychange',f);go()}}):go()}
-const LV_DEP={edu_courses:['edu_courses_v'],edu_teachers:['edu_courses_v'],edu_subjects:['edu_courses_v'],edu_lessons:['edu_courses_v'],edu_quiz_questions:['edu_quizzes']};
+const LV_DEP={edu_courses:['edu_courses_v'],edu_teachers:['edu_courses_v'],edu_subjects:['edu_courses_v'],edu_lessons:['edu_courses_v'],edu_quiz_questions:['edu_quizzes'],edu_reviews:['edu_courses_v']};
 /* بيمسح من الكاش المفاتيح بتاعة الجدول المتغيّر بس (والـ view المرتبط بيه) — الباقي يفضل من الجهاز بدون ريكوست */
 function cDrop(t){try{const S=t==='*'?null:new Set([t,...(LV_DEP[t]||[])]);
  Object.keys(localStorage).forEach(k=>{if(!k.startsWith('acad_c:'))return;if(!S){localStorage.removeItem(k);return}if(S.has(k.split(':').slice(2).join(':').split('?')[0]))localStorage.removeItem(k)})}catch(_){}}
 function liveChanged(table,rec){cDrop(table);_lvQ.push({table:table||'*',rec:rec||null});
- clearTimeout(_lvDeb);_lvDeb=setTimeout(liveFlush,1500);if(!_lvMax)_lvMax=setTimeout(liveFlush,5000)}
+ clearTimeout(_lvDeb);_lvDeb=setTimeout(liveFlush,600);if(!_lvMax)_lvMax=setTimeout(liveFlush,2000)}
 /* الصفحة بتسجّل دالة بتعيد تحميل بياناتها؛ tables = الجداول اللي تهمّها (لو مفيش = أي جدول). مفيش ريكوست لو التغيير مش بتاعها */
 function onLive(fn,tables){window.addEventListener('acad:update',e=>{const d=e.detail||[];const hit=d.filter(x=>x.table==='*'||!tables||tables.includes(x.table));if(hit.length)fn(hit)})}
-function liveConnect(){if(_lv||!U())return;
+function liveConnect(){if(_lv||!U()||document.hidden||(typeof LIVE_ON!=='undefined'&&LIVE_ON===false))return;
  try{_lv=new WebSocket(SUPA_URL.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+SUPA_KEY+'&vsn=1.0.0')}catch(_){return}
  const send=(topic,event,payload)=>{try{_lv.readyState===1&&_lv.send(JSON.stringify({topic,event,payload:payload||{},ref:String(++_lvRef)}))}catch(_){}};
  _lv.onopen=()=>{const u=U();_lvRetry=0;
@@ -198,9 +205,13 @@ function liveConnect(){if(_lv||!U())return;
   else if(m.event==='system'&&m.payload&&m.payload.status==='error')_lvOk=false
   else if(m.event==='postgres_changes'){const x=(m.payload&&m.payload.data)||{};liveChanged(x.table,x.record||x.old_record)}};
  const down=()=>{_lvOk=false;_lv=null;_lvDown=Date.now();clearInterval(_lvHb);clearTimeout(_lvT);
-  if(document.hidden)return;_lvT=setTimeout(liveConnect,Math.min(60000,2000*Math.pow(2,_lvRetry++)))};
+  if(document.hidden)return;_lvT=setTimeout(liveConnect,Math.min(60000,2000*Math.pow(2,_lvRetry++))+Math.random()*3000)};
  _lv.onclose=down;_lv.onerror=()=>{try{_lv&&_lv.close()}catch(_){}}}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(!_lv||_lv.readyState>1)){_lv=null;liveConnect()}});
+/* التاب في الخلفية أكتر من دقيقة = نقفل الـ WebSocket (بيحرّر اتصال من حد الخطة) ونفتحه تاني أول ما الطالب يرجع */
+let _lvIdle=null;document.addEventListener('visibilitychange',()=>{clearTimeout(_lvIdle);
+ if(document.hidden){_lvIdle=setTimeout(()=>{const w=_lv;if(w){_lv=null;_lvOk=false;_lvDown=Date.now();clearInterval(_lvHb);clearTimeout(_lvT);w.onclose=null;try{w.close()}catch(_){}}},60000)}
+ else if(!_lv||_lv.readyState>1){_lv=null;liveConnect()}});
+addEventListener('pagehide',()=>{try{_lv&&_lv.close()}catch(_){}});
 
 /* ===== الإشعارات: جرس + لوحة + عدّاد غير المقروء ===== */
 const NT={list:[]};
@@ -220,7 +231,7 @@ function notifInit(){if(!U())return;document.body.insertAdjacentHTML('beforeend'
   if(b){p.hidden=!p.hidden;if(!p.hidden)notifDraw();return}
   if(e.target.id=='nra'){await post('edu_notif_state',{user_id:U().id,last_read:new Date().toISOString()},'resolution=merge-duplicates,return=minimal');await notifLoad(true);return}
   if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
- setTimeout(()=>notifLoad(),700);setInterval(()=>{if(!document.hidden)notifLoad()},180000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)notifLoad()})}
+ setTimeout(()=>notifLoad(),700);setInterval(()=>{if(!document.hidden)notifLoad()},300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)notifLoad()})}
 
 /* مكان الطالب: آخر جزء شاهده -> يكمّل منه، أو الجزء/الدرس التالي */
 async function resume(){if(!U())return null;try{
