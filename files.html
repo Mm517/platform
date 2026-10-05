@@ -1,20 +1,8 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>الملفات | أكاديمية</title>
-<meta name="description" content="الملفات | أكاديمية">
-<meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#0878C9">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
-<body class="cr" data-p="files"><main class="pg" id="m"><h1>الملفات والمذكرات</h1><p class="muted">كل ملفات الكورسات في مكان واحد.</p><div id="o"><div class="skw" aria-busy="true"><div class="sk sk-h"></div><div class="sk sk-ln" style="width:50%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div></div></main>
-<script src="config.js"></script><script src="lib.js"></script>
-<script>
-topbar();
-const need=()=>U()?false:(location.href='auth#login',true);
-
-Promise.all([get('edu_course_files?order=id.desc'),get('edu_courses_v?select=id,title,teacher_name')]).then(([f,c])=>{const m=Object.fromEntries(c.map(x=>[x.id,x]));
-$('#o').innerHTML=f.length?f.map(x=>`<div class="box row"><span>${ic('file',18)} ${esc(x.title)}<br><small class="muted">${esc(m[x.course_id]?.title||'')} • ${esc(m[x.course_id]?.teacher_name||'')}</small></span>${x.url?`<a class="btn btn-p btn-s" target="_blank" rel="noopener" data-aw="file:${x.id}" href="${esc(x.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`).join(''):'<p class="empty">لا توجد ملفات بعد.</p>'}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
-document.addEventListener('click',e=>{const a=e.target.dataset.aw;if(a)award(...a.split(':'))});
-</script></body></html>
+<title>المكتبة | أكاديمية</title>
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://mm517.github.io/platform/library">
+<meta http-equiv="refresh" content="0;url=library#notes">
+<script>location.replace('library#notes')</script></head>
+<body><a href="library#notes">المكتبة</a></body></html>

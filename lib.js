@@ -1,18 +1,33 @@
 /* مساعدات مشتركة: المستخدم + الاتصال بـ Supabase + تجديد الجلسة */
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const U=()=>{try{return JSON.parse(localStorage.getItem('acad_user')||'null')}catch(_){return null}};
-const setU=u=>{try{u?localStorage.setItem('acad_user',JSON.stringify(u)):localStorage.removeItem('acad_user')}catch(_){}};
+const setU=u=>{try{u?localStorage.setItem('acad_user',JSON.stringify(u)):(localStorage.removeItem('acad_user'),cClear(true))}catch(_){}};
 async function refresh(){const u=U();if(!u||!u.refresh)return false;
  try{const r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:u.refresh})});
  if(!r.ok)return false;const j=await r.json();setU({...u,token:j.access_token,refresh:j.refresh_token});return true}catch(_){return false}}
+/* ===== تقليل الريكوستات: كاش للمحتوى الثابت + دمج الطلبات المتطابقة ===== */
+const CT=new Set(['edu_books','edu_course_files','edu_course_solutions','edu_courses','edu_lessons','edu_subjects','edu_teachers','edu_ads','edu_updates','edu_about','edu_quizzes','edu_quiz_questions','edu_reviews']);
+function cClear(all){try{[localStorage,sessionStorage].forEach(st=>Object.keys(st).forEach(k=>{if(k.startsWith('acad_c:')||(all&&st===sessionStorage&&/^acad_(me|n|r):/.test(k)))st.removeItem(k)}))}catch(_){}}
 async function rest(path,o={},retry=true){const u=U(),h={apikey:SUPA_KEY,'Content-Type':'application/json',...(o.headers||{})};
  if(u&&u.token)h.Authorization='Bearer '+u.token;
  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{...o,headers:h});
  if(r.status===401&&u&&retry){if(await refresh())return rest(path,o,false);setU(null)}
+ if(o.method&&o.method!=='GET'&&r.ok&&CT.has(String(path).split('?')[0]))cClear();
  return r}
-const get=async p=>{const r=await rest(p);if(!r.ok)throw 0;return r.json()};
+const _gi=new Map();
+const get=p=>{if(_gi.has(p))return _gi.get(p);const pr=(async()=>{const r=await rest(p);if(!r.ok)throw 0;return r.json()})().finally(()=>_gi.delete(p));_gi.set(p,pr);return pr};
+/* كاش للبيانات اللي بتتغير نادرًا (كتب/كورسات/دروس/مدرسين...): بيحمّلها مرة وبعدها من الجهاز لحد ما المدة تخلص (ثواني) */
+function cget(p,ttl){ttl=ttl==null?300:ttl;const u=U(),k='acad_c:'+(u?u.id:'-')+':'+p;let c=null;
+ try{c=JSON.parse(localStorage.getItem(k)||'null')}catch(_){}
+ if(c&&(Date.now()-c.t<ttl*1000||(_lvOk&&Date.now()-c.t<3600000)))return Promise.resolve(c.d);
+ return get(p).then(d=>{try{localStorage.setItem(k,JSON.stringify({t:Date.now(),d}))}catch(_){}return d}).catch(e=>{if(c)return c.d;throw e})}
+/* بيانات الطالب الأساسية (نقاط/حظر/تاريخ التسجيل/الاسم) في طلب واحد ومحفوظة دقيقة ونص */
+function ME(force){const u=U();if(!u)return Promise.resolve(null);const k='acad_me:'+u.id;
+ if(!force){try{const c=JSON.parse(sessionStorage.getItem(k)||'null');if(c&&Date.now()-c.t<90000)return Promise.resolve(c.d)}catch(_){}}
+ return get('edu_profiles?select=points,banned,created_at,name').then(r=>{const d=r[0]||null;try{sessionStorage.setItem(k,JSON.stringify({t:Date.now(),d}))}catch(_){}return d})}
+const Q={ls:'edu_lessons?order=sort,id',cs:'edu_courses?select=id,sort,lesson_id,teacher_id,title&order=sort,id',pg:'edu_progress?select=course_id,position,duration,done,updated_at&order=updated_at.desc'};
 const post=(p,b,pref)=>rest(p,{method:'POST',body:JSON.stringify(b),headers:pref?{Prefer:pref}:{}});
-const award=async(reason,ref)=>{if(!U())return;try{const r=await post('rpc/edu_award',{p_reason:reason,p_ref:String(ref)});if(r.ok){const n=await r.json();document.querySelectorAll('.pts').forEach(e=>e.textContent=n)}}catch(_){}};
+const award=async(reason,ref)=>{if(!U())return;try{const r=await post('rpc/edu_award',{p_reason:reason,p_ref:String(ref)});if(r.ok){const n=await r.json();document.querySelectorAll('.pts').forEach(e=>e.textContent=n);try{const k='acad_me:'+U().id,c=JSON.parse(sessionStorage.getItem(k)||'null');if(c&&c.d){c.d.points=n;sessionStorage.setItem(k,JSON.stringify(c))}}catch(_){}}}catch(_){}};
 /* ===== أيقونات SVG موحّدة (بدون إيموجي) ===== */
 const IP={star:'<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2l-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>',crown:'<path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/>',menu:'<path d="M4 7h16M4 12h16M4 17h16"/>',play:'<path d="M8 5v14l11-7z"/>',pause:'<path d="M8 5v14M16 5v14"/>',vol:'<path d="M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 010 7"/>',mute:'<path d="M4 9v6h4l5 4V5L8 9zM17 9l4 6M21 9l-4 6"/>',full:'<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',bell:'<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',file:'<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8zM14 3v5h5"/>',note:'<path d="M5 4h14v16H5zM8 9h8M8 13h8M8 17h5"/>',quiz:'<path d="M9 4h6v3H9zM7 5.5H6v15h12v-15h-1M9 12l2 2 4-4"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',trophy:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a3 3 0 003 3M16 6h4v1a3 3 0 01-3 3M12 13v4M8 20h8"/>',book:'<path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/>',mega:'<path d="M3 11v3l12 5V6zM15 8.5a4 4 0 010 7"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 4.6a3.5 3.5 0 010 6.8M18 14.2a6.5 6.5 0 013.5 5.8"/>',ban:'<circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/>',left:'<path d="M15 6l-6 6 6 6"/>',right:'<path d="M9 6l6 6-6 6"/>',up:'<path d="M6 15l6-6 6 6"/>',down:'<path d="M6 9l6 6 6-6"/>',plus:'<path d="M12 5v14M5 12h14"/>',trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',edit:'<path d="M4 20h4L19 9l-4-4L4 16zM13 7l4 4"/>',send:'<path d="M3 11l18-8-8 18-2-8z"/>',ticket:'<path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4zM14 6v12"/>',layers:'<path d="M12 3l9 5-9 5-9-5zM3 13l9 5 9-5"/>',image:'<path d="M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4"/>',home:'<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>',msg:'<path d="M4 5h16v11H9l-5 4z"/>',star2:'<path d="M12 3l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.2l-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/>',cap:'<path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/>',eye:'<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',lock:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',inbox:'<path d="M3 13l3-8h12l3 8v6H3zM3 13h5l1 3h6l1-3h5"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',link:'<path d="M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1"/>',video:'<rect x="3" y="5" width="13" height="14" rx="2"/><path d="M16 10l5-3v10l-5-3"/>',upload:'<path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>'};
 Object.assign(IP,{search:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>',info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',heart:'<path d="M12 20s-7-4.4-9-9a5 5 0 019-3 5 5 0 019 3c-2 4.6-9 9-9 9z"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9L7 7M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>',back:'<path d="M3 12a9 9 0 109-9M3 4v5h5"/>',fwd:'<path d="M21 12a9 9 0 11-9-9M21 4v5h-5"/>',alert:'<path d="M12 3l10 18H2zM12 10v5M12 18v.5"/>',ext:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/>',skip:'<path d="M5 5l9 7-9 7zM18 5v14"/>'});
@@ -22,7 +37,7 @@ const ago=d=>{const s=(Date.now()-new Date(d))/1000;return s<60?'الآن':s<360
 function toast(t,bad){let h=$('#tst');if(!h){document.body.insertAdjacentHTML('beforeend','<div id="tst" role="status" aria-live="polite"></div>');h=$('#tst')}const e=document.createElement('div');e.className='ts'+(bad?' bad':'');e.innerHTML=ic(bad?'x':'check',16)+'<span>'+esc(t)+'</span>';h.appendChild(e);setTimeout(()=>e.remove(),3800)}
 const ICON={book:'<path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/>',globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',math:'<path d="M6 6h6M9 3v6M14 8h6M6 17h6M15 15l5 5M20 15l-5 5"/>',flask:'<path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3M8 15h8"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14"/>'};
 const ico=(k,s=28)=>`<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICON[k]||ICON.book}</svg>`;
-const NAV=[['home','الرئيسية','home','<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>'],['courses','الكورسات','courses','<path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/>'],['books','الكتب','books','<path d="M5 3h11a3 3 0 013 3v15H8a3 3 0 01-3-3zM5 18a3 3 0 013-3h11"/>'],['files','الملفات','files','<path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8zM14 3v5h5"/>'],['updates','التحديثات','updates','<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/>'],['analytics','التحليلات','analytics','<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'],['about','عن المنصة','about','<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'],['support','الدعم','support','<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>'],['profile','البروفايل','profile','<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>']];
+const NAV=[['home','الرئيسية','home','<path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/>'],['courses','الكورسات','courses','<path d="M4 5.5A2.5 2.5 0 016.5 3H20v15H6.5A2.5 2.5 0 004 20.5zM4 20.5A2.5 2.5 0 006.5 18"/>'],['library','المكتبة','library','<path d="M5 3h11a3 3 0 013 3v15H8a3 3 0 01-3-3zM5 18a3 3 0 013-3h11M9 7h6"/>'],['updates','التحديثات','updates','<path d="M6 8a6 6 0 0112 0c0 7 3 8 3 8H3s3-1 3-8M10 20a2 2 0 004 0"/>'],['analytics','التحليلات','analytics','<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>'],['about','عن المنصة','about','<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>'],['support','الدعم','support','<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 115 .5c0 1.5-2.5 2-2.5 3.5M12 17h.01"/>'],['profile','البروفايل','profile','<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0116 0"/>']];
 function shell(active){const u=U();
  const li=NAV.map(([k,t,h,p])=>`<a href="${h}" class="sl ${k==active?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg><span>${t}</span></a>`).join('');
  document.body.insertAdjacentHTML('afterbegin',`<div class="mbar"><button id="mb" aria-label="القائمة">${ic('menu',24)}</button><a href="home" class="logo"><span class="logo-mark"></span><span>أكاديمية</span></a><span class="mb-r"><button class="bell" aria-label="الإشعارات">${ic('bell',22)}<i class="bell-n" hidden></i></button><span class="pt">${ic('star',14,'fill amber')} <b class="pts">0</b></span></span></div><div class="ov" id="ov"></div>
@@ -31,10 +46,10 @@ function shell(active){const u=U();
  document.body.insertAdjacentHTML('beforeend',`<button id="sbo" class="sbo" aria-label="إظهار القائمة" title="إظهار القائمة">${ic('menu',22)}</button>`);
  const sc=v=>{document.body.classList.toggle('sbc',v);try{localStorage.setItem('acad_sbc',v?'1':'')}catch(_){}};try{if(localStorage.getItem('acad_sbc'))document.body.classList.add('sbc')}catch(_){}
  $('#sbc').onclick=e=>{e.stopPropagation();sc(true)};$('#sbo').onclick=()=>sc(false);
- notifInit();const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
+ notifInit();liveConnect();const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
  const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth#login'};
- if(u)get('edu_profiles?select=points,banned').then(r=>{if(r[0]&&r[0].banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth#login';return}if(r[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=r[0].points)}).catch(()=>{});
- if(u)get('edu_staff?select=role').then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
+ if(u)ME().then(r=>{if(r&&r.banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth#login';return}if(r)document.querySelectorAll('.pts').forEach(e=>e.textContent=r.points)}).catch(()=>{});
+ if(u)(()=>{const rk='acad_r:'+u.id;let rc=null;try{rc=sessionStorage.getItem(rk)}catch(_){}return rc!==null?Promise.resolve(rc?[{role:rc}]:[]):get('edu_staff?select=role').then(r=>{try{sessionStorage.setItem(rk,r[0]?r[0].role:'')}catch(_){}return r})})().then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
 const topbar=()=>shell(document.body.dataset.p||'');
 const lvl=p=>Math.floor(p/100)+1;
 
@@ -151,27 +166,65 @@ function mountVideo(box,url0,opt={}){if(!box)return;const flag=NE(url0),url=clea
   v.onplay=()=>setSt('play');v.onpause=()=>{if(!v.ended)setSt('pause')};v.onended=()=>setSt('end');v.onloadedmetadata=()=>{if(opt.start>5&&opt.start<v.duration-5)v.currentTime=opt.start;tick()};v.onerror=()=>{mEl.innerHTML='<span style="color:#fff;display:grid;place-items:center;height:100%">تعذر تشغيل الفيديو</span>'};return}}
 
 
+
+/* ===== تحديث فوري بدون طلبات إضافية: اتصال Realtime واحد (WebSocket) بيبلّغ الجهاز لحظة ما الأدمن يغيّر محتوى =====
+   - مفيش polling: الاتصال مفتوح وبيبعت نبضة صغيرة كل 30 ثانية (مش ريكوست REST)
+   - أول ما يوصل تغيير: الكاش يتمسح فورًا، والصفحة المفتوحة تتحدّث (تلقائيًا أو بزر)
+   - لو الاتصال وقع: الكاش يرجع يشتغل بالمدة (TTL) كأمان، وأول ما يرجع الاتصال الكاش يتمسح عشان مفيش تغيير يفوتنا */
+const LIVE_T=['edu_books','edu_course_files','edu_course_solutions','edu_courses','edu_lessons','edu_subjects','edu_teachers','edu_ads','edu_updates','edu_about','edu_quizzes','edu_quiz_questions'];
+let _lv=null,_lvOk=false,_lvT=null,_lvHb=null,_lvRetry=0,_lvRef=0,_lvEver=false,_lvDown=0,_lvDeb=null,_lvMax=null,_lvQ=[];
+/* التغييرات بتتجمّع ~1.5 ثانية وبعدها صفحة واحدة بتعيد تحميل الجزء المتغيّر بس (من غير reload) — الفيديو والكويز مبيتقطعوش */
+function liveFlush(){clearTimeout(_lvDeb);clearTimeout(_lvMax);_lvDeb=_lvMax=null;const d=_lvQ;_lvQ=[];if(!d.length)return;
+ const go=()=>window.dispatchEvent(new CustomEvent('acad:update',{detail:d}));
+ document.hidden?document.addEventListener('visibilitychange',function f(){if(!document.hidden){document.removeEventListener('visibilitychange',f);go()}}):go()}
+const LV_DEP={edu_courses:['edu_courses_v'],edu_teachers:['edu_courses_v'],edu_subjects:['edu_courses_v'],edu_lessons:['edu_courses_v'],edu_quiz_questions:['edu_quizzes']};
+/* بيمسح من الكاش المفاتيح بتاعة الجدول المتغيّر بس (والـ view المرتبط بيه) — الباقي يفضل من الجهاز بدون ريكوست */
+function cDrop(t){try{const S=t==='*'?null:new Set([t,...(LV_DEP[t]||[])]);
+ Object.keys(localStorage).forEach(k=>{if(!k.startsWith('acad_c:'))return;if(!S){localStorage.removeItem(k);return}if(S.has(k.split(':').slice(2).join(':').split('?')[0]))localStorage.removeItem(k)})}catch(_){}}
+function liveChanged(table,rec){cDrop(table);_lvQ.push({table:table||'*',rec:rec||null});
+ clearTimeout(_lvDeb);_lvDeb=setTimeout(liveFlush,1500);if(!_lvMax)_lvMax=setTimeout(liveFlush,5000)}
+/* الصفحة بتسجّل دالة بتعيد تحميل بياناتها؛ tables = الجداول اللي تهمّها (لو مفيش = أي جدول). مفيش ريكوست لو التغيير مش بتاعها */
+function onLive(fn,tables){window.addEventListener('acad:update',e=>{const d=e.detail||[];const hit=d.filter(x=>x.table==='*'||!tables||tables.includes(x.table));if(hit.length)fn(hit)})}
+function liveConnect(){if(_lv||!U())return;
+ try{_lv=new WebSocket(SUPA_URL.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+SUPA_KEY+'&vsn=1.0.0')}catch(_){return}
+ const send=(topic,event,payload)=>{try{_lv.readyState===1&&_lv.send(JSON.stringify({topic,event,payload:payload||{},ref:String(++_lvRef)}))}catch(_){}};
+ _lv.onopen=()=>{const u=U();_lvRetry=0;
+  send('realtime:acad-content','phx_join',{config:{postgres_changes:LIVE_T.map(table=>({event:'*',schema:'public',table})),broadcast:{self:false},presence:{enabled:false}},access_token:u&&u.token||SUPA_KEY});
+  clearInterval(_lvHb);_lvHb=setInterval(()=>send('phoenix','heartbeat'),30000)};
+ _lv.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}
+  if(m.event==='phx_reply'&&m.topic==='realtime:acad-content'){
+   const pc=m.payload&&m.payload.response&&m.payload.response.postgres_changes;
+   if(m.payload&&m.payload.status==='ok'&&pc&&pc.length>=LIVE_T.length){_lvOk=true;if(_lvEver&&Date.now()-_lvDown>30000)liveChanged('*');_lvEver=true}else _lvOk=false}
+  else if(m.event==='system'&&m.payload&&m.payload.status==='error')_lvOk=false
+  else if(m.event==='postgres_changes'){const x=(m.payload&&m.payload.data)||{};liveChanged(x.table,x.record||x.old_record)}};
+ const down=()=>{_lvOk=false;_lv=null;_lvDown=Date.now();clearInterval(_lvHb);clearTimeout(_lvT);
+  if(document.hidden)return;_lvT=setTimeout(liveConnect,Math.min(60000,2000*Math.pow(2,_lvRetry++)))};
+ _lv.onclose=down;_lv.onerror=()=>{try{_lv&&_lv.close()}catch(_){}}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&(!_lv||_lv.readyState>1)){_lv=null;liveConnect()}});
+
 /* ===== الإشعارات: جرس + لوحة + عدّاد غير المقروء ===== */
 const NT={list:[]};
-async function notifLoad(){const u=U();if(!u)return;
- try{const [n,s,p]=await Promise.all([get('edu_notifications?order=created_at.desc&limit=40'),get('edu_notif_state?select=last_read'),get('edu_profiles?select=created_at')]);
-  const lr=new Date((s[0]&&s[0].last_read)||(p[0]&&p[0].created_at)||0).getTime();
-  NT.list=n.filter(x=>!x.user_id||x.user_id==u.id).slice(0,25).map(x=>({...x,un:new Date(x.created_at).getTime()>lr}));
-  const c=NT.list.filter(x=>x.un).length;
-  document.querySelectorAll('.bell-n').forEach(e=>{e.textContent=c>9?'9+':c;e.hidden=!c});
+async function notifLoad(force){const u=U();if(!u)return;
+ try{const nk='acad_n:'+u.id;let c=null;if(!force){try{c=JSON.parse(sessionStorage.getItem(nk)||'null');if(c&&Date.now()-c.t>120000)c=null}catch(_){}}
+  if(!c){const [n,s,me]=await Promise.all([get('edu_notifications?order=created_at.desc&limit=40'),get('edu_notif_state?select=last_read'),ME()]);
+   c={t:Date.now(),n,lr:(s[0]&&s[0].last_read)||(me&&me.created_at)||0};try{sessionStorage.setItem(nk,JSON.stringify(c))}catch(_){}}
+  const lr=new Date(c.lr||0).getTime();
+  NT.list=c.n.filter(x=>!x.user_id||x.user_id==u.id).slice(0,25).map(x=>({...x,un:new Date(x.created_at).getTime()>lr}));
+  const k=NT.list.filter(x=>x.un).length;
+  document.querySelectorAll('.bell-n').forEach(e=>{e.textContent=k>9?'9+':k;e.hidden=!k});
   if($('#np')&&!$('#np').hidden)notifDraw()}catch(_){}}
 function notifDraw(){const p=$('#np');
  p.innerHTML=`<div class="np-h"><b>الإشعارات</b><button id="nra" class="lnk">تعليم الكل كمقروء</button></div><div class="np-l">${NT.list.length?NT.list.map(x=>{const t=x.link?'a':'div';return `<${t} ${x.link?`href="${esc(x.link)}"`:''} class="ni ${x.un?'un':''}"><b>${esc(x.title)}</b>${x.body?`<p>${esc(x.body)}</p>`:''}<small>${ago(x.created_at)}</small></${t}>`}).join(''):'<p class="empty">لا توجد إشعارات.</p>'}</div>`}
 function notifInit(){if(!U())return;document.body.insertAdjacentHTML('beforeend','<div id="np" class="np" hidden></div>');
  document.addEventListener('click',async e=>{const b=e.target.closest('.bell:not(.sbx)'),p=$('#np');
   if(b){p.hidden=!p.hidden;if(!p.hidden)notifDraw();return}
-  if(e.target.id=='nra'){await post('edu_notif_state',{user_id:U().id,last_read:new Date().toISOString()},'resolution=merge-duplicates,return=minimal');await notifLoad();return}
+  if(e.target.id=='nra'){await post('edu_notif_state',{user_id:U().id,last_read:new Date().toISOString()},'resolution=merge-duplicates,return=minimal');await notifLoad(true);return}
   if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
- notifLoad();setInterval(notifLoad,60000)}
+ setTimeout(()=>notifLoad(),700);setInterval(()=>{if(!document.hidden)notifLoad()},180000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)notifLoad()})}
 
 /* مكان الطالب: آخر جزء شاهده -> يكمّل منه، أو الجزء/الدرس التالي */
 async function resume(){if(!U())return null;try{
- const[pg,cs,ls]=await Promise.all([get('edu_progress?select=course_id,done&order=updated_at.desc'),get('edu_courses?select=id,lesson_id,teacher_id,title&order=sort,id'),get('edu_lessons?select=id,subject_id,title&order=sort,id')]);
+ const[pg,cs,ls]=await Promise.all([get(Q.pg),cget(Q.cs),cget(Q.ls)]);
  const p=pg[0],dn=new Set(pg.filter(x=>x.done).map(x=>x.course_id)),c=p&&cs.find(x=>x.id==p.course_id),l=c&&ls.find(x=>x.id==c.lesson_id);if(!l)return null;
  const lessonDone=cs.filter(x=>x.lesson_id==l.id).some(x=>{const m=cs.filter(y=>y.lesson_id==l.id&&y.teacher_id==x.teacher_id);return m.every(y=>dn.has(y.id))});
  if(!p.done)return{t:'أنت هنا — كمّل من حيث وقفت',h:'course?id='+c.id,a:l.title,b:c.title};

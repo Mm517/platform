@@ -17,7 +17,8 @@ const ok=p=>p.catch(()=>[]),u=U()||{},h=new Date().getHours(),gr=h<12?'صباح 
 const DEF=[['إعلانك هنا','تواصل مع الإدارة لعرض متجرك','#0878C9,#075B98'],['عروض المتاجر','اكتشف عروض المتاجر القريبة','#f59e0b,#d97706'],['تعلّم أكثر','دروس الثالث الإعدادي مجانًا','#16a34a,#15803d']];
 const RS={watch:'مشاهدة درس',file:'فتح ملف',solution:'فيديو حل',question:'سؤال للمدرس',review:'تقييم'};
 const cc=x=>`<a class="cc" href="course?id=${x.id}"><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${x.is_free?'f':'p'}">${x.is_free?'مجاني':'مميز'}</span></div><div class="cb"><h3>${esc(x.title)}</h3><p class="tg">${esc(x.teacher_name)}</p></div></a>`;
-Promise.all([get('edu_profiles?select=points,name'),ok(get('edu_points_log?select=reason,ref,amount,created_at&order=created_at.desc&limit=300')),ok(get('edu_enrollments?select=course_id')),get('edu_courses_v?order=is_featured.desc,id'),ok(get('edu_ads?active=eq.true&order=sort,id')),ok(get('edu_updates?order=created_at.desc&limit=3')),ok(get('edu_quiz_attempts?select=score,total,edu_quizzes(title)&order=created_at.desc&limit=5'))]).then(([p,lg,en,cs,ads,up,qa])=>{
+let UD=null;const P0=Promise.all([ME().then(m=>m?[m]:[]),ok(get('edu_points_log?select=reason,ref,amount,created_at&order=created_at.desc&limit=300')),ok(get('edu_enrollments?select=course_id')),cget('edu_courses_v?order=is_featured.desc,id'),ok(cget('edu_ads?active=eq.true&order=sort,id')),ok(cget('edu_updates?order=created_at.desc&limit=3')),ok(get('edu_quiz_attempts?select=score,total,edu_quizzes(title)&order=created_at.desc&limit=5'))]);
+const render=([p,lg,en,cs,ads,up,qa])=>{UD=[p,lg,en,qa];window._hsig=JSON.stringify([cs,ads,up]);
  const n=p[0]?.points||0,name=(p[0]?.name||u.name||'').split(' ')[0],done=new Set(lg.filter(x=>x.reason=='watch').map(x=>String(x.ref))),subs=new Set(en.map(x=>x.course_id));
  const mine=cs.filter(c=>subs.has(c.id)),sj=new Set(mine.map(c=>c.subject_id));
  const dl=new Set();cs.forEach(c=>{const m=cs.filter(y=>y.lesson_id==c.lesson_id&&y.teacher_id==c.teacher_id);if(m.every(y=>done.has(String(y.id))))dl.add(c.lesson_id)});
@@ -36,10 +37,13 @@ Promise.all([get('edu_profiles?select=points,name'),ok(get('edu_points_log?selec
  <h2 class="lsn">${ic('right',20)} إيه القادم</h2>${nxt.length?`<div class="grid">${nxt.map(cc).join('')}</div>`:'<p class="empty">شاهدت كل الدروس المتاحة، ترقّب الجديد!</p>'}
  ${up.map(x=>`<div class="box"><b>${ic('mega',18)} ${esc(x.title)}</b><div>${esc(x.body||'')}</div></div>`).join('')}
  <a class="btn btn-p" style="margin-top:16px" href="courses">ابدأ اختيار المادة والدرس</a>`;
- resume().then(r=>{if(r)$('#o .stat').insertAdjacentHTML('beforebegin',resumeBox(r))});
+ (window._rsr!==undefined?Promise.resolve(window._rsr):resume().then(r=>window._rsr=r)).then(r=>{if(r)$('#o .stat').insertAdjacentHTML('beforebegin',resumeBox(r))});
  let i=0;const t=$('#at'),ds=[...document.querySelectorAll('#ad i')],go=k=>{i=(k+sl.length)%sl.length;t.style.transform=`translateX(-${i*100}%)`;ds.forEach((d,j)=>d.classList.toggle('on',j==i))};
- let tm=setInterval(()=>go(i+1),4000),x0=null;const bx=$('#ads');
+ clearInterval(window._adtm);let tm=window._adtm=setInterval(()=>go(i+1),4000),x0=null;const bx=$('#ads');
  bx.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;clearInterval(tm)},{passive:true});
- bx.addEventListener('touchend',e=>{if(x0!=null){const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>40)go(i+(d<0?1:-1));x0=null}tm=setInterval(()=>go(i+1),4000)});
-}).catch(()=>{if(!U())location.replace('auth#login');else $('#o').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>'});
+ bx.addEventListener('touchend',e=>{if(x0!=null){const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>40)go(i+(d<0?1:-1));x0=null}tm=window._adtm=setInterval(()=>go(i+1),4000)});
+};
+P0.then(render).catch(()=>{if(!U())location.replace('auth#login');else $('#o').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>'});
+/* تحديث فوري: بيجيب (من الشبكة) الجزء المتغيّر بس من كورسات/إعلانات/تحديثات، وبيستخدم بيانات الطالب اللي اتحمّلت قبل كده */
+onLive(()=>{if(!UD)return;Promise.all([cget('edu_courses_v?order=is_featured.desc,id'),ok(cget('edu_ads?active=eq.true&order=sort,id')),ok(cget('edu_updates?order=created_at.desc&limit=3'))]).then(([cs,ads,up])=>{const sg=JSON.stringify([cs,ads,up]);if(sg===window._hsig)return;window._hsig=sg;render([UD[0],UD[1],UD[2],cs,ads,up,UD[3]])}).catch(()=>{})},['edu_courses','edu_teachers','edu_subjects','edu_lessons','edu_ads','edu_updates']);
 </script></body></html>

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المكتبة | أكاديمية</title>
+<meta name="description" content="كتب المدرسة والمذكرات والملفات للصف الثالث الإعدادي في مكان واحد.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://mm517.github.io/platform/library">
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
+<body class="cr" data-p="library"><main class="pg" id="m">
+<h1>المكتبة</h1><p class="muted">الكتب والمذكرات والملفات في مكان واحد.</p>
+<div class="lib-top"><div class="lib-tabs" id="tb" role="tablist"></div><label class="lib-s"><span class="ic-w" aria-hidden="true"></span><input id="q" type="search" placeholder="ابحث هنا..." autocomplete="off" aria-label="بحث"></label></div>
+<div id="o"></div></main>
+<script src="config.js"></script><script src="lib.js"></script>
+<script>
+topbar();
+/* كل تبويب بيحمّل بياناته أول ما تفتحه بس، وبعدها بتتحفظ (الكتب: 10 دقايق، المذكرات والملفات: 5 دقايق) */
+const TABS=[['books','الكتب','book'],['notes','المذكرات','note'],['files','الملفات','file']];
+const BP=[['#0878C9','#075B98'],['#7c3aed','#5b21b6'],['#059669','#047857'],['#ea580c','#c2410c'],['#db2777','#be185d'],['#0891b2','#0e7490']];
+const NA=['#f59e0b','#ec4899','#8b5cf6','#10b981','#0ea5e9','#ef4444'],NR=[-1.2,.9,-.6,1.1,-.9,.6];
+const SK='<div class="skw" aria-busy="true"><div class="sk-g" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))"><div class="sk" style="aspect-ratio:3/4.1"></div><div class="sk" style="aspect-ratio:3/4.1"></div><div class="sk" style="aspect-ratio:3/4.1"></div><div class="sk" style="aspect-ratio:3/4.1"></div></div></div>';
+const isImg=u=>/\.(png|jpe?g|webp|gif)(\?|#|$)/i.test(u||'');
+let tab='books',L={books:null,docs:null},P={books:null,docs:null},seq=0,qs='';
+const tabOf=()=>{const h=location.hash.slice(1);return TABS.some(t=>t[0]==h)?h:'books'};
+const ld=g=>g=='books'
+  ?cget('edu_books?order=id.desc',600)
+  :Promise.all([cget('edu_course_files?order=id.desc',300),cget('edu_courses_v?select=id,title,teacher_name',600).catch(()=>[])]).then(([f,c])=>{const m=Object.fromEntries(c.map(x=>[x.id,x]));return f.map(x=>({...x,course:(m[x.course_id]||{}).title||'',teacher:(m[x.course_id]||{}).teacher_name||''}))});
+const need=k=>{const g=k=='books'?'books':'docs';
+ return L[g]?Promise.resolve(L[g]):(P[g]||(P[g]=ld(g).then(d=>(L[g]=d,drawTabs(),d)).catch(e=>{P[g]=null;throw e})))};
+/* تحديث فوري: بيعيد تحميل اللي اتفتح قبل كده بس، وبيرسم من غير ما يقفل القارئ */
+let _lp=false;const lpaint=()=>{if(document.querySelector('#rd')){setTimeout(lpaint,4000);return}drawTabs();const g=tab=='books'?'books':'docs';if(L[g])draw()};
+onLive(async h=>{const T=h.map(x=>x.table),all=T.includes('*'),B=all||T.includes('edu_books'),D=all||T.some(t=>['edu_course_files','edu_courses','edu_teachers','edu_subjects','edu_lessons'].includes(t));
+ try{const[b,d]=await Promise.all([B&&L.books?ld('books'):null,D&&L.docs?ld('docs'):null]);if(b)L.books=b;if(d)L.docs=d;if(b||d)lpaint()}catch(_){}});
+const cnt=k=>k=='books'?(L.books?L.books.length:null):L.docs?L.docs.filter(x=>(x.kind=='summary')==(k=='notes')).length:null;
+function drawTabs(){$('#tb').innerHTML=TABS.map(([k,t,i])=>{const c=cnt(k);return `<button role="tab" data-t="${k}" class="${k==tab?'on':''}" aria-selected="${k==tab}">${ic(i,17)} ${t}${c!=null?`<em>${c}</em>`:''}</button>`}).join('')}
+const flt=(a,f)=>{const s=qs.trim().toLowerCase();return s?a.filter(x=>f(x).toLowerCase().includes(s)):a};
+const empty=(m,s)=>`<p class="empty">${qs.trim()?'مفيش نتائج للبحث ده.':m}</p>`;
+const bookCard=(x,i)=>{const [c1,c2]=BP[(+x.id||i)%BP.length],T=x.url?'a':'div';
+ return `<${T} class="bk" style="--i:${Math.min(i,12)};--c1:${c1};--c2:${c2}" ${x.url?`target="_blank" rel="noopener" href="${esc(x.url)}"`:''}><div class="bk-gl"></div><div class="bk-f"><div class="bk-in" ${x.cover?`style="background-image:url('${esc(x.cover)}')"`:''}>${x.cover?'':`<div class="bk-fb">${ico('book',46)}<b>${esc(x.title)}</b></div>`}<i class="bk-sh"></i><i class="bk-sp"></i>${x.url?`<span class="bk-op">${ic('ext',14)} فتح الكتاب</span>`:''}</div></div><div class="bk-t"><h3>${esc(x.title)}</h3>${x.subject?`<span class="bk-s">${esc(x.subject)}</span>`:''}</div></${T}>`};
+const noteCard=(x,i)=>`<div class="nt" style="--i:${Math.min(i,12)};--a:${NA[(+x.id||i)%NA.length]};--r:${NR[i%NR.length]}deg"><i class="nt-tp"></i><span class="nt-tag">${ic('note',14)} مذكرة</span><h3>${esc(x.title)}</h3><p class="nt-m">${esc(x.course)}${x.teacher?' • '+esc(x.teacher):''}</p>${x.url?`<button class="nt-b" data-rd="${x.id}">${ic('eye',16)} اقرأ المذكرة</button>`:'<span class="nt-soon">قريبًا</span>'}</div>`;
+const fileRow=(x,i)=>{const im=x.kind=='image'||isImg(x.url);return `<div class="fl" style="--i:${Math.min(i,14)}"><span class="fl-i ${im?'im':''}">${ic(im?'image':'file',22)}</span><span class="fl-t"><b>${esc(x.title)}<span class="fl-k">${im?'صورة':'PDF'}</span></b><small>${esc(x.course)}${x.teacher?' • '+esc(x.teacher):''}</small></span>${x.url?`<a class="btn btn-p btn-s" target="_blank" rel="noopener" data-aw="file:${x.id}" href="${esc(x.url)}">فتح</a>`:'<span class="muted">قريبًا</span>'}</div>`};
+function draw(){let h;
+ if(tab=='books'){const a=flt(L.books||[],x=>x.title+' '+(x.subject||''));h=a.length?`<div class="bk-grid">${a.map(bookCard).join('')}</div>`:empty('لا توجد كتب بعد.')}
+ else{const n=tab=='notes',a=flt((L.docs||[]).filter(x=>(x.kind=='summary')==n),x=>x.title+' '+x.course+' '+x.teacher);
+  h=a.length?(n?`<div class="nt-grid">${a.map(noteCard).join('')}</div>`:`<div class="fl-list">${a.map(fileRow).join('')}</div>`):empty(n?'لا توجد مذكرات بعد.':'لا توجد ملفات بعد.')}
+ $('#o').innerHTML=h}
+async function show(){tab=tabOf();const my=++seq;drawTabs();
+ const g=tab=='books'?'books':'docs';
+ if(!L[g])$('#o').innerHTML=SK;
+ try{await need(tab);if(my!=seq)return;draw()}
+ catch(_){if(my!=seq)return;$('#o').innerHTML='<p class="empty">تعذر التحميل. <button class="btn btn-o btn-s" data-retry>حاول تاني</button></p>'}}
+$('#tb').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b||b.dataset.t==tab)return;location.hash=b.dataset.t});
+addEventListener('hashchange',()=>{if(tabOf()!=tab){qs='';$('#q').value='';show()}});
+$('#q').addEventListener('input',e=>{qs=e.target.value;if(L[tab=='books'?'books':'docs'])draw()});
+$('.ic-w').innerHTML=ic('search',17);
+
+/* ميل ثلاثي الأبعاد ولمعان يتبع الماوس على الكتب (على الموبايل اللمعان بيتحرك لوحده) */
+const o=$('#o');
+o.addEventListener('pointermove',e=>{if(e.pointerType!=='mouse')return;const b=e.target.closest&&e.target.closest('.bk-in');if(!b)return;
+ const r=b.getBoundingClientRect(),px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+ b.style.setProperty('--ry',((px-.5)*-18).toFixed(1)+'deg');b.style.setProperty('--rx',((py-.5)*16).toFixed(1)+'deg');b.style.setProperty('--mx',(px*100).toFixed(0)+'%');b.style.setProperty('--my',(py*100).toFixed(0)+'%')});
+o.addEventListener('pointerout',e=>{const b=e.target.closest&&e.target.closest('.bk-in');if(b&&!b.contains(e.relatedTarget)){b.style.removeProperty('--rx');b.style.removeProperty('--ry')}});
+
+/* قارئ المذكرة: يفتح جوه الصفحة، ومبيتقفلش غير بزر الإغلاق أو Esc */
+function closeRd(){const r=$('#rd');if(r)r.remove();document.body.style.overflow=''}
+function openRd(x){closeRd();const im=isImg(x.url);
+ document.body.insertAdjacentHTML('beforeend',`<div class="rd" id="rd" role="dialog" aria-modal="true"><div class="rd-p"><div class="rd-h"><b>${ic('note',18)} <span>${esc(x.title)}</span></b><span><a class="btn btn-o btn-s" target="_blank" rel="noopener" href="${esc(x.url)}">${ic('ext',15)} تبويب جديد</a><button class="btn btn-s rd-x" data-rdx aria-label="إغلاق">${ic('x',18)}</button></span></div><div class="rd-b">${im?`<img src="${esc(x.url)}" alt="${esc(x.title)}">`:`<iframe src="${esc(embedUrl(x.url))}" allow="fullscreen" referrerpolicy="no-referrer"></iframe>`}</div></div></div>`);
+ document.body.style.overflow='hidden';award('file',x.id)}
+document.addEventListener('keydown',e=>{if(e.key=='Escape')closeRd()});
+document.addEventListener('click',e=>{
+ if(e.target.closest('[data-rdx]'))return closeRd();
+ if(e.target.closest('[data-retry]'))return show();
+ const r=e.target.closest('[data-rd]');if(r){const x=(L.docs||[]).find(y=>y.id==r.dataset.rd);if(x)openRd(x);return}
+ const a=e.target.closest('[data-aw]');if(a)award(...a.dataset.aw.split(':'))});
+show();
+</script></body></html>

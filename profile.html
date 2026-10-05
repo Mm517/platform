@@ -14,7 +14,7 @@
 topbar();
 const need=()=>U()?false:(location.href='auth#login',true);
 
-if(!need()){const u=U();get('edu_profiles?select=points').then(p=>{const n=p[0]?.points||0;
+if(!need()){const u=U();ME().then(m=>m?[m]:[]).then(p=>{const n=p[0]?.points||0;
 $('#o').innerHTML=`<div class="box tcard"><div class="av">${esc((u.name||'?').charAt(0))}</div><div><b>${esc(u.name||'')}</b><div class="muted">${esc(u.email||u.phone||'')}</div></div></div><div class="stat"><div class="box"><b>${n}</b>نقطة</div><div class="box"><b>${lvl(n)}</b>المستوى</div></div><a class="btn btn-p btn-s" href="analytics">عرض التحليلات</a><div id="adm"></div>`;
  get('edu_staff?select=role').then(s=>{if(s[0])$('#adm').innerHTML=`<div class="box" style="margin-top:14px"><b>${s[0].role=='admin'?ic('crown',18)+' حسابك أدمن':'حسابك مدرس'}</b><p class="muted">${s[0].role=='admin'?'تقدر تدير الكورسات والمدرسين والصلاحيات ورسائل الدعم.':'تقدر تدير كورساتك.'}</p><a class="btn btn-p btn-s" href="staff">${s[0].role=='admin'?'فتح لوحة الإدارة':'فتح لوحة المدرس'}</a></div>`}).catch(()=>{})})}
 </script></body></html>

@@ -73,8 +73,14 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-s],[data-l
 function fromHash(){const[a,b,c]=location.hash.slice(1).split('-').map(Number);S=a||0;L=S&&b||0;T=L&&c||0;draw();scrollTo(0,0)}
 addEventListener('hashchange',fromHash);
 const ok=p=>p.catch(()=>[]);
-Promise.all([get('edu_subjects?grade=eq.prep3&order=sort'),get('edu_lessons?order=sort,id'),get('edu_courses_v?select=id,lesson_id,teacher_id,title,video_url&order=id'),get('edu_courses?select=id,sort'),get('edu_teachers'),ok(get('edu_course_files?order=id')),ok(get('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)')),U()?ok(get('edu_quiz_attempts?select=quiz_id,score,total')):[],U()?ok(get('edu_progress?select=course_id,position,duration,done')):[],resume()]).then(([s,l,c,so,t,f,q,a,p,r])=>{
+Promise.all([cget('edu_subjects?grade=eq.prep3&order=sort'),cget(Q.ls),cget('edu_courses_v?select=id,lesson_id,teacher_id,title,video_url&order=id'),cget(Q.cs),cget('edu_teachers'),ok(cget('edu_course_files?order=id')),ok(cget('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)')),U()?ok(get('edu_quiz_attempts?select=quiz_id,score,total')):[],U()?ok(get(Q.pg)):[],resume()]).then(([s,l,c,so,t,f,q,a,p,r])=>{
  const sm=Object.fromEntries(so.map(x=>[x.id,x.sort||0]));c.forEach(x=>x.sort=sm[x.id]||0);
- subs=s;ls=l.filter(x=>s.some(y=>y.id==x.subject_id));cs=c;tch=Object.fromEntries(t.map(x=>[x.id,x]));fl=f;qz=q;at=a;pg=Object.fromEntries(p.map(x=>[x.course_id,x]));RS=r;fromHash()
+ window._csig=JSON.stringify([s,l,c,so,t,f,q]);subs=s;ls=l.filter(x=>s.some(y=>y.id==x.subject_id));cs=c;tch=Object.fromEntries(t.map(x=>[x.id,x]));fl=f;qz=q;at=a;pg=Object.fromEntries(p.map(x=>[x.course_id,x]));RS=r;fromHash()
 }).catch(()=>$('#out').innerHTML='<p class="empty">تعذر تحميل الدروس، حدّث الصفحة.</p>');
+/* تحديث فوري: بيجيب الجزء المتغيّر بس (الباقي من كاش الجهاز)، وبيرسم من غير ما يرجّع الصفحة لفوق أو يقفل ملف مفتوح */
+let _cs=null;const cpaint=()=>{if($('#out iframe')){clearTimeout(_cs);_cs=setTimeout(cpaint,5000);return}draw()};
+onLive(()=>Promise.all([cget('edu_subjects?grade=eq.prep3&order=sort'),cget(Q.ls),cget('edu_courses_v?select=id,lesson_id,teacher_id,title,video_url&order=id'),cget(Q.cs),cget('edu_teachers'),ok(cget('edu_course_files?order=id')),ok(cget('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)'))]).then(([s,l,c,so,t,f,q])=>{
+ const sm=Object.fromEntries(so.map(x=>[x.id,x.sort||0]));c.forEach(x=>x.sort=sm[x.id]||0);
+ const sig=JSON.stringify([s,l,c,so,t,f,q]);if(sig===window._csig)return;window._csig=sig;
+ subs=s;ls=l.filter(x=>s.some(y=>y.id==x.subject_id));cs=c;tch=Object.fromEntries(t.map(x=>[x.id,x]));fl=f;qz=q;cpaint()}).catch(()=>{}),['edu_subjects','edu_lessons','edu_courses','edu_teachers','edu_course_files','edu_quizzes','edu_quiz_questions']);
 </script></body></html>

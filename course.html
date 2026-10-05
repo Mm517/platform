@@ -43,12 +43,12 @@ function draw(){
  $('#dyn').innerHTML=`<div class="row" style="margin-top:14px;flex-wrap:wrap"><div><h1>${esc(c.title)}</h1><div class="muted"><a href="teachers?id=${c.teacher_id}" style="color:var(--bl);font-weight:600">${esc(c.teacher_name)}</a> • ${esc(c.lesson_title)}</div><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div><div><span class="bd f" style="position:static;${c.is_free?'':'background:#f59e0b'}">${c.is_free?'مجاني':'مميز'}</span> <button class="btn btn-o" id="sub">${sub?ic('check',16)+' مشترك':ic('plus',16)+' اشترك'}</button> <button class="btn btn-p" id="done">أنهيت المشاهدة (+10 نقاط)</button></div></div>
  ${sib.length>1?partsBar():''}<a class="tcard" href="teachers?id=${c.teacher_id}"><div class="av" ${T0&&T0.image?`style="background:#fff url('${esc(T0.image)}') center/cover"`:''}>${T0&&T0.image?'':esc((c.teacher_name||'').replace(/^أ\.\s*/,'').charAt(0))}</div><div><b>${esc(c.teacher_name)}</b><div class="muted" style="font-size:14px">عرض صفحة المدرس وكل كورساته</div></div></a>
  <div class="tabs">${T.map((t,i)=>`<button class="${i==tab?'on':''}" data-tb="${i}">${t}</button>`).join('')}</div><div id="tc">${tabHtml()}</div>`}
-async function load(){[c]=await get('edu_courses_v?id=eq.'+id);if(!c)throw 0;
- [files,sols,qs,rv]=await Promise.all([get('edu_course_files?course_id=eq.'+id),get('edu_course_solutions?course_id=eq.'+id),get('edu_questions?course_id=eq.'+id+'&order=created_at.desc'),get('edu_reviews?course_id=eq.'+id+'&order=created_at.desc')]);
+async function load(){[c]=await cget('edu_courses_v?id=eq.'+id);if(!c)throw 0;
+ [files,sols,qs,rv]=await Promise.all([cget('edu_course_files?course_id=eq.'+id),cget('edu_course_solutions?course_id=eq.'+id),get('edu_questions?course_id=eq.'+id+'&order=created_at.desc'),get('edu_reviews?course_id=eq.'+id+'&order=created_at.desc')]);
  quizzes=(await get('edu_quizzes?course_id=eq.'+id+'&select=id,title,edu_quiz_questions(id,q,options,answer,sort)&edu_quiz_questions.order=sort').catch(()=>[])).filter(q=>q.edu_quiz_questions.length);
  att=U()?await get('edu_quiz_attempts?select=quiz_id,score,total&order=created_at.desc').catch(()=>[]):[];
  sub=U()?(await get('edu_enrollments?course_id=eq.'+id).catch(()=>[])).length>0:false;
- lsn=await get('edu_lessons?subject_id=eq.'+c.subject_id+'&order=sort,id').catch(()=>[]);sib=await get('edu_courses?select=id,title,sort&lesson_id=eq.'+c.lesson_id+'&teacher_id=eq.'+c.teacher_id+'&order=sort,id').catch(()=>[]);T0=(await get('edu_teachers?id=eq.'+c.teacher_id).catch(()=>[]))[0];
+ lsn=await cget('edu_lessons?subject_id=eq.'+c.subject_id+'&order=sort,id').catch(()=>[]);sib=await cget('edu_courses?select=id,title,sort&lesson_id=eq.'+c.lesson_id+'&teacher_id=eq.'+c.teacher_id+'&order=sort,id').catch(()=>[]);T0=(await cget('edu_teachers?id=eq.'+c.teacher_id).catch(()=>[]))[0];
  pr=U()?(await get('edu_progress?course_id=eq.'+id).catch(()=>[]))[0]||null:null;document.title=c.title+' | أكاديمية';draw()}
 document.addEventListener('click',async e=>{const t=e.target;
  if(t.dataset.nx){try{sessionStorage.setItem('acad_hl',t.dataset.nx)}catch(_){}location.href='courses#'+c.subject_id;return}
@@ -69,4 +69,27 @@ document.addEventListener('click',async e=>{const t=e.target;
   if(!r.ok)return $('#rm').textContent='تعذر الحفظ.';await award('review',id);await load();tab=4;draw()}
 });
 load().catch(()=>$('#m').innerHTML='<p class="empty">الكورس غير موجود. <a href="courses" style="color:var(--bl)">العودة</a></p>');
+/* ===== تحديث فوري للمحتوى: الفيديو الرئيسي مبيتقطعش (draw بيعيد رسم #dyn بس). بيجيب من الشبكة الجزء المتغيّر بس ===== */
+let _ph=[],_pt=null,_lt=null;
+const frameBusy=()=>['qb','rc'].some(i=>{const e=$('#'+i);return e&&(e.value||document.activeElement===e)})||$('#tc iframe')||[...document.querySelectorAll('#tc [id^=sv]')].some(b=>!b.hidden);
+const lpaint=()=>{clearTimeout(_lt);if(frameBusy()){_lt=setTimeout(lpaint,4000);return}const d=$('#done'),wd=d&&d.disabled,tx=d&&d.textContent;draw();if(wd){const n=$('#done');if(n){n.disabled=true;n.textContent=tx}}};
+const rel=x=>{const t=x.table,r=x.rec||{};if(t==='*')return 1;
+ if(t=='edu_course_files'||t=='edu_course_solutions'||t=='edu_quizzes')return r.course_id==null||r.course_id==id;
+ if(t=='edu_quiz_questions')return 1;
+ if(t=='edu_courses')return r.id==null||r.id==id||r.lesson_id==c.lesson_id;
+ if(t=='edu_teachers')return r.id==null||r.id==c.teacher_id;
+ if(t=='edu_lessons')return r.id==null||r.id==c.lesson_id||r.subject_id==c.subject_id;
+ if(t=='edu_subjects')return r.id==null||r.id==c.subject_id;return 0};
+const fire=async()=>{if(!c)return;if(qa&&!res){clearTimeout(_pt);_pt=setTimeout(fire,4000);return}
+ const R=_ph.filter(rel);_ph=[];if(!R.length)return;const T=R.map(x=>x.table),all=T.includes('*'),has=(...a)=>all||a.some(t=>T.includes(t));
+ try{const nc=has('edu_courses','edu_teachers','edu_subjects','edu_lessons')?(await cget('edu_courses_v?id=eq.'+id))[0]:null;
+  const[nf,ns,nq]=await Promise.all([has('edu_course_files')?cget('edu_course_files?course_id=eq.'+id):null,has('edu_course_solutions')?cget('edu_course_solutions?course_id=eq.'+id):null,has('edu_quizzes','edu_quiz_questions')?get('edu_quizzes?course_id=eq.'+id+'&select=id,title,edu_quiz_questions(id,q,options,answer,sort)&edu_quiz_questions.order=sort'):null]);
+  const nsib=has('edu_courses')?await cget('edu_courses?select=id,title,sort&lesson_id=eq.'+(nc||c).lesson_id+'&teacher_id=eq.'+(nc||c).teacher_id+'&order=sort,id'):null;
+  const nt=has('edu_teachers')?(await cget('edu_teachers?id=eq.'+(nc||c).teacher_id))[0]:null;
+  const nl=has('edu_lessons','edu_subjects')?await cget('edu_lessons?subject_id=eq.'+(nc||c).subject_id+'&order=sort,id'):null;
+  const sg=JSON.stringify([nc,nf,ns,nq,nsib,nt,nl,c.id]),old=window._csg;
+  if(nc)c=nc;if(nf)files=nf;if(ns)sols=ns;if(nq)quizzes=nq.filter(q=>q.edu_quiz_questions.length);if(nsib)sib=nsib;if(nt)T0=nt;if(nl)lsn=nl;
+  if(nc)document.title=c.title+' | أكاديمية';
+  window._csg=JSON.stringify([c,files,sols,quizzes,sib,T0,lsn]);if(window._csg!==old||old===undefined)lpaint()}catch(_){}};
+onLive(h=>{_ph=_ph.concat(h);fire()});
 </script></body></html>

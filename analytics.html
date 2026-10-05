@@ -14,6 +14,6 @@
 topbar();
 const need=()=>U()?false:(location.href='auth#login',true);
 
-if(!need())get('edu_profiles?select=points').then(p=>{const n=p[0]?.points||0;
+if(!need())ME().then(m=>m?[m]:[]).then(p=>{const n=p[0]?.points||0;
 $('#o').innerHTML=`<div class="stat"><div class="box"><b>${n}</b>إجمالي النقاط</div><div class="box"><b>${lvl(n)}</b>المستوى</div></div><div class="box"><div class="row"><span>التقدم للمستوى ${lvl(n)+1}</span><b>${n%100}/100</b></div><div class="pbar"><i style="width:${n%100}%"></i></div></div><div class="box muted">تكسب نقاط: مشاهدة الدرس، فتح الملفات، حل الأسئلة، الأسئلة للمدرس، والتقييمات.</div>`}).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل.</p>');
 </script></body></html>
