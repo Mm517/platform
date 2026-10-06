@@ -80,10 +80,10 @@ function IDX(){return _ix||(_ix=Promise.all([cget('aa_edu_subjects?grade=eq.prep
  X.parse=h=>{h=dh(h);if(/^\d+(-\d+){0,2}$/.test(h)){const[a,b,c]=h.split('-').map(Number);return[a||0,b||0,c||0]}
   for(const s of ss){const p='course-'+sg(s,'s');if(h===p)return[s.id,0,0];if(!h.startsWith(p+'-'))continue;
    for(const l of ls){if(l.subject_id!=s.id)continue;const pl=p+'-'+sg(l,'l');if(h===pl)return[s.id,l.id,0];if(!h.startsWith(pl+'-'))continue;
-    for(const t of ts)if(h===pl+'-'+tslug(t))return[s.id,l.id,t.id]}}return[0,0,0]};
+    for(const t of ts)if(h===pl+'-'+tslug(t))return[s.id,l.id,t.id]}}const lg=h.match(/^course-s(\d+)(?:-l(\d+))?(?:-t(\d+))?$/);if(lg)return[+lg[1],+lg[2]||0,+lg[3]||0];return[0,0,0]};
  X.courseByHash=h=>{h=dh(h);let n=1,r=X.parse(h);if(!r[2]){const m=h.match(/^(.+)-p(\d+)$/);if(m){n=+m[2];r=X.parse(m[1])}}if(!r[2])return 0;
   const a=cs.filter(c=>c.lesson_id==r[1]&&c.teacher_id==r[2]).sort((x,y)=>(x.sort||0)-(y.sort||0)||x.id-y.id);return a[n-1]?a[n-1].id:0};
- X.teacherByKey=k=>{const t=ts.find(x=>x.slug==k||String(x.id)==k);return t?t.id:0};
+ X.teacherByKey=k=>{const m=String(k).match(/^t(\d+)$/),t=ts.find(x=>x.slug==k||String(x.id)==k||(m&&x.id==m[1]));return t?t.id:0};
  window._X=X;return X}));}
 addEventListener('acad:update',()=>{_ix=null;IDX().then(prettyLinks).catch(()=>{})});
 function prettyLinks(){const X=window._X;if(!X)return;document.querySelectorAll('a[href]').forEach(a=>{const h=a.getAttribute('href');let m;

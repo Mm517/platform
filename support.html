@@ -17,7 +17,7 @@ const CAT={general:'استفسار عام',tech:'مشكلة تقنية',account:
 let tk=[],cur=+new URLSearchParams(location.search).get('t')||0,msgs=[],nw=false,F='all',rt=0,pollT=null,sending=false;
 const bd=t=>`<span class="bg ${t.status}">${ST[t.status]}</span>`;
 const errMsg=async r=>{const t=await r.text().catch(()=>'');try{const j=JSON.parse(t);if(j.message&&/[\u0600-\u06FF]/.test(j.message))return j.message}catch(_){}return null};
-async function list(){tk=await get('aa_edu_tickets?select=id,subject,category,status,created_at,updated_at,rating,closed_at&order=updated_at.desc')}
+async function list(){try{tk=await get('aa_edu_tickets?select=id,subject,category,status,created_at,updated_at,rating,closed_at&order=updated_at.desc')}catch(_){tk=await get('aa_edu_tickets?select=id,subject,category,status,created_at,updated_at&order=updated_at.desc')}}
 const step=t=>t.status=='closed'?3:t.status=='answered'?2:msgs.some(m=>m.is_staff)?2:1;
 const canReopen=t=>t.status=='closed'&&(!t.closed_at||Date.now()-new Date(t.closed_at)<7*864e5);
 function draw(){

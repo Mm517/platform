@@ -218,10 +218,14 @@ const fallbackSubs = () => drawSubs(subjects.map(x => ({ name: x[0], icon: x[1],
 fetch(SUPA_URL + "/rest/v1/rpc/edu_public_home", { method: "POST", headers: { apikey: SUPA_KEY, "Content-Type": "application/json" }, body: "{}" })
   .then(r => r.ok ? r.json() : Promise.reject()).then(j => {
     const n = +j.n || 0, lim = +j.lim || 0, full = lim > 0 && n >= lim, left = Math.max(lim - n, 0);
-    $("capN").textContent = n; $("capL").textContent = lim; $("chipN").textContent = n;
-    $("capR").textContent = full ? "اكتمل العدد - التسجيل بقائمة الانتظار" : "متبقي " + left + " مقعد";
-    $("cap").classList.toggle("full", full); $("cap").hidden = false;
-    requestAnimationFrame(() => $("capF").style.width = (lim ? Math.min(n / lim * 100, 100) : 0) + "%");
+    const pct = lim ? Math.min(Math.round(n / lim * 100), 100) : 0, hot = !full && lim > 0 && left <= Math.max(10, lim * .15);
+    const capN = $("capN"), t0 = performance.now();
+    (function tick(t) { const k = Math.min((t - t0) / 1200, 1); capN.textContent = Math.round(n * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); })(t0);
+    $("capL").textContent = lim; $("chipN").textContent = n; $("capP").textContent = pct + "%"; $("capBar").setAttribute("aria-valuenow", pct);
+    $("capS").textContent = full ? "اكتمل العدد" : "التسجيل مفتوح الآن";
+    $("capR").textContent = full ? "المقاعد اكتملت - انضم لقائمة الانتظار وهنبلغك أول ما يتفتح مكان" : hot ? "آخر " + left + " مقعد فقط - سجّل قبل ما يخلصوا!" : "باقي " + left + " مقعد من " + lim + " - أمّن مكانك مجانًا";
+    $("cap").classList.toggle("full", full); $("cap").classList.toggle("hot", hot); $("cap").hidden = false;
+    requestAnimationFrame(() => $("capF").style.width = pct + "%");
     stats = [[String(n), "طالب مسجّل"], [String(j.lessons || 0), "درس"], [String(j.quizzes || 0), "اختبار"], [String(j.teachers || 0), "مدرس"]];
     drawStats(); document.querySelectorAll(".trust").forEach(el => { io.unobserve(el); io.observe(el); });
     if (j.subjects && j.subjects.length) drawSubs(j.subjects); else fallbackSubs();

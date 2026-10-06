@@ -76,7 +76,7 @@ async function ensure(lid){if(!lid||LD[lid])return;const ids=cs.filter(c=>c.less
  fl=fl.filter(x=>!ids.includes(x.course_id)).concat(F);qz=qz.filter(x=>!ids.includes(x.course_id)).concat(Z);at=at.filter(a=>!qi.includes(a.quiz_id));
  if(U()&&qi.length)at=at.concat(await ok(get('aa_edu_quiz_attempts?select=quiz_id,score,total&quiz_id='+inL(qi))));LD[lid]=1}
 function fromHash(){const[a,b,c]=X?X.parse(location.hash):location.hash.slice(1).split('-').map(Number);S=a||0;L=S&&b||0;T=L&&c||0;
- if(X&&/^#\d/.test(location.hash)&&S){const h=X.hash(S,L,T);if(h)history.replaceState(null,'',h)}const go=()=>{draw();scrollTo(0,0)};
+ if(X&&/^#(\d|course-s\d)/.test(location.hash)&&S){const h=X.hash(S,L,T);if(h)history.replaceState(null,'',h)}const go=()=>{draw();scrollTo(0,0)};
  if(L&&!LD[L]){$('#out').innerHTML='<div class="skw" aria-busy="true"><div class="sk sk-ln" style="width:40%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div>';ensure(L).then(go,go)}else go()}
 addEventListener('hashchange',fromHash);
 const ok=p=>p.catch(()=>[]);
