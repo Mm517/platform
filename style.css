@@ -355,3 +355,24 @@ a,button,.btn,.feat,.sb,.tr,.li,.opt,.go,.q button{-webkit-tap-highlight-color:t
 }
 
 .links .ml{display:none}@media(max-width:900px){.links .ml{display:block;color:var(--bl);font-weight:600}}
+
+
+/* شريط التمرير: تدرّج أزرق ← أبيض خفيف */
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#f1f7fd}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#0878C9 0%,#5fb0ea 55%,#e3effb 100%);border-radius:99px;border:2px solid #f1f7fd}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#075B98 0%,#3f9ce0 55%,#d3e6f8 100%)}
+::-webkit-scrollbar-corner{background:#f1f7fd}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-color:#3f9ce0 #f1f7fd;scrollbar-width:thin}}
+
+/* عدّاد الطلاب */
+.cap{margin-top:22px;max-width:420px;padding:14px 16px;border:1px solid var(--bo);border-radius:14px;background:#fff;box-shadow:0 6px 20px rgba(8,120,201,.08)}
+.cap-t{display:flex;justify-content:space-between;gap:10px;font-size:15px;font-weight:500;margin-bottom:10px}
+.cap-t b{color:var(--bl);font-size:18px;font-weight:800}.cap-t em{font-style:normal;color:var(--mu);font-size:14px}
+.cap-b{height:10px;border-radius:99px;background:#e9f2fb;overflow:hidden}
+.cap-b i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#0878C9,#5fb0ea);transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.cap.full .cap-b i{background:linear-gradient(90deg,#d97706,#f59e0b)}.cap.full .cap-t b{color:#b45309}
+
+/* صور المدرسين تحت المواد */
+.av.ph{overflow:hidden;background:#e9f2fb}.av.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.sb .tn{font-size:13px;color:var(--bd);font-weight:600;line-height:1.6;margin-bottom:4px}

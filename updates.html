@@ -14,7 +14,7 @@
 topbar();
 const need=()=>U()?false:(location.href='auth#login',true);
 
-const run=()=>Promise.all([cget('edu_courses_v?order=id.desc&limit=5'),cget('edu_updates?order=created_at.desc').catch(()=>[])]).then(([c,u])=>{
+const run=()=>Promise.all([cget('aa_edu_courses_v?order=id.desc&limit=5'),cget('aa_edu_updates?order=created_at.desc').catch(()=>[])]).then(([c,u])=>{
 $('#o').innerHTML=u.map(x=>`<div class="box"><b>${ic('mega',18)} ${esc(x.title)}</b><div>${esc(x.body||'')}</div><small class="muted">${new Date(x.created_at).toLocaleDateString('ar-EG')}</small></div>`).join('')+c.map(x=>`<a class="box row" href="course?id=${x.id}"><span>${ic('plus',16)} كورس جديد: <b>${esc(x.title)}</b> — ${esc(x.teacher_name)}</span><span class="muted">عرض</span></a>`).join('')||'<p class="empty">لا توجد تحديثات.</p>'});
-run();onLive(()=>run().catch(()=>{}),['edu_updates','edu_courses','edu_teachers','edu_subjects','edu_lessons']);
+run();onLive(()=>run().catch(()=>{}),['aa_edu_updates','aa_edu_courses','aa_edu_teachers','aa_edu_subjects','aa_edu_lessons']);
 </script></body></html>

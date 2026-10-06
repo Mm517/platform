@@ -82,18 +82,23 @@ body.au{background:var(--soft) radial-gradient(#d9e5ee 1px,transparent 1.2px) 0 
 
 <div class="au-card" id="card">
  <h1 id="ttl"></h1>
+ <div class="au-cl" id="cl" hidden>اكتمل عدد الطلاب وتم إغلاق التسجيل حاليًا.<br>سيب اسمك ورقمك وهنسجّلك فور فتح أماكن جديدة.
+  <form id="fw" novalidate><input id="wn" placeholder="اسمك" maxlength="40" dir="auto" autocomplete="name"><input id="wp" type="tel" inputmode="numeric" dir="ltr" maxlength="14" placeholder="01XXXXXXXXX" autocomplete="tel"><p class="au-err" id="we" role="alert"></p><button class="btn btn-p" id="wb">انضم لقائمة الانتظار</button></form>
+  <small>عندك حساب؟ <a href="#login">سجّل دخولك</a></small></div>
  <form id="fs" novalidate>
   <p class="au-lab" id="lab"></p>
   <div class="au-prog" id="prog"><i></i><i></i><i></i></div>
   <div class="st on"><label for="nm">الاسم</label><input id="nm" data-y=".5" autocomplete="name" placeholder="اكتب اسمك" maxlength="40" dir="auto" autocapitalize="words"><label for="gr">الصف الدراسي</label><select id="gr"><option value="prep3">الصف الثالث الإعدادي</option></select></div>
   <div class="st"><label for="ph">رقم الموبايل</label><div class="au-ph"><span>+20</span><input id="ph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="tel" maxlength="14" placeholder="01XXXXXXXXX"></div></div>
   <div class="st"><input type="text" id="un" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;opacity:0;height:0;width:0;min-height:0;padding:0;border:0;pointer-events:none"><label for="pw">كلمة السر</label><div class="au-pw"><input id="pw" data-y="1" type="password" dir="ltr" autocomplete="new-password" maxlength="64"><button type="button" id="eye" aria-label="إظهار كلمة السر"></button></div><div class="au-str"><i id="str"></i></div><p class="au-hint">6 أحرف على الأقل، والأفضل أرقام وحروف معًا.</p></div>
+  <div class="au-cf" id="cfs"></div>
   <p class="au-err" id="er" role="alert"></p>
   <div class="au-btns"><button type="button" class="btn btn-o" id="back" hidden>رجوع</button><button class="btn btn-p" id="nx">التالي</button></div>
  </form>
  <form id="fl" novalidate hidden>
   <label for="lph">رقم الموبايل</label><div class="au-ph" id="lphw"><span id="lpre">+20</span><input id="lph" data-y=".7" type="tel" inputmode="numeric" dir="ltr" autocomplete="username" maxlength="14" placeholder="01XXXXXXXXX"></div>
   <label for="lpw">كلمة السر</label><div class="au-pw"><input id="lpw" data-y="1" type="password" dir="ltr" autocomplete="current-password" maxlength="64"><button type="button" id="leye" aria-label="إظهار كلمة السر"></button></div>
+  <div class="au-cf" id="cfl"></div>
   <p class="au-err" id="le" role="alert"></p>
   <div class="au-btns"><button class="btn btn-p" id="lb">دخول</button></div>
  </form>
@@ -107,12 +112,23 @@ const $$=s=>[...document.querySelectorAll(s)],sleep=ms=>new Promise(r=>setTimeou
 const sv=$('#bsvg'),pu=$$('.pu'),mo=$('#mo'),bub=$('#bub'),card=$('#card');
 const MO={n:'M93 118Q105 129 117 118',h:'M91 115Q105 138 119 115',s:'M94 127Q105 117 116 127'};
 const PR=['أهلًا بك! ما اسمك؟','رائع! وما رقم موبايلك؟','اختر كلمة سر لا يعرفها غيرك'];
-const MSG={user_already_exists:'هذا الرقم مسجّل بالفعل، سجّل دخولك.',invalid_credentials:'بيانات الدخول أو كلمة السر غير صحيحة.',weak_password:'كلمة السر ضعيفة، اختر أقوى.',over_request_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',over_email_send_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',email_not_confirmed:'الحساب غير مفعّل، تواصل مع الدعم.',confirm:'تم إنشاء الحساب لكن التفعيل مطلوب، تواصل مع الدعم.',profile:'تم إنشاء الحساب لكن تعذر حفظ بياناتك، حاول تسجيل الدخول.',banned:'تم حظر هذا الحساب. تواصل مع الإدارة.',signup_disabled:'التسجيل غير متاح حاليًا.'};
+const MSG={captcha_missing:'أكمل التحقق الأمني (أنا لست روبوت) أولًا.',captcha_failed:'تعذر التحقق الأمني، أعد المحاولة.',closed:'اكتمل عدد الطلاب وتم إغلاق التسجيل حاليًا.',user_already_exists:'هذا الرقم مسجّل بالفعل، سجّل دخولك.',invalid_credentials:'بيانات الدخول أو كلمة السر غير صحيحة.',weak_password:'كلمة السر ضعيفة، اختر أقوى.',over_request_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',over_email_send_rate_limit:'محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة.',email_not_confirmed:'الحساب غير مفعّل، تواصل مع الدعم.',confirm:'تم إنشاء الحساب لكن التفعيل مطلوب، تواصل مع الدعم.',profile:'تم إنشاء الحساب لكن تعذر حفظ بياناتك، حاول تسجيل الدخول.',banned:'تم حظر هذا الحساب. تواصل مع الإدارة.',signup_disabled:'التسجيل غير متاح حاليًا.'};
 const EYE='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const EYEOFF='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
 const norm=v=>v.replace(/[٠-٩]/g,x=>"٠١٢٣٤٥٦٧٨٩".indexOf(x)).replace(/^\+?20/,"0").replace(/\D/g,"");
 const okPh=v=>/^01[0125]\d{8}$/.test(v),mail=p=>`u${p}@academy-users.com`;
-let pend=false,step=0;
+let pend=false,step=0,CAP=null;
+/* عدّاد الطلاب: التسجيل بيتقفل لما العدد يوصل للحد (الحد الفعلي بيتحدد من السيرفر في جدول aa_edu_settings) */
+const stats=()=>fetch(SUPA_URL+'/rest/v1/rpc/edu_public_stats',{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:'{}'}).then(r=>r.ok?r.json():null).catch(()=>null);
+const closed=()=>!!(CAP&&CAP.n>=CAP.lim);
+$('#wp').addEventListener('input',e=>{e.target.value=e.target.value.replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[^\d+]/g,'')});
+$('#fw').addEventListener('submit',async e=>{e.preventDefault();const er=$('#we'),b=$('#wb'),nm=$('#wn').value.trim(),ph=norm($('#wp').value);er.textContent='';
+ if(nm.length<2)return fail(er,'اكتب اسمك (حرفان على الأقل).');if(!okPh(ph))return fail(er,'أدخل رقم موبايل مصري صحيح من 11 رقمًا.');
+ b.disabled=true;const j=await fetch(SUPA_URL+'/rest/v1/rpc/edu_join_waitlist',{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({p_name:nm,p_phone:ph})}).then(r=>r.ok?r.json():null).catch(()=>null);
+ if(!j||!j.ok){b.disabled=false;return fail(er,'تعذر التسجيل، حاول مرة أخرى.')}
+ $('#fw').innerHTML='<b>تم تسجيلك في قائمة الانتظار</b><br>ترتيبك: '+j.pos+'<br>هنتواصل معاك لما يتفتح مكان.';face('h');say('تم تسجيلك!')});
+function shut(){const l=location.hash==='#login',c=closed()&&!l;$('#fs').hidden=l||closed();$('#cl').hidden=!c;if(c){face('s');say('التسجيل مغلق، انضم لقائمة الانتظار');$('#ttl').textContent='قائمة الانتظار'}else if(!l)$('#ttl').textContent='إنشاء حساب'}
+stats().then(j=>{CAP=j;shut()});
 
 $('#ph').addEventListener('input',e=>{const el=e.target;el.value=el.value.replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[^\d+]/g,'')});
 $('#lph').addEventListener('input',e=>{const el=e.target;el.value=el.value.replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[^\d+]/g,'')});
@@ -143,10 +159,18 @@ bindPw($('#pw'),$('#eye'));bindPw($('#lpw'),$('#leye'));
 $('#pw').addEventListener('input',e=>{const v=e.target.value,s=(v.length>=6)+(v.length>=10)+(/[a-z]/i.test(v)&&/\d/.test(v))+/[^a-z0-9]/i.test(v),b=$('#str');b.style.width=s*25+'%';b.style.background=['#e5e7eb','#ef4444','#f59e0b','#84cc16','#22c55e'][s]});
 
 /* الخادم (Supabase Auth) */
-async function api(path,body){const r=await fetch(SUPA_URL+path,{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw j;return j}
+/* Cloudflare Turnstile: بيشتغل بس لو TURNSTILE_SITEKEY متحط في config.js */
+const CF=typeof TURNSTILE_SITEKEY==='string'?TURNSTILE_SITEKEY:'',CFW={},CFT={};
+function cfShow(k){if(!CF||CFW[k]!=null||!window.turnstile)return;CFW[k]=turnstile.render(k==='s'?'#cfs':'#cfl',{sitekey:CF,language:'ar',callback:t=>{CFT[k]=t},'expired-callback':()=>{CFT[k]=''},'error-callback':()=>{CFT[k]=''}})}
+window.cfReady=()=>{if(location.hash==='#login')cfShow('l');else if(step===2)cfShow('s')};
+if(CF){const sc=document.createElement('script');sc.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=cfReady';sc.async=true;document.head.appendChild(sc)}
+async function api(path,body){const k=path.includes('signup')?'s':'l';
+ if(CF){if(!CFT[k])throw{error_code:'captcha_missing'};body={...body,gotrue_meta_security:{captcha_token:CFT[k]}}}
+ try{const r=await fetch(SUPA_URL+path,{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw j;return j}
+ finally{if(CF&&CFW[k]!=null){CFT[k]='';turnstile.reset(CFW[k])}}}
 const save=(j,name,phone,email)=>setU({id:j.user&&j.user.id,name,phone,email,token:j.access_token,refresh:j.refresh_token});
-async function profile(j,name,phone,grade){const r=await fetch(SUPA_URL+'/rest/v1/edu_profiles?on_conflict=id',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+j.access_token,'Content-Type':'application/json',Prefer:'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify({id:j.user.id,name:name||'طالب',phone,grade:grade||'prep3'})});if(!r.ok)throw{error_code:'profile'}}
-async function win(t){const f=matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1;cover(false);look(0,.3);await sleep(450*f);face('h');say(t);await sleep(1200*f);$('#sp').classList.add('spin');await sleep(450*f);$('#bk').classList.add('ok');await sleep(1400*f);location.href='home'}
+async function profile(j,name,phone,grade){const r=await fetch(SUPA_URL+'/rest/v1/aa_edu_profiles?on_conflict=id',{method:'POST',headers:{apikey:SUPA_KEY,Authorization:'Bearer '+j.access_token,'Content-Type':'application/json',Prefer:'resolution=ignore-duplicates,return=minimal'},body:JSON.stringify({id:j.user.id,name:name||'طالب',phone,grade:grade||'prep3'})});if(!r.ok)throw{error_code:'profile'}}
+async function win(t){const f=matchMedia('(prefers-reduced-motion:reduce)').matches?.3:1;cover(false);look(0,.3);await sleep(450*f);face('h');say(t);await sleep(1200*f);$('#sp').classList.add('spin');await sleep(450*f);$('#bk').classList.add('ok');await sleep(1400*f);const nx=sessionStorage.getItem('acad_next');sessionStorage.removeItem('acad_next');location.href=/^[a-z]+([?#][^\s]*)?$/i.test(nx||'')?nx:'home'}
 async function run(btn,el,pw,fn,msg){
  pend=true;btn.disabled=true;el.textContent='';say('لحظة من فضلك...');
  try{await fn()}catch(e){pend=false;btn.disabled=false;cover(false);say('حدث خطأ، حاول مرة أخرى');return fail(el,MSG[e.error_code]||MSG[e.code]||'تعذر الاتصال، حاول مرة أخرى.')}
@@ -154,7 +178,7 @@ async function run(btn,el,pw,fn,msg){
 }
 
 /* إنشاء حساب على مراحل */
-function go(n){step=n;$('#un').value=norm($('#ph').value);$$('.st').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#prog i').forEach((d,i)=>d.classList.toggle('f',i<=n));
+function go(n){step=n;if(n===2)cfShow('s');$('#un').value=norm($('#ph').value);$$('.st').forEach((s,i)=>s.classList.toggle('on',i===n));$$('#prog i').forEach((d,i)=>d.classList.toggle('f',i<=n));
  $('#lab').textContent=`الخطوة ${n+1} من 3`;$('#nx').textContent=n===2?'إنشاء الحساب':'التالي';$('#back').hidden=!n;$('#er').textContent='';face('n');say(PR[n]);
  const f=$$('.st input')[n];f.focus({preventScroll:true})}
 $('#back').onclick=()=>go(step-1);
@@ -163,7 +187,7 @@ $('#fs').addEventListener('submit',e=>{e.preventDefault();if(pend)return;
  if(bad)return fail($('#er'),bad);
  if(step<2)return go(step+1);
  const name=$('#nm').value.trim(),phone=norm($('#ph').value);
- run($('#nx'),$('#er'),$('#pw'),async()=>{const j=await api('/auth/v1/signup',{email:mail(phone),password:$('#pw').value,data:{name,phone}});if(!j.access_token)throw{error_code:'confirm'};await profile(j,name,phone,$('#gr').value);save(j,name,phone)},'تم حفظ كلمة السر')});
+ run($('#nx'),$('#er'),$('#pw'),async()=>{if(closed())throw{error_code:'closed'};let j;try{j=await api('/auth/v1/signup',{email:mail(phone),password:$('#pw').value,data:{name,phone}})}catch(e){if(!e.error_code||e.error_code==='unexpected_failure'){CAP=await stats()||CAP;if(closed()){shut();throw{error_code:'closed'}}}throw e}if(!j.access_token)throw{error_code:'confirm'};await profile(j,name,phone,$('#gr').value);save(j,name,phone)},'تم حفظ كلمة السر')});
 
 /* تسجيل الدخول */
 $('#fl').addEventListener('submit',e=>{e.preventDefault();if(pend)return;
@@ -171,14 +195,14 @@ $('#fl').addEventListener('submit',e=>{e.preventDefault();if(pend)return;
  if(!okPh(phone))return fail($('#le'),'أدخل رقم موبايل مصري صحيح من 11 رقمًا.');
  if(!$('#lpw').value)return fail($('#le'),'اكتب كلمة السر.');
  run($('#lb'),$('#le'),$('#lpw'),async()=>{const j=await api('/auth/v1/token?grant_type=password',{email:mail(phone),password:$('#lpw').value}),nm=(j.user&&j.user.user_metadata&&j.user.user_metadata.name)||'';await profile(j,nm,phone,'prep3');
-  const b=await fetch(SUPA_URL+'/rest/v1/edu_profiles?select=banned',{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+j.access_token}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
+  const b=await fetch(SUPA_URL+'/rest/v1/aa_edu_profiles?select=banned',{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+j.access_token}}).then(r=>r.ok?r.json():[]).catch(()=>[]);
   if(b[0]&&b[0].banned)throw{error_code:'banned'};save(j,nm,phone)},'تم التحقق من كلمة السر')});
 
 /* التبديل بين الوضعين */
 function mode(){const l=location.hash==='#login';$('#fs').hidden=l;$('#fl').hidden=!l;
  $('#ttl').textContent=l?'تسجيل الدخول':'إنشاء حساب';document.title=(l?'تسجيل الدخول':'إنشاء حساب')+' | أكاديمية';
  $('#sw').innerHTML=l?'ليس لديك حساب؟ <a href="#signup">أنشئ حسابًا</a>':'لديك حساب؟ <a href="#login">سجّل دخولك</a>';
- cover(false);face('n');if(l){say('أهلًا بعودتك! أدخل بياناتك');$('#lph').focus({preventScroll:true})}else go(step)}
+ cover(false);face('n');if(l){cfShow('l');say('أهلًا بعودتك! أدخل بياناتك');$('#lph').focus({preventScroll:true})}else go(step);shut()}
 addEventListener('hashchange',mode);mode();
 </script>
 </body>

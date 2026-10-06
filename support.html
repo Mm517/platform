@@ -13,31 +13,56 @@
 <script>
 if(!U())location.replace('auth#login');
 topbar();
-const CAT={general:'استفسار عام',tech:'مشكلة تقنية',account:'الحساب',content:'المحتوى والدروس',idea:'اقتراح'},ST={open:'قيد المراجعة',answered:'تم الرد',closed:'مغلقة'};
-let tk=[],cur=+new URLSearchParams(location.search).get('t')||0,msgs=[],nw=false;
+const CAT={general:'استفسار عام',tech:'مشكلة تقنية',account:'الحساب',content:'المحتوى والدروس',idea:'اقتراح'},ST={open:'قيد المراجعة',answered:'تم الرد',closed:'مغلقة'},STEPS=['تم الإرسال','قيد المراجعة','تم الرد','مغلقة'];
+let tk=[],cur=+new URLSearchParams(location.search).get('t')||0,msgs=[],nw=false,F='all',rt=0,pollT=null,sending=false;
 const bd=t=>`<span class="bg ${t.status}">${ST[t.status]}</span>`;
-async function list(){tk=await get('edu_tickets?select=id,subject,category,status,created_at,updated_at&order=updated_at.desc')}
+const errMsg=async r=>{const t=await r.text().catch(()=>'');try{const j=JSON.parse(t);if(j.message&&/[\u0600-\u06FF]/.test(j.message))return j.message}catch(_){}return null};
+async function list(){tk=await get('aa_edu_tickets?select=id,subject,category,status,created_at,updated_at,rating,closed_at&order=updated_at.desc')}
+const step=t=>t.status=='closed'?3:t.status=='answered'?2:msgs.some(m=>m.is_staff)?2:1;
+const canReopen=t=>t.status=='closed'&&(!t.closed_at||Date.now()-new Date(t.closed_at)<7*864e5);
 function draw(){
- if(cur){const t=tk.find(x=>x.id==cur);if(!t){cur=0;return draw()}
+ if(cur){const t=tk.find(x=>x.id==cur);if(!t){cur=0;return draw()}const st=step(t);
+  const keep=($('#rb')||{}).value||'';
   $('#o').innerHTML=`<button class="bt" id="bk">${ic('right',16)} كل التذاكر</button>
-  <div class="card" style="margin-top:14px"><div class="ch"><span><b>${esc(t.subject)}</b><br><small class="muted">${CAT[t.category]||'تذكرة'} - ${new Date(t.created_at).toLocaleDateString('ar-EG')}</small></span><span class="acts">${bd(t)}${t.status!='closed'?`<button class="bt" id="cl">${ic('check',16)} إغلاق التذكرة</button>`:''}</span></div>
-  <div class="thr">${msgs.map(m=>`<div class="bub ${m.is_staff?'st':'me'}">${esc(m.body)}<small>${m.is_staff?'فريق الدعم':'أنت'} - ${ago(m.created_at)}</small></div>`).join('')||'<div class="skw" aria-busy="true"><div class="sk sk-h"></div><div class="sk sk-ln" style="width:50%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div>'}</div>
-  ${t.status!='closed'?`<div class="rp"><textarea id="rb" maxlength="1500" placeholder="اكتب ردك"></textarea><button class="bt p" id="rs">${ic('send',16)} إرسال</button></div>`:'<p class="muted" style="padding:12px 16px">هذه التذكرة مغلقة. افتح تذكرة جديدة لو عندك مشكلة أخرى.</p>'}</div>`;return}
+  <div class="card" style="margin-top:14px"><div class="ch"><span><b>#${t.id} — ${esc(t.subject)}</b><br><small class="muted">${CAT[t.category]||'تذكرة'} - ${new Date(t.created_at).toLocaleDateString('ar-EG')}</small></span><span class="acts">${bd(t)}${t.status!='closed'?`<button class="bt" id="cl">${ic('check',16)} تم حل المشكلة</button>`:canReopen(t)?`<button class="bt" id="ro">إعادة فتح</button>`:''}</span></div>
+  <div class="steps">${STEPS.map((x,i)=>`<span class="${i<=st?'on':''}"><i>${i<st?ic('check',12):i+1}</i>${x}</span>`).join('')}</div>
+  <div class="thr" id="thr">${msgs.map(m=>`<div class="bub ${m.is_staff?'st':'me'}">${esc(m.body)}<small>${m.is_staff?'فريق الدعم':'أنت'} - ${ago(m.created_at)}</small></div>`).join('')||'<div class="skw" aria-busy="true"><div class="sk sk-ln" style="width:50%"></div><div class="sk sk-row"></div></div>'}</div>
+  ${t.status=='answered'?'<p class="muted" style="padding:10px 16px 0">لو الرد حلّ مشكلتك اضغط «تم حل المشكلة»، ولو لسه محتاج مساعدة اكتب ردك تحت.</p>':''}
+  ${t.status!='closed'?`<div class="rp"><textarea id="rb" maxlength="1500" placeholder="اكتب ردك (Ctrl + Enter للإرسال)">${esc(keep)}</textarea><button class="bt p" id="rs">${ic('send',16)} إرسال</button></div>`
+   :t.rating?`<p class="muted" style="padding:12px 16px">${stars(t.rating)} شكرًا على تقييمك.</p>`:`<div class="rate" id="rate"><b>قيّم تجربتك مع الدعم</b><div class="rs">${[1,2,3,4,5].map(i=>`<button data-r="${i}" aria-label="${i}">${ic('star',26,i<=rt?'fill on':'')}</button>`).join('')}</div><textarea id="rn" maxlength="300" rows="2" placeholder="ملاحظة (اختياري)"></textarea><button class="bt p" id="rsv" ${rt?'':'disabled'}>إرسال التقييم</button></div>`}</div>`;
+  const th=$('#thr');if(th)th.scrollTop=th.scrollHeight;return}
+ const op=tk.filter(t=>t.status!='closed').length,an=tk.filter(t=>t.status=='answered').length,L=tk.filter(t=>F=='all'||t.status==F);
  $('#o').innerHTML=`<h1>${ic('ticket',26)} الدعم</h1><p class="sub">افتح تذكرة بمشكلتك وفريق الدعم هيرد عليك هنا، وهيوصلك إشعار عند الرد.</p>
+ ${an?`<div class="box" style="border-color:var(--bl);background:#eaf5ff"><b>${ic('bell',16)} عندك ${an} ${an==1?'تذكرة':'تذاكر'} فيها رد جديد</b></div>`:''}
  <div class="card"><div class="ch"><b>تذكرة جديدة</b><button class="bt ${nw?'':'p'}" id="nt">${nw?'إخفاء':ic('plus',16)+' فتح تذكرة'}</button></div>
- ${nw?`<div class="cbd form"><div class="g2"><div><label>القسم</label><select id="tc">${Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div><div><label>الموضوع</label><input id="ts" maxlength="100" placeholder="عنوان المشكلة"></div></div><label>التفاصيل</label><textarea id="tb" rows="5" maxlength="1500" placeholder="اشرح مشكلتك بالتفصيل"></textarea><div><button class="bt p" id="tsd">${ic('send',16)} إرسال التذكرة</button></div></div>`:''}</div>
- <div class="card">${tk.length?tk.map(t=>`<a class="tr" href="?t=${t.id}" data-t="${t.id}"><span class="t">${ic('msg',18)}<span><b>${esc(t.subject)}</b><br><small>${CAT[t.category]||'تذكرة'} - ${ago(t.updated_at)}</small></span></span>${bd(t)}</a>`).join(''):'<p class="empty">لا توجد تذاكر بعد.</p>'}</div>`}
-async function open_(id){cur=id;msgs=[];draw();msgs=await get('edu_ticket_messages?ticket_id=eq.'+id+'&order=created_at');draw()}
+ ${nw?`<div class="cbd form"><div class="g2"><div><label>القسم</label><select id="tc">${Object.entries(CAT).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></div><div><label>الموضوع</label><input id="ts" maxlength="100" placeholder="عنوان المشكلة"></div></div><label>التفاصيل <small class="muted" id="cc">0/1500</small></label><textarea id="tb" rows="5" maxlength="1500" placeholder="اشرح مشكلتك بالتفصيل: إيه اللي حصل؟ في أنهي صفحة؟ على موبايل ولا كمبيوتر؟"></textarea><small class="muted">مسموح بـ 5 تذاكر مفتوحة في نفس الوقت.</small><div><button class="bt p" id="tsd">${ic('send',16)} إرسال التذكرة</button></div></div>`:''}</div>
+ ${tk.length?`<div class="acts" style="margin-bottom:10px">${[['all','الكل',tk.length],['open','قيد المراجعة',tk.filter(t=>t.status=='open').length],['answered','تم الرد',an],['closed','مغلقة',tk.length-op]].map(([k,l,n])=>`<button class="bt ${F==k?'p':''}" data-f="${k}">${l} (${n})</button>`).join('')}</div>`:''}
+ <div class="card">${L.length?L.map(t=>`<a class="tr" href="?t=${t.id}" data-t="${t.id}"><span class="t">${ic('msg',18)}<span><b>#${t.id} ${esc(t.subject)}</b><br><small>${CAT[t.category]||'تذكرة'} - ${ago(t.updated_at)}</small></span></span>${bd(t)}</a>`).join(''):'<p class="empty">لا توجد تذاكر.</p>'}</div>`}
+async function open_(id){cur=id;msgs=[];rt=0;draw();try{msgs=await get('aa_edu_ticket_messages?ticket_id=eq.'+id+'&order=created_at')}catch(_){msgs=[]}draw();poll()}
+/* متابعة الردود: طلب خفيف كل 25 ثانية ولما التاب ظاهر وتذكرة مفتوحة فقط، بيجيب الرسائل الأحدث بس */
+function poll(){clearTimeout(pollT);if(!cur)return;pollT=setTimeout(async()=>{
+ const t=tk.find(x=>x.id==cur);if(!t||t.status=='closed'||document.hidden||sending||($('#rb')&&$('#rb').value&&document.activeElement===$('#rb')))return poll();
+ try{const last=msgs.length?msgs[msgs.length-1].created_at:'1970-01-01',n=await get('aa_edu_ticket_messages?ticket_id=eq.'+cur+'&created_at=gt.'+encodeURIComponent(last)+'&order=created_at');
+  const fresh=n.filter(x=>!msgs.some(m=>m.id==x.id));if(fresh.length){msgs=msgs.concat(fresh);await list();draw()}}catch(_){}poll()},25000)}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&cur)poll()});
+document.addEventListener('input',e=>{if(e.target.id=='tb')$('#cc').textContent=e.target.value.length+'/1500'});
+document.addEventListener('keydown',e=>{if(e.target.id=='rb'&&e.key=='Enter'&&(e.ctrlKey||e.metaKey))$('#rs').click()});
 document.addEventListener('click',async e=>{const b=e.target.closest('button,a[data-t]');if(!b)return;
+ if(b.dataset.f){F=b.dataset.f;return draw()}
  if(b.dataset.t){e.preventDefault();history.pushState(0,'','?t='+b.dataset.t);return open_(+b.dataset.t)}
- if(b.id=='bk'){history.pushState(0,'','support');cur=0;return draw()}
+ if(b.id=='bk'){clearTimeout(pollT);history.pushState(0,'','support');cur=0;await list().catch(()=>{});return draw()}
  if(b.id=='nt'){nw=!nw;return draw()}
- if(b.id=='tsd'){const s=$('#ts').value.trim(),t=$('#tb').value.trim();if(s.length<3||t.length<5)return toast('اكتب الموضوع والتفاصيل.',1);b.disabled=true;
-  const r=await post('edu_tickets',{user_id:U().id,subject:s,category:$('#tc').value},'return=representation');if(!r.ok){b.disabled=false;return toast('تعذر إرسال التذكرة.',1)}
-  const id=(await r.json())[0].id,r2=await post('edu_ticket_messages',{ticket_id:id,sender_id:U().id,body:t});if(!r2.ok){await rest('edu_tickets?id=eq.'+id,{method:'DELETE'});b.disabled=false;return toast('تعذر إرسال التذكرة.',1)}
-  toast('تم إرسال التذكرة.');nw=false;await list();return open_(id)}
- if(b.id=='rs'){const t=$('#rb').value.trim();if(t.length<2)return;b.disabled=true;const r=await post('edu_ticket_messages',{ticket_id:cur,sender_id:U().id,body:t});if(!r.ok){b.disabled=false;return toast('تعذر الإرسال.',1)}await list();return open_(cur)}
- if(b.id=='cl'&&confirm('إغلاق التذكرة؟')){await rest('edu_tickets?id=eq.'+cur,{method:'PATCH',body:JSON.stringify({status:'closed'})});await list();toast('تم إغلاق التذكرة.');draw()}});
-addEventListener('popstate',()=>{cur=+new URLSearchParams(location.search).get('t')||0;cur?open_(cur):draw()});
+ if(b.id=='tsd'){const s=$('#ts').value.trim(),t=$('#tb').value.trim();if(s.length<3||t.length<10)return toast('اكتب الموضوع وتفاصيل كافية (10 حروف على الأقل).',1);b.disabled=true;
+  const r=await post('aa_edu_tickets',{user_id:U().id,subject:s,category:$('#tc').value},'return=representation');if(!r.ok){b.disabled=false;return toast((await errMsg(r))||'تعذر إرسال التذكرة.',1)}
+  const id=(await r.json())[0].id,r2=await post('aa_edu_ticket_messages',{ticket_id:id,sender_id:U().id,body:t});if(!r2.ok){await rest('aa_edu_tickets?id=eq.'+id,{method:'DELETE'});b.disabled=false;return toast('تعذر إرسال التذكرة.',1)}
+  toast('تم إرسال التذكرة — رقمها #'+id);nw=false;await list();history.pushState(0,'','?t='+id);return open_(id)}
+ if(b.id=='rs'){const t=$('#rb').value.trim();if(t.length<2||sending)return;sending=true;b.disabled=true;
+  const r=await post('aa_edu_ticket_messages',{ticket_id:cur,sender_id:U().id,body:t},'return=representation');sending=false;if(!r.ok){b.disabled=false;return toast('تعذر الإرسال.',1)}
+  const m=(await r.json())[0];if(m)msgs.push(m);const tt=tk.find(x=>x.id==cur);if(tt){tt.status='open';tt.updated_at=new Date().toISOString()}$('#rb').value='';return draw()}
+ if(b.id=='cl'&&confirm('المشكلة اتحلّت؟ هتتقفل التذكرة.')){const r=await rest('aa_edu_tickets?id=eq.'+cur,{method:'PATCH',body:JSON.stringify({status:'closed'})});if(!r.ok)return toast('تعذر الإغلاق.',1);clearTimeout(pollT);await list();toast('تم إغلاق التذكرة.');return draw()}
+ if(b.id=='ro'){const r=await rest('aa_edu_tickets?id=eq.'+cur,{method:'PATCH',body:JSON.stringify({status:'open'})});if(!r.ok)return toast((await errMsg(r))||'تعذر إعادة الفتح.',1);await list();toast('تمت إعادة فتح التذكرة.');draw();return poll()}
+ if(b.dataset.r){rt=+b.dataset.r;const n=($('#rn')||{}).value||'';draw();$('#rn').value=n;return}
+ if(b.id=='rsv'&&rt){b.disabled=true;const r=await rest('aa_edu_tickets?id=eq.'+cur,{method:'PATCH',body:JSON.stringify({rating:rt,rating_note:($('#rn').value||'').trim()||null})});if(!r.ok){b.disabled=false;return toast('تعذر حفظ التقييم.',1)}await list();toast('شكرًا على تقييمك!');return draw()}});
+addEventListener('popstate',()=>{cur=+new URLSearchParams(location.search).get('t')||0;cur?open_(cur):(clearTimeout(pollT),draw())});
 list().then(()=>cur?open_(cur):draw()).catch(()=>$('#o').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>');
 </script></body></html>

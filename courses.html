@@ -29,9 +29,9 @@
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
 topbar();
-let subs=[],ls=[],cs=[],tch={},fl=[],qz=[],at=[],pg={},S=0,L=0,T=0,RS=null;
+let subs=[],ls=[],cs=[],tch={},fl=[],qz=[],at=[],pg={},S=0,L=0,T=0,RS=null,LD={};
 const av=t=>t&&t.image?`<span class="av" style="background:#fff url('${esc(t.image)}') center/cover"></span>`:`<span class="av">${esc((t?.name||'?').replace(/^أ\.\s*/,'').charAt(0))}</span>`;
-const goto=()=>{location.hash=[S,L,T].filter(Boolean).join('-')||'';if(!location.hash)fromHash()};
+let X=null;const goto=()=>{const h=X?X.hash(S,L,T):[S,L,T].filter(Boolean).join('-');if(('#'+h)===location.hash||(!h&&!location.hash))return fromHash();location.hash=h};
 const pl=n=>n==1?'جزء واحد':n==2?'جزئين':n+' أجزاء';
 const uniq=a=>[...new Set(a)];
 const isDone=p=>p.length&&p.every(c=>pg[c.id]?.done);
@@ -41,9 +41,8 @@ const hasC=l=>cs.some(c=>c.lesson_id==l.id);
 const nextOf=l=>{const a=ls.filter(x=>x.subject_id==l.subject_id),i=a.findIndex(x=>x.id==l.id);return a.slice(i+1).find(hasC)||null};
 const doneBanner=(l,who)=>{if(!lessonDone(l))return'';const n=nextOf(l);return `<div class="dn-b"><span>${ic('check',18)} <b>أحسنت! خلّصت هذا الدرس${who?' مع '+esc(who):''}</b> — مش لازم تشوف باقي المدرسين.</span>${n?`<button class="btn btn-p btn-s" data-nl="${n.id}">الدرس التالي: ${esc(n.title)}</button>`:`<span>خلّصت كل دروس المادة</span>`}</div>`};
 let NX=0;
-function lessonCard(l,i){const m=cs.filter(c=>c.lesson_id==l.id),tids=uniq(m.map(c=>c.teacher_id)),ids=new Set(m.map(c=>c.id)),
- ex=qz.filter(q=>ids.has(q.course_id)).length,done=lessonDone(l),st=m.some(c=>pg[c.id]),nx=l.id==NX&&!done;
- return `<button class="lc ${done?'done':''} ${nx?'nx':''}" data-l="${l.id}"><span class="n">${done?ic('check',18):i+1}</span><span class="t"><b>${esc(l.title)}</b>${nx?'<span class="nt">التالي</span>':''}<small>${m.length?`${tids.length} مدرس • ${m.length} فيديو${ex?' • '+ex+' امتحان':''}${st&&!done?' • بدأت فيه':''}`:'لم يُضف محتوى بعد'}</small></span><span class="avs">${tids.slice(0,3).map(t=>av(tch[t])).join('')}</span>${ic('left',18)}</button>`}
+function lessonCard(l,i){const m=cs.filter(c=>c.lesson_id==l.id),tids=uniq(m.map(c=>c.teacher_id)),done=lessonDone(l),st=m.some(c=>pg[c.id]),nx=l.id==NX&&!done;
+ return `<button class="lc ${done?'done':''} ${nx?'nx':''}" data-l="${l.id}"><span class="n">${done?ic('check',18):i+1}</span><span class="t"><b>${esc(l.title)}</b>${nx?'<span class="nt">التالي</span>':''}<small>${m.length?`${tids.length} مدرس • ${m.length} فيديو${st&&!done?' • بدأت فيه':''}`:'لم يُضف محتوى بعد'}</small></span><span class="avs">${tids.slice(0,3).map(t=>av(tch[t])).join('')}</span>${ic('left',18)}</button>`}
 function teacherCard(t,m){const p=m.filter(c=>c.teacher_id==t),ids=new Set(p.map(c=>c.id)),T0=tch[t],ld=m[0]&&lessonDone(ls.find(x=>x.id==m[0].lesson_id)||{id:0}),ex=qz.filter(q=>ids.has(q.course_id)).length,f=fl.filter(x=>ids.has(x.course_id)&&x.url).length,done=isDone(p),st=p.some(c=>pg[c.id]);
  return `<button class="tcd" data-t="${t}">${av(T0)}<span class="t"><b>${esc(T0?.name||'')}</b>${T0?.bio?`<small>${esc(T0.bio)}</small>`:''}<span class="tags"><em>${pl(p.length)}</em>${f?`<em>${f} مذكرة</em>`:''}${ex?`<em class="x">${ex==1?'امتحان':ex+' امتحانات'}</em>`:''}${done?'<em class="ok">تمت المشاهدة</em>':ld?'<em class="op">اختياري — الدرس خلص</em>':st?'<em class="w">بدأت فيه</em>':''}</span></span>${ic('left',18)}</button>`}
 function content(l,t){const p=cs.filter(c=>c.lesson_id==l.id&&c.teacher_id==t).sort((a,b)=>(a.sort||0)-(b.sort||0)||a.id-b.id),ids=new Set(p.map(c=>c.id)),
@@ -51,7 +50,7 @@ function content(l,t){const p=cs.filter(c=>c.lesson_id==l.id&&c.teacher_id==t).s
  const vids=p.length?`<h4>${ic('video',16)} الشرح <span class="sp">${pl(p.length)}</span></h4>`+(p.length>1?'<p class="muted" style="margin:0 0 8px">اختر الجزء اللي عايز تشوفه</p>':'')+p.map((c,k)=>{const g=pg[c.id],pc=g&&g.duration?Math.min(100,Math.round(g.position/g.duration*100)):0;
   return `<a class="pr" href="course?id=${c.id}"><span class="${g?.done?'ok':''}">${ic(g?.done?'check':'play',20)}</span><span class="t">${p.length>1?`الجزء ${k+1}: `:''}${esc(c.title)}${g&&!g.done&&pc?`<div class="pbar"><i style="width:${pc}%"></i></div>`:''}</span><small class="muted">${g?.done?'تمت المشاهدة':pc?'كمّل ('+pc+'%)':c.video_url?'ابدأ':'قريبًا'}</small></a>`}).join(''):'';
  const notes=files.map(f=>`<div class="pr" style="display:block"><div class="row"><span>${ic(f.kind=='summary'?'note':'file',18)} ${esc(f.title)}</span><button class="btn btn-p btn-s" data-vw="${f.id}">فتح</button></div><div id="vw${f.id}"></div></div>`).join('');
- const ex=exams.map(q=>{const b=at.filter(a=>a.quiz_id==q.id).sort((x,y)=>y.score-x.score)[0];return `<a class="pr" href="course?id=${q.course_id}&tab=5"><span>${ic('quiz',20)}</span><span class="t">${esc(q.title)}<br><small class="muted">${q.edu_quiz_questions?.[0]?.count??''} سؤال</small></span><small class="muted">${b?'أفضل نتيجة '+b.score+'/'+b.total:'ابدأ'}</small></a>`}).join('');
+ const ex=exams.map(q=>{const b=at.filter(a=>a.quiz_id==q.id).sort((x,y)=>y.score-x.score)[0];return `<a class="pr" href="course?id=${q.course_id}&tab=5"><span>${ic('quiz',20)}</span><span class="t">${esc(q.title)}<br><small class="muted">${q.aa_edu_quiz_questions?.[0]?.count??''} سؤال</small></span><small class="muted">${b?'أفضل نتيجة '+b.score+'/'+b.total:'ابدأ'}</small></a>`}).join('');
  return vids+(notes?`<h4>${ic('note',16)} المذكرات والملخصات</h4>${notes}`:'')+(ex?`<h4>${ic('quiz',16)} الامتحانات</h4>${ex}`:'')||'<p class="empty">لا يوجد محتوى لهذا المدرس في الدرس بعد.</p>'}
 function draw(){
  const s=subs.find(x=>x.id==S),l=s&&ls.find(x=>x.id==L&&x.subject_id==S),m=l?cs.filter(c=>c.lesson_id==l.id):[],t=l&&T&&m.some(c=>c.teacher_id==T)?T:0;
@@ -70,17 +69,25 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-s],[data-l
  if(t.dataset.l){L=+t.dataset.l;T=0;return goto()}
  if(t.dataset.t){T=+t.dataset.t;return goto()}
  if(t.dataset.vw){const f=fl.find(x=>x.id==t.dataset.vw),b=$('#vw'+f.id);if(b.innerHTML){b.innerHTML='';t.textContent='فتح'}else{b.innerHTML=frameHtml(f.url);t.textContent='إغلاق';award('file',f.id)}}});
-function fromHash(){const[a,b,c]=location.hash.slice(1).split('-').map(Number);S=a||0;L=S&&b||0;T=L&&c||0;draw();scrollTo(0,0)}
+/* الملفات والامتحانات ونتائجها بتتحمّل لما الطالب يفتح الدرس بس (مش لكل المنهج مرة واحدة) — طلبين صغيرين لكل درس والباقي من الكاش */
+const inL=a=>'in.('+a.join(',')+')';
+async function ensure(lid){if(!lid||LD[lid])return;const ids=cs.filter(c=>c.lesson_id==lid).map(c=>c.id);if(!ids.length){LD[lid]=1;return}
+ const[F,Z]=await Promise.all([ok(cget('aa_edu_course_files?course_id='+inL(ids)+'&order=id')),ok(cget('aa_edu_quizzes?select=id,title,course_id,aa_edu_quiz_questions(count)&course_id='+inL(ids)))]),qi=Z.map(x=>x.id);
+ fl=fl.filter(x=>!ids.includes(x.course_id)).concat(F);qz=qz.filter(x=>!ids.includes(x.course_id)).concat(Z);at=at.filter(a=>!qi.includes(a.quiz_id));
+ if(U()&&qi.length)at=at.concat(await ok(get('aa_edu_quiz_attempts?select=quiz_id,score,total&quiz_id='+inL(qi))));LD[lid]=1}
+function fromHash(){const[a,b,c]=X?X.parse(location.hash):location.hash.slice(1).split('-').map(Number);S=a||0;L=S&&b||0;T=L&&c||0;
+ if(X&&/^#\d/.test(location.hash)&&S){const h=X.hash(S,L,T);if(h)history.replaceState(null,'',h)}const go=()=>{draw();scrollTo(0,0)};
+ if(L&&!LD[L]){$('#out').innerHTML='<div class="skw" aria-busy="true"><div class="sk sk-ln" style="width:40%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div>';ensure(L).then(go,go)}else go()}
 addEventListener('hashchange',fromHash);
 const ok=p=>p.catch(()=>[]);
-Promise.all([cget('edu_subjects?grade=eq.prep3&order=sort'),cget(Q.ls),cget('edu_courses_v?select=id,lesson_id,teacher_id,title,video_url&order=id',null,1),cget(Q.cs),cget('edu_teachers?order=id'),ok(cget('edu_course_files?order=id',null,1)),ok(cget('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)')),U()?ok(get('edu_quiz_attempts?select=quiz_id,score,total')):[],U()?ok(get(Q.pg)):[],resume()]).then(([s,l,c,so,t,f,q,a,p,r])=>{
- const sm=Object.fromEntries(so.map(x=>[x.id,x.sort||0]));c.forEach(x=>x.sort=sm[x.id]||0);
- window._csig=JSON.stringify([s,l,c,so,t,f,q]);subs=s;ls=l.filter(x=>s.some(y=>y.id==x.subject_id));cs=c;tch=Object.fromEntries(t.map(x=>[x.id,x]));fl=f;qz=q;at=a;pg=Object.fromEntries(p.map(x=>[x.course_id,x]));RS=r;fromHash()
+Promise.all([cget('aa_edu_subjects?grade=eq.prep3&order=sort'),cget(Q.ls),cget(Q.cs,null,1),cget('aa_edu_teachers?order=id'),U()?ok(get(Q.pg)):[],resume()]).then(([s,l,c,t,p,r])=>{
+ window._csig=JSON.stringify([s,l,c,t]);subs=s;ls=l.filter(x=>s.some(y=>y.id==x.subject_id));cs=c;tch=Object.fromEntries(t.map(x=>[x.id,x]));pg=Object.fromEntries(p.map(x=>[x.course_id,x]));RS=r;return IDX().then(x=>{X=x}).catch(()=>{}).then(fromHash)
 }).catch(()=>$('#out').innerHTML='<p class="empty">تعذر تحميل الدروس، حدّث الصفحة.</p>');
 /* تحديث فوري: بيجيب الجزء المتغيّر بس (الباقي من كاش الجهاز)، وبيرسم من غير ما يرجّع الصفحة لفوق أو يقفل ملف مفتوح */
 let _cs=null;const cpaint=()=>{if($('#out iframe')){clearTimeout(_cs);_cs=setTimeout(cpaint,5000);return}draw()};
-onLive(()=>Promise.all([cget('edu_subjects?grade=eq.prep3&order=sort'),cget(Q.ls),cget('edu_courses_v?select=id,lesson_id,teacher_id,title,video_url&order=id',null,1),cget(Q.cs),cget('edu_teachers?order=id'),ok(cget('edu_course_files?order=id',null,1)),ok(cget('edu_quizzes?select=id,title,course_id,edu_quiz_questions(count)'))]).then(([s,l,c,so,t,f,q])=>{
- const sm=Object.fromEntries(so.map(x=>[x.id,x.sort||0]));c.forEach(x=>x.sort=sm[x.id]||0);
- const sig=JSON.stringify([s,l,c,so,t,f,q]);if(sig===window._csig)return;window._csig=sig;
- subs=s;ls=l.filter(x=>s.some(y=>y.id==x.subject_id));cs=c;tch=Object.fromEntries(t.map(x=>[x.id,x]));fl=f;qz=q;cpaint()}).catch(()=>{}),['edu_subjects','edu_lessons','edu_courses','edu_teachers','edu_course_files','edu_quizzes','edu_quiz_questions']);
+onLive(h=>{const T=h.map(x=>x.table),all=T.includes('*'),has=(...a)=>all||a.some(t=>T.includes(t));
+ return (has('aa_edu_subjects','aa_edu_lessons','aa_edu_courses','aa_edu_teachers')?Promise.all([cget('aa_edu_subjects?grade=eq.prep3&order=sort'),cget(Q.ls),cget(Q.cs,null,1),cget('aa_edu_teachers?order=id')]):Promise.resolve(null)).then(async r=>{
+  if(r){const[s,l,c,t]=r;subs=s;ls=l.filter(x=>s.some(y=>y.id==x.subject_id));cs=c;tch=Object.fromEntries(t.map(x=>[x.id,x]))}
+  if(has('aa_edu_courses','aa_edu_course_files','aa_edu_quizzes','aa_edu_quiz_questions')){LD={};fl=[];qz=[];at=[];if(L)await ensure(L)}
+  const sig=JSON.stringify([subs,ls,cs,tch,fl,qz]);if(sig===window._csig)return;window._csig=sig;await IDX().then(x=>{X=x}).catch(()=>{});cpaint()}).catch(()=>{})},['aa_edu_subjects','aa_edu_lessons','aa_edu_courses','aa_edu_teachers','aa_edu_course_files','aa_edu_quizzes','aa_edu_quiz_questions']);
 </script></body></html>

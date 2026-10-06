@@ -163,7 +163,7 @@ body.sbc .sbo{display:grid;place-items:center;position:fixed;top:12px;inset-inli
 /* ===== لوحة الإدارة / المدرس ===== */
 .adm{max-width:1100px}
 .adm h1{padding-bottom:4px}
-.adm .ktabs{position:sticky;top:8px;z-index:20;box-shadow:0 6px 18px rgba(16,24,40,.07);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin}
+.adm .ktabs{position:sticky;top:8px;z-index:20;box-shadow:0 6px 18px rgba(16,24,40,.07);flex-wrap:nowrap;overflow-x:auto}
 .adm .ktabs button{white-space:nowrap}
 .adm .ktabs button.on{background:var(--bl);color:#fff}
 .adm .ktabs button.on .cnt{background:#fff;color:var(--bl)}
@@ -404,3 +404,43 @@ input[type=file]::file-selector-button:hover{background:#075B98}
 @media(max-width:600px){.bk-grid{grid-template-columns:repeat(2,1fr);gap:26px 14px}.nt-grid{grid-template-columns:1fr}.lib-s{max-width:none;min-width:100%;order:3}.rd{padding:0}.rd-p{height:100dvh;border-radius:0}.bk-op{transform:none;opacity:.0}}
 @media(hover:none){.bk-op{display:none}}
 @media(prefers-reduced-motion:reduce){.bk,.nt,.fl,.lib-in{animation:none;opacity:1}.bk-f,.bk-sh,.bk-sp{animation:none}.nt{transform:rotate(var(--r))}}
+
+/* ===== v9: تقديمات البروفايل / بنود / خطوات الدعم / تقييم / اختيار المواد ===== */
+.ap-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:10px}
+.ap-c{display:flex;flex-direction:column;gap:8px;align-items:flex-start;margin:0}
+.ap-i{width:44px;height:44px;border-radius:12px;background:#eaf5ff;color:var(--bl);display:grid;place-items:center}
+.ap-c .bt{margin-top:auto}
+.terms{max-height:210px;overflow:auto;border:1.5px solid var(--bo);border-radius:12px;padding:12px 16px;background:var(--soft,#f8fafc);line-height:2;font-size:14px}
+.terms ol{margin:0;padding-inline-start:20px}.terms li{margin-bottom:6px}
+.terms-w{display:grid;gap:8px;margin-top:6px}
+.steps{display:flex;gap:6px;padding:12px 16px;border-bottom:1px solid var(--bo);overflow-x:auto}
+.steps span{flex:1;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mu);white-space:nowrap}
+.steps i{width:22px;height:22px;border-radius:50%;background:#e5e7eb;color:#fff;display:grid;place-items:center;font-style:normal;font-size:12px;font-weight:700}
+.steps .on{color:var(--tx,#111);font-weight:600}.steps .on i{background:var(--bl)}
+.rate{padding:14px 16px;border-top:1px solid var(--bo);display:grid;gap:8px}
+.rate .rs{display:flex;gap:4px}.rate .rs button{background:none;border:0;cursor:pointer;color:#cbd5e1;padding:2px}.rate .rs .on{color:#f59e0b}
+.chk-g{display:flex;gap:8px;flex-wrap:wrap}
+.chk input{position:absolute;opacity:0;pointer-events:none}
+.chk span{display:inline-flex;align-items:center;padding:6px 14px;border-radius:99px;border:1.5px solid var(--bo);background:#fff;font-size:14px;cursor:pointer;transition:.15s}
+.chk input:checked+span{background:var(--c,#0878C9);border-color:var(--c,#0878C9);color:#fff}
+.chk input:focus-visible+span{outline:2px solid var(--bl);outline-offset:2px}
+.chk{position:relative}
+
+
+/* شريط التمرير: تدرّج أزرق ← أبيض خفيف */
+::-webkit-scrollbar{width:11px;height:11px}
+::-webkit-scrollbar-track{background:#f1f7fd}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#0878C9 0%,#5fb0ea 55%,#e3effb 100%);border-radius:99px;border:2px solid #f1f7fd}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#075B98 0%,#3f9ce0 55%,#d3e6f8 100%)}
+::-webkit-scrollbar-corner{background:#f1f7fd}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-color:#3f9ce0 #f1f7fd;scrollbar-width:thin}}
+
+/* التسجيل مغلق */
+.au-cl{margin:6px 0 4px;padding:18px 16px;border-radius:14px;background:#fff7e6;border:1px solid #f6d58f;color:#7a4b00;text-align:center;font-weight:600;line-height:1.8}
+.au-cl a{color:var(--bd);font-weight:700}
+
+.au-cl form{margin:14px 0 6px;display:grid;gap:10px;text-align:right}
+.au-cl input{width:100%;font:inherit;font-size:16px;min-height:48px;padding:0 14px;border:1.5px solid var(--bo);border-radius:12px;background:#fff}
+.au-cl small{display:block;margin-top:8px;font-weight:500}
+
+.au-cf{display:flex;justify-content:center;margin:10px 0;min-height:0}

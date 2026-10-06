@@ -4,7 +4,7 @@ const images = {
   heroStudent: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=70",
   community:   "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=70"
 };
-const stats = [["+2,500","طالب"],["+480","درس"],["+120","اختبار"],["+18","مدرس"]];
+let stats = [["0","طالب مسجّل"],["0","درس"],["0","اختبار"],["0","مدرس"]];
 const kpis = [["92%","متوسط النتائج"],["48","الدروس المكتملة"],["24","الاختبارات"],["1,850","النقاط"]];
 const subjectScores = [["عربي",88],["إنجليزي",93],["رياضيات",94],["علوم",91],["دراسات",87]];
 /* المواد: [الاسم، أيقونة، عدد المدرسين] */
@@ -97,10 +97,18 @@ const support = [["headset","الدعم الفني","حل مشاكل الحسا�
 const $ = id => document.getElementById(id);
 document.querySelectorAll("[data-brand]").forEach(e => e.textContent = brandName);
 document.querySelectorAll("[data-img]").forEach(i => { i.src = images[i.dataset.img]; });
-$("stats").innerHTML = stats.map(s => `<div class="stat"><b data-n="${s[0]}">${s[0]}</b><span>${s[1]}</span></div>`).join("");
+const drawStats = () => $("stats").innerHTML = stats.map(s => `<div class="stat"><b data-n="${s[0]}">${s[0]}</b><span>${s[1]}</span></div>`).join("");
+drawStats();
 $("show").innerHTML = showcase.map(s => `<div class="show fade"><div>${ico(s[0])}<h3>${s[1]}</h3><p>${s[2]}</p></div><div class="mock">${mocks[s[3]]}</div></div>`).join("");
 $("feats").innerHTML = extras.map(f => `<div class="feat fade">${svg(P[f[0]], 30)}<h3>${f[1]}</h3><p>${f[2]}</p></div>`).join("");
-$("subs").innerHTML = subjects.map(s => `<div class="sb fade">${ico(s[1])}<h3>${s[0]}</h3><div class="stack">${[...Array(Math.min(s[2], 4))].map((_, i) => av("", cols[i % 3]).replace("></span>", `>${svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/>', 16)}</span>`)).join("")}</div><small>${s[2]} مدرسين</small></div>`).join("");
+const esc = t => String(t == null ? "" : t).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const person = svg('<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/>', 16);
+const tav = (t, i) => t.image ? `<span class="av ph" title="${esc(t.name)}"><img src="${esc(t.image)}" alt="${esc(t.name)}" loading="lazy" decoding="async"></span>` : av("", cols[i % 3]).replace("></span>", `title="${esc(t.name)}">${person}</span>`);
+function drawSubs(list) {
+  $("subs").innerHTML = list.map(s => { const ts = s.teachers || [];
+    return `<div class="sb fade">${ico(P[s.icon] ? s.icon : "book")}<h3>${esc(s.name)}</h3><div class="stack">${ts.slice(0, 4).map(tav).join("")}</div>${ts.length ? `<div class="tn">${ts.slice(0, 3).map(t => esc(t.name)).join(" · ")}</div>` : ""}<small>${ts.length ? ts.length + (ts.length > 2 ? " مدرسين" : ts.length === 2 ? " مدرسان" : " مدرس") : "قريبًا"}</small></div>`; }).join("");
+  document.querySelectorAll("#subs .fade").forEach(el => io.observe(el));
+}
 $("clist").innerHTML = communityPoints.map(t => `<li>${ck}${t}</li>`).join("");
 $("kpis").innerHTML = kpis.map(k => `<div class="kpi"><b>${k[0]}</b><span>${k[1]}</span></div>`).join("");
 $("bars").innerHTML = subjectScores.map(s => `<div class="bar"><span>${s[0]}</span><div class="track"><div class="fill" data-w="${s[1]}"></div></div><em>${s[1]}%</em></div>`).join("");
@@ -204,3 +212,18 @@ $("comGfx").innerHTML = mocks.comments;
   sh.addEventListener("scroll", upd, {passive: true}); addEventListener("resize", upd); upd();
   ds.forEach((d, k) => d.onclick = () => cards[k].scrollIntoView({behavior: "smooth", inline: "center", block: "nearest"}));
 })();
+
+/* بيانات حقيقية من السيرفر (طلب واحد): عدّاد الطلاب + أرقام المنصة + المواد ومدرسينها. لو فشل بنعرض نسخة بسيطة */
+const fallbackSubs = () => drawSubs(subjects.map(x => ({ name: x[0], icon: x[1], teachers: [] })));
+fetch(SUPA_URL + "/rest/v1/rpc/edu_public_home", { method: "POST", headers: { apikey: SUPA_KEY, "Content-Type": "application/json" }, body: "{}" })
+  .then(r => r.ok ? r.json() : Promise.reject()).then(j => {
+    const n = +j.n || 0, lim = +j.lim || 0, full = lim > 0 && n >= lim, left = Math.max(lim - n, 0);
+    $("capN").textContent = n; $("capL").textContent = lim; $("chipN").textContent = n;
+    $("capR").textContent = full ? "اكتمل العدد - التسجيل بقائمة الانتظار" : "متبقي " + left + " مقعد";
+    $("cap").classList.toggle("full", full); $("cap").hidden = false;
+    requestAnimationFrame(() => $("capF").style.width = (lim ? Math.min(n / lim * 100, 100) : 0) + "%");
+    stats = [[String(n), "طالب مسجّل"], [String(j.lessons || 0), "درس"], [String(j.quizzes || 0), "اختبار"], [String(j.teachers || 0), "مدرس"]];
+    drawStats(); document.querySelectorAll(".trust").forEach(el => { io.unobserve(el); io.observe(el); });
+    if (j.subjects && j.subjects.length) drawSubs(j.subjects); else fallbackSubs();
+    if (full) document.querySelectorAll('a[href="auth#signup"]').forEach(a => { a.textContent = "انضم لقائمة الانتظار"; });
+  }).catch(fallbackSubs);

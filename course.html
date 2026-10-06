@@ -13,15 +13,15 @@
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
 topbar();
-const id=+new URLSearchParams(location.search).get('id'),T=['وصف الكورس','الملفات والملخصات','فيديوهات الحل','الأسئلة','التقييمات','الاختبارات'];
+let id=0,IX=null;const T=['وصف الكورس','الملفات والملخصات','فيديوهات الحل','الأسئلة','التقييمات','الاختبارات'];
 let lsn=[],c,files=[],sols=[],qs=[],rv=[],tab=+new URLSearchParams(location.search).get('tab')||0,pr=null,sib=[],T0=null,sub=false,quizzes=[],att=[],qa=null,res=null;
 const date=d=>new Date(d).toLocaleDateString('ar-EG');
 const need=()=>U()?false:(location.href='auth#login',true);
 function quizHtml(){
- if(qa){const q=quizzes.find(x=>x.id==qa),qx=q.edu_quiz_questions;
+ if(qa){const q=quizzes.find(x=>x.id==qa),qx=q.aa_edu_quiz_questions;
   if(res)return `<div class="box"><b>${esc(q.title)}</b><div class="stat"><div class="box"><b>${res.s}/${res.t}</b>نتيجتك</div></div>${qx.map((x,i)=>`<div class="box"><b>${i+1}) ${esc(x.q)}</b>${x.options.map((o,j)=>`<div class="${j==x.answer?'ans':''}" style="padding:4px 8px">${j==x.answer?ic('check',16,'ok'):res.a[i]==j?ic('x',16,'no'):'<span style="display:inline-block;width:16px"></span>'} ${esc(o)}</div>`).join('')}</div>`).join('')}<button class="btn btn-p btn-s" data-qz="back">رجوع للاختبارات</button></div>`;
   return `<div class="box fm"><b>${esc(q.title)}</b>${qx.map((x,i)=>`<div class="box"><b>${i+1}) ${esc(x.q)}</b>${x.options.map((o,j)=>`<label style="display:block;padding:4px 0"><input type="radio" name="a${i}" value="${j}" style="width:auto;margin-inline-end:8px"> ${esc(o)}</label>`).join('')}</div>`).join('')}<button class="btn btn-p" data-qz="submit">تسليم الاختبار</button> <span class="msg" id="qzm"></span></div>`}
- return quizzes.length?quizzes.map(q=>{const b=att.filter(a=>a.quiz_id==q.id).sort((x,y)=>y.score-x.score)[0];return `<div class="box row"><span>${ic('quiz',18)} <b>${esc(q.title)}</b><br><small class="muted">${q.edu_quiz_questions.length} سؤال${b?` • أفضل نتيجة ${b.score}/${b.total}`:''}</small></span><button class="btn btn-p btn-s" data-qz="start" data-id="${q.id}">ابدأ</button></div>`}).join(''):'<p class="empty">لا توجد اختبارات لهذا الكورس بعد.</p>'}
+ return quizzes.length?quizzes.map(q=>{const b=att.filter(a=>a.quiz_id==q.id).sort((x,y)=>y.score-x.score)[0];return `<div class="box row"><span>${ic('quiz',18)} <b>${esc(q.title)}</b><br><small class="muted">${q.aa_edu_quiz_questions.length} سؤال${b?` • أفضل نتيجة ${b.score}/${b.total}`:''}</small></span><button class="btn btn-p btn-s" data-qz="start" data-id="${q.id}">ابدأ</button></div>`}).join(''):'<p class="empty">لا توجد اختبارات لهذا الكورس بعد.</p>'}
 function tabHtml(){
  if(tab==0)return `<div class="box">${esc(c.description||'لا يوجد وصف.')}</div>`;
  if(tab==1)return files.length?files.map(f=>`<div class="box"><div class="row"><span>${f.kind=='summary'?ic('note',18)+' ملخص: ':ic('file',18)+' '}${esc(f.title)}</span>${f.url?`<button class="btn btn-p btn-s" data-vw="${f.id}">فتح</button>`:'<span class="muted">قريبًا</span>'}</div><div id="vw${f.id}"></div></div>`).join(''):'<p class="empty">لا توجد ملفات.</p>';
@@ -31,41 +31,44 @@ function tabHtml(){
  return `<div class="box fm"><b>قيّم الكورس</b><div><select id="rs">${[5,4,3,2,1].map(n=>`<option value="${n}">${n+' من 5'}</option>`).join('')}</select></div><textarea id="rc" maxlength="600" placeholder="رأيك في الكورس (اختياري)"></textarea><button class="btn btn-p btn-s" id="rb">حفظ التقييم</button> <span class="msg" id="rm"></span></div>`+(rv.length?rv.map(r=>`<div class="box"><div class="rt">${stars(r.rating)}</div><div>${esc(r.comment||'')}</div><small class="muted">${date(r.created_at)}</small></div>`).join(''):'<p class="empty">لا توجد تقييمات بعد.</p>')}
 let lastSave=0;const tickP=(p,d)=>{const n=Date.now();if(n-lastSave<30000||Math.abs(p-(window._lp||-99))<5)return;lastSave=n;window._lp=p;saveProg(id,p,d,false);pr={position:p,duration:d,done:false}};
 const endP=()=>{saveProg(id,0,pr?.duration||0,true);pr={position:0,duration:pr?.duration||0,done:true};award('watch',id)};
-const partsBar=()=>`<div class="box"><b>${ic('layers',18)} الدرس مقسم إلى ${sib.length} ${sib.length==2?'جزئين':'أجزاء'} — اختر الجزء</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${sib.map((x,k)=>`<a class="btn ${x.id==id?'btn-p':'btn-o'} btn-s" href="course?id=${x.id}">الجزء ${k+1}</a>`).join('')}</div></div>`;
+const partsBar=()=>`<div class="box"><b>${ic('layers',18)} الدرس مقسم إلى ${sib.length} ${sib.length==2?'جزئين':'أجزاء'} — اختر الجزء</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">${sib.map((x,k)=>`<a class="btn ${x.id==id?'btn-p':'btn-o'} btn-s" href="${IX.cUrl(x.id)}">الجزء ${k+1}</a>`).join('')}</div></div>`;
 const endHtml=()=>{const k=sib.findIndex(x=>x.id==id),np=sib[k+1],nl=lsn[lsn.findIndex(l=>l.id==c.lesson_id)+1],
  b=(h,t)=>`<a class="btn btn-s" style="background:#fff;color:#075B98" href="${h}">${t} ${ic('left',16)}</a>`,rp=`<button class="btn btn-s" style="background:transparent;color:#fff;border:1.5px solid #fff" data-c="replay">إعادة المشاهدة</button>`;
- return np?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الجزء ${k+1}</div><div class="nx"><small>الجزء التالي</small><b>${esc(np.title)}</b></div>${b('course?id='+np.id,'الجزء التالي')} ${rp}</div>`
- :nl?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الدرس</div><div class="nx"><small>الدرس القادم</small><b>${esc(nl.title)}</b></div>${b('courses#'+c.subject_id+'-'+nl.id,'الدرس القادم')} ${rp}</div>`
- :`<div><div style="font-size:22px;font-weight:700">ما شاء الله! خلّصت كل دروس المادة</div><p style="margin:10px 0"></p>${b('courses#'+c.subject_id,'كل الدروس')} ${rp}</div>`};
+ return np?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الجزء ${k+1}</div><div class="nx"><small>الجزء التالي</small><b>${esc(np.title)}</b></div>${b(IX.cUrl(np.id),'الجزء التالي')} ${rp}</div>`
+ :nl?`<div><div style="font-size:22px;font-weight:700">أحسنت! خلّصت الدرس</div><div class="nx"><small>الدرس القادم</small><b>${esc(nl.title)}</b></div>${b('courses'+IX.hash(c.subject_id,nl.id),'الدرس القادم')} ${rp}</div>`
+ :`<div><div style="font-size:22px;font-weight:700">ما شاء الله! خلّصت كل دروس المادة</div><p style="margin:10px 0"></p>${b('courses'+IX.hash(c.subject_id),'كل الدروس')} ${rp}</div>`};
 function draw(){
- if(!$('#mainv')){$('#m').innerHTML=`<div class="crumbs"><a href="courses#${c.subject_id}">${esc(c.subject_name||'المادة')}</a><i>${ic('left',14)}</i><a href="courses#${c.subject_id}-${c.lesson_id}">${esc(c.lesson_title||'')}</a><i>${ic('left',14)}</i><a href="courses#${c.subject_id}-${c.lesson_id}-${c.teacher_id}">${esc(c.teacher_name)}</a></div><div class="vid" id="mainv" style="margin-top:10px"></div><div id="dyn"></div>`;
+ if(!$('#mainv')){$('#m').innerHTML=`<div class="crumbs"><a href="courses${IX.hash(c.subject_id)}">${esc(c.subject_name||'المادة')}</a><i>${ic('left',14)}</i><a href="courses${IX.hash(c.subject_id,c.lesson_id)}">${esc(c.lesson_title||'')}</a><i>${ic('left',14)}</i><a href="courses${IX.hash(c.subject_id,c.lesson_id,c.teacher_id)}">${esc(c.teacher_name)}</a></div><div class="vid" id="mainv" style="margin-top:10px"></div><div id="dyn"></div>`;
   if(c.video_url)mountVideo($('#mainv'),c.video_url,{end:endHtml,start:pr&&!pr.done?pr.position:0,ontick:tickP,onend:endP});else $('#mainv').innerHTML='<span>فيديو الشرح سيُضاف قريبًا</span>'}
- $('#dyn').innerHTML=`<div class="row" style="margin-top:14px;flex-wrap:wrap"><div><h1>${esc(c.title)}</h1><div class="muted"><a href="teachers?id=${c.teacher_id}" style="color:var(--bl);font-weight:600">${esc(c.teacher_name)}</a> • ${esc(c.lesson_title)}</div><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div><div><span class="bd f" style="position:static;${c.is_free?'':'background:#f59e0b'}">${c.is_free?'مجاني':'مميز'}</span> <button class="btn btn-o" id="sub">${sub?ic('check',16)+' مشترك':ic('plus',16)+' اشترك'}</button> <button class="btn btn-p" id="done">أنهيت المشاهدة (+10 نقاط)</button></div></div>
- ${sib.length>1?partsBar():''}<a class="tcard" href="teachers?id=${c.teacher_id}"><div class="av" ${T0&&T0.image?`style="background:#fff url('${esc(T0.image)}') center/cover"`:''}>${T0&&T0.image?'':esc((c.teacher_name||'').replace(/^أ\.\s*/,'').charAt(0))}</div><div><b>${esc(c.teacher_name)}</b><div class="muted" style="font-size:14px">عرض صفحة المدرس وكل كورساته</div></div></a>
+ $('#dyn').innerHTML=`<div class="row" style="margin-top:14px;flex-wrap:wrap"><div><h1>${esc(c.title)}</h1><div class="muted"><a href="${IX.tUrl(c.teacher_id)}" style="color:var(--bl);font-weight:600">${esc(c.teacher_name)}</a> • ${esc(c.lesson_title)}</div><div class="rt">${c.reviews_count?stars(c.rating)+` ${c.rating} <span>(${c.reviews_count})</span>`:''}</div></div><div><span class="bd f" style="position:static;${c.is_free?'':'background:#f59e0b'}">${c.is_free?'مجاني':'مميز'}</span> <button class="btn btn-o" id="sub">${sub?ic('check',16)+' مشترك':ic('plus',16)+' اشترك'}</button> <button class="btn btn-p" id="done">أنهيت المشاهدة (+10 نقاط)</button></div></div>
+ ${sib.length>1?partsBar():''}<a class="tcard" href="${IX.tUrl(c.teacher_id)}"><div class="av" ${T0&&T0.image?`style="background:#fff url('${esc(T0.image)}') center/cover"`:''}>${T0&&T0.image?'':esc((c.teacher_name||'').replace(/^أ\.\s*/,'').charAt(0))}</div><div><b>${esc(c.teacher_name)}</b><div class="muted" style="font-size:14px">عرض صفحة المدرس وكل كورساته</div></div></a>
  <div class="tabs">${T.map((t,i)=>`<button class="${i==tab?'on':''}" data-tb="${i}">${t}</button>`).join('')}</div><div id="tc">${tabHtml()}</div>`}
-async function load(){[c]=await cget('edu_courses_v?id=eq.'+id);if(!c)throw 0;
- [files,sols,qs,rv]=await Promise.all([cget('edu_course_files?course_id=eq.'+id),cget('edu_course_solutions?course_id=eq.'+id),get('edu_questions?course_id=eq.'+id+'&order=created_at.desc'),get('edu_reviews?course_id=eq.'+id+'&order=created_at.desc')]);
- quizzes=(await get('edu_quizzes?course_id=eq.'+id+'&select=id,title,edu_quiz_questions(id,q,options,answer,sort)&edu_quiz_questions.order=sort').catch(()=>[])).filter(q=>q.edu_quiz_questions.length);
- att=U()?await get('edu_quiz_attempts?select=quiz_id,score,total&order=created_at.desc').catch(()=>[]):[];
- sub=U()?(await get('edu_enrollments?course_id=eq.'+id).catch(()=>[])).length>0:false;
- lsn=await cget('edu_lessons?subject_id=eq.'+c.subject_id+'&order=sort,id').catch(()=>[]);sib=await cget('edu_courses?select=id,title,sort&lesson_id=eq.'+c.lesson_id+'&teacher_id=eq.'+c.teacher_id+'&order=sort,id').catch(()=>[]);T0=(await cget('edu_teachers?id=eq.'+c.teacher_id).catch(()=>[]))[0];
- pr=U()?(await get('edu_progress?course_id=eq.'+id).catch(()=>[]))[0]||null:null;document.title=c.title+' | أكاديمية';draw()}
+async function load(){IX=await IDX();const q=new URLSearchParams(location.search);id=+q.get('id')||IX.courseByHash(location.hash)||0;const m=IX.cm[id],lm=m&&IX.lm[m.lesson_id];if(!lm)throw 0;
+ /* كل الطلبات بالتوازي (كانت ~9 طلبات ورا بعض) — والدروس/الأجزاء/المدرس من الفهرس المخزّن بدون طلب */
+ const ok=p=>p.catch(()=>[]),qs0='aa_edu_quizzes?course_id=eq.'+id+'&select=id,title,aa_edu_quiz_questions(id,q,options,answer,sort)&aa_edu_quiz_questions.order=sort';
+ let r;[r,files,sols,qs,rv,quizzes,att,sub,pr]=await Promise.all([cget('aa_edu_courses_v?id=eq.'+id),ok(cget('aa_edu_course_files?course_id=eq.'+id)),ok(cget('aa_edu_course_solutions?course_id=eq.'+id)),ok(get('aa_edu_questions?course_id=eq.'+id+'&order=created_at.desc')),ok(get('aa_edu_reviews?course_id=eq.'+id+'&order=created_at.desc')),ok(get(qs0)),
+  U()?ok(get('aa_edu_quiz_attempts?select=quiz_id,score,total&order=created_at.desc')):[],U()?ok(get('aa_edu_enrollments?course_id=eq.'+id)).then(x=>x.length>0):false,U()?ok(get('aa_edu_progress?course_id=eq.'+id)).then(x=>x[0]||null):null]);
+ c=r[0];if(!c)throw 0;quizzes=quizzes.filter(q=>q.aa_edu_quiz_questions.length);
+ lsn=IX.ls.filter(l=>l.subject_id==lm.subject_id);sib=IX.cs.filter(x=>x.lesson_id==c.lesson_id&&x.teacher_id==c.teacher_id).sort((a,b)=>(a.sort||0)-(b.sort||0)||a.id-b.id);T0=IX.tm[c.teacher_id]||null;
+ const u=IX.cUrl(id);if(u.includes('#'))history.replaceState(null,'',(tab?u.replace('#','?tab='+tab+'#'):u));
+ document.title=c.title+' | أكاديمية';draw()}
+addEventListener('hashchange',()=>location.reload());
 document.addEventListener('click',async e=>{const t=e.target;
- if(t.dataset.nx){try{sessionStorage.setItem('acad_hl',t.dataset.nx)}catch(_){}location.href='courses#'+c.subject_id;return}
+ if(t.dataset.nx){try{sessionStorage.setItem('acad_hl',t.dataset.nx)}catch(_){}location.href='courses'+IX.hash(c.subject_id);return}
  if(t.dataset.tb!=null){tab=+t.dataset.tb;qa=null;res=null;return draw()}
  if(t.dataset.qz){const k=t.dataset.qz;if(k=='start'){if(need())return;qa=+t.dataset.id;res=null;return draw()}if(k=='back'){qa=null;res=null;return draw()}
-  if(k=='submit'){const q=quizzes.find(x=>x.id==qa),a=q.edu_quiz_questions.map((_,i)=>{const r=document.querySelector(`input[name=a${i}]:checked`);return r?+r.value:-1});
-   if(a.includes(-1))return $('#qzm').textContent='جاوب على كل الأسئلة أولًا.';const s=a.filter((v,i)=>v==q.edu_quiz_questions[i].answer).length;res={s,t:a.length,a};
-   const r=await post('edu_quiz_attempts',{quiz_id:qa,user_id:U().id,score:s,total:a.length});if(r.ok){att.unshift({quiz_id:qa,score:s,total:a.length});award('quiz',qa+':'+Date.now()%1e6)}return draw()}}
- if(t.id=='sub'){if(need())return;const r=sub?await rest('edu_enrollments?course_id=eq.'+id,{method:'DELETE'}):await post('edu_enrollments',{course_id:id});if(r.ok){sub=!sub;draw()}return}
+  if(k=='submit'){const q=quizzes.find(x=>x.id==qa),a=q.aa_edu_quiz_questions.map((_,i)=>{const r=document.querySelector(`input[name=a${i}]:checked`);return r?+r.value:-1});
+   if(a.includes(-1))return $('#qzm').textContent='جاوب على كل الأسئلة أولًا.';const s=a.filter((v,i)=>v==q.aa_edu_quiz_questions[i].answer).length;res={s,t:a.length,a};
+   const r=await post('aa_edu_quiz_attempts',{quiz_id:qa,user_id:U().id,score:s,total:a.length});if(r.ok){att.unshift({quiz_id:qa,score:s,total:a.length});award('quiz',qa+':'+Date.now()%1e6)}return draw()}}
+ if(t.id=='sub'){if(need())return;const r=sub?await rest('aa_edu_enrollments?course_id=eq.'+id,{method:'DELETE'}):await post('aa_edu_enrollments',{course_id:id});if(r.ok){sub=!sub;draw()}return}
  if(t.dataset.vw){const f=files.find(x=>x.id==t.dataset.vw),b=$('#vw'+f.id);if(b.innerHTML){b.innerHTML='';t.textContent='فتح'}else{b.innerHTML=frameHtml(f.url);t.textContent='إغلاق';award('file',f.id)}return}
  if(t.id=='done'){if(need())return;endP();t.textContent='تم حفظ تقدمك';t.disabled=true}
  if(t.dataset.aw){award(...t.dataset.aw.split(':'))}
  if(t.dataset.sol){const s=sols.find(x=>x.id==t.dataset.sol),b=$('#sv'+s.id);b.hidden=false;mountVideo(b,s.video_url);award('solution',s.id)}
  if(t.id=='qs'){if(need())return;const b=$('#qb').value.trim();if(b.length<2)return $('#qm').textContent='اكتب سؤالك أولًا.';
-  const r=await post('edu_questions',{course_id:id,user_id:U().id,body:b});if(!r.ok)return $('#qm').textContent='تعذر الإرسال.';await award('question',id+':'+Date.now()%1e6);await load();tab=3;draw()}
+  const r=await post('aa_edu_questions',{course_id:id,user_id:U().id,body:b});if(!r.ok)return $('#qm').textContent='تعذر الإرسال.';await award('question',id+':'+Date.now()%1e6);await load();tab=3;draw()}
  if(t.id=='rb'){if(need())return;const body={course_id:id,user_id:U().id,rating:+$('#rs').value,comment:$('#rc').value.trim()};
-  let r=await post('edu_reviews',body);if(r.status==409)r=await rest('edu_reviews?course_id=eq.'+id+'&user_id=eq.'+U().id,{method:'PATCH',body:JSON.stringify({rating:body.rating,comment:body.comment})});
+  let r=await post('aa_edu_reviews',body);if(r.status==409)r=await rest('aa_edu_reviews?course_id=eq.'+id+'&user_id=eq.'+U().id,{method:'PATCH',body:JSON.stringify({rating:body.rating,comment:body.comment})});
   if(!r.ok)return $('#rm').textContent='تعذر الحفظ.';await award('review',id);await load();tab=4;draw()}
 });
 load().catch(()=>$('#m').innerHTML='<p class="empty">الكورس غير موجود. <a href="courses" style="color:var(--bl)">العودة</a></p>');
@@ -74,21 +77,21 @@ let _ph=[],_pt=null,_lt=null;
 const frameBusy=()=>['qb','rc'].some(i=>{const e=$('#'+i);return e&&(e.value||document.activeElement===e)})||$('#tc iframe')||[...document.querySelectorAll('#tc [id^=sv]')].some(b=>!b.hidden);
 const lpaint=()=>{clearTimeout(_lt);if(frameBusy()){_lt=setTimeout(lpaint,4000);return}const d=$('#done'),wd=d&&d.disabled,tx=d&&d.textContent;draw();if(wd){const n=$('#done');if(n){n.disabled=true;n.textContent=tx}}};
 const rel=x=>{const t=x.table,r=x.rec||{};if(t==='*')return 1;
- if(t=='edu_course_files'||t=='edu_course_solutions'||t=='edu_quizzes')return r.course_id==null||r.course_id==id;
- if(t=='edu_quiz_questions')return 1;
- if(t=='edu_courses')return r.id==null||r.id==id||r.lesson_id==c.lesson_id;
- if(t=='edu_teachers')return r.id==null||r.id==c.teacher_id;
- if(t=='edu_lessons')return r.id==null||r.id==c.lesson_id||r.subject_id==c.subject_id;
- if(t=='edu_subjects')return r.id==null||r.id==c.subject_id;return 0};
+ if(t=='aa_edu_course_files'||t=='aa_edu_course_solutions'||t=='aa_edu_quizzes')return r.course_id==null||r.course_id==id;
+ if(t=='aa_edu_quiz_questions')return 1;
+ if(t=='aa_edu_courses')return r.id==null||r.id==id||r.lesson_id==c.lesson_id;
+ if(t=='aa_edu_teachers')return r.id==null||r.id==c.teacher_id;
+ if(t=='aa_edu_lessons')return r.id==null||r.id==c.lesson_id||r.subject_id==c.subject_id;
+ if(t=='aa_edu_subjects')return r.id==null||r.id==c.subject_id;return 0};
 const fire=async()=>{if(!c)return;if(qa&&!res){clearTimeout(_pt);_pt=setTimeout(fire,4000);return}
  const R=_ph.filter(rel);_ph=[];if(!R.length)return;const T=R.map(x=>x.table),all=T.includes('*'),has=(...a)=>all||a.some(t=>T.includes(t));
- try{const nc=has('edu_courses','edu_teachers','edu_subjects','edu_lessons')?(await cget('edu_courses_v?id=eq.'+id))[0]:null;
-  const[nf,ns,nq]=await Promise.all([has('edu_course_files')?cget('edu_course_files?course_id=eq.'+id):null,has('edu_course_solutions')?cget('edu_course_solutions?course_id=eq.'+id):null,has('edu_quizzes','edu_quiz_questions')?get('edu_quizzes?course_id=eq.'+id+'&select=id,title,edu_quiz_questions(id,q,options,answer,sort)&edu_quiz_questions.order=sort'):null]);
-  const nsib=has('edu_courses')?await cget('edu_courses?select=id,title,sort&lesson_id=eq.'+(nc||c).lesson_id+'&teacher_id=eq.'+(nc||c).teacher_id+'&order=sort,id'):null;
-  const nt=has('edu_teachers')?(await cget('edu_teachers?id=eq.'+(nc||c).teacher_id))[0]:null;
-  const nl=has('edu_lessons','edu_subjects')?await cget('edu_lessons?subject_id=eq.'+(nc||c).subject_id+'&order=sort,id'):null;
+ try{const nc=has('aa_edu_courses','aa_edu_teachers','aa_edu_subjects','aa_edu_lessons')?(await cget('aa_edu_courses_v?id=eq.'+id))[0]:null;
+  const[nf,ns,nq]=await Promise.all([has('aa_edu_course_files')?cget('aa_edu_course_files?course_id=eq.'+id):null,has('aa_edu_course_solutions')?cget('aa_edu_course_solutions?course_id=eq.'+id):null,has('aa_edu_quizzes','aa_edu_quiz_questions')?get('aa_edu_quizzes?course_id=eq.'+id+'&select=id,title,aa_edu_quiz_questions(id,q,options,answer,sort)&aa_edu_quiz_questions.order=sort'):null]);
+  const nsib=has('aa_edu_courses')?await cget('aa_edu_courses?select=id,title,sort&lesson_id=eq.'+(nc||c).lesson_id+'&teacher_id=eq.'+(nc||c).teacher_id+'&order=sort,id'):null;
+  const nt=has('aa_edu_teachers')?(await cget('aa_edu_teachers?id=eq.'+(nc||c).teacher_id))[0]:null;
+  const nl=has('aa_edu_lessons','aa_edu_subjects')?await cget('aa_edu_lessons?subject_id=eq.'+(nc||c).subject_id+'&order=sort,id'):null;
   const sg=JSON.stringify([nc,nf,ns,nq,nsib,nt,nl,c.id]),old=window._csg;
-  if(nc)c=nc;if(nf)files=nf;if(ns)sols=ns;if(nq)quizzes=nq.filter(q=>q.edu_quiz_questions.length);if(nsib)sib=nsib;if(nt)T0=nt;if(nl)lsn=nl;
+  if(nc)c=nc;if(nf)files=nf;if(ns)sols=ns;if(nq)quizzes=nq.filter(q=>q.aa_edu_quiz_questions.length);if(nsib)sib=nsib;if(nt)T0=nt;if(nl)lsn=nl;
   if(nc)document.title=c.title+' | أكاديمية';
   window._csg=JSON.stringify([c,files,sols,quizzes,sib,T0,lsn]);if(window._csg!==old||old===undefined)lpaint()}catch(_){}};
 onLive(h=>{_ph=_ph.concat(h);fire()});

@@ -93,6 +93,6 @@ function draw(){
  <div id="pane">${tab==0?me():support()}</div>`}
 
 document.addEventListener('click',e=>{const b=e.target.closest('[data-tb]');if(!b)return;tab=+b.dataset.tb;try{history.replaceState(null,'',tab?'#support':location.pathname)}catch(_){}draw()});
-cget('edu_about?id=eq.1',600).then(r=>{A=r[0]||{}}).catch(()=>{A={}}).finally(()=>{draw();if(A.name)document.title='عن المنصة — '+A.name+' | أكاديمية'});
-onLive(()=>cget('edu_about?id=eq.1',600).then(r=>{A=r[0]||{};draw();if(A.name)document.title='عن المنصة — '+A.name+' | أكاديمية'}).catch(()=>{}),['edu_about']);
+cget('aa_edu_about?id=eq.1',600).then(r=>{A=r[0]||{}}).catch(()=>{A={}}).finally(()=>{draw();if(A.name)document.title='عن المنصة — '+A.name+' | أكاديمية'});
+onLive(()=>cget('aa_edu_about?id=eq.1',600).then(r=>{A=r[0]||{};draw();if(A.name)document.title='عن المنصة — '+A.name+' | أكاديمية'}).catch(()=>{}),['aa_edu_about']);
 </script></body></html>

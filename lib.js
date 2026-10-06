@@ -1,3 +1,8 @@
+/* حارس الصفحات: أي رابط داخلي (دروس/كتب/مذكرات/...) لغير المسجّل يوديه مباشرة لإنشاء حساب */
+(function(){try{const p=(location.pathname.split('/').pop()||'').replace(/\.html$/,'');
+ if(!['home','courses','course','teachers','library','books','files','updates','analytics','support','profile','staff'].includes(p))return;
+ const u=JSON.parse(localStorage.getItem('acad_user')||'null');if(u&&u.token)return;
+ sessionStorage.setItem('acad_next',p+location.search+location.hash);location.replace('auth#signup')}catch(_){}})();
 /* مساعدات مشتركة: المستخدم + الاتصال بـ Supabase + تجديد الجلسة */
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const U=()=>{try{return JSON.parse(localStorage.getItem('acad_user')||'null')}catch(_){return null}};
@@ -6,7 +11,7 @@ async function refresh(){const u=U();if(!u||!u.refresh)return false;
  try{const r=await fetch(SUPA_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:SUPA_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:u.refresh})});
  if(!r.ok)return false;const j=await r.json();setU({...u,token:j.access_token,refresh:j.refresh_token});return true}catch(_){return false}}
 /* ===== تقليل الريكوستات: كاش للمحتوى الثابت + دمج الطلبات المتطابقة ===== */
-const CT=new Set(['edu_books','edu_course_files','edu_course_solutions','edu_courses','edu_lessons','edu_subjects','edu_teachers','edu_ads','edu_updates','edu_about','edu_quizzes','edu_quiz_questions','edu_reviews']);
+const CT=new Set(['aa_edu_books','aa_edu_course_files','aa_edu_course_solutions','aa_edu_courses','aa_edu_lessons','aa_edu_subjects','aa_edu_teachers','aa_edu_ads','aa_edu_updates','aa_edu_about','aa_edu_quizzes','aa_edu_quiz_questions','aa_edu_reviews']);
 function cClear(all){try{[localStorage,sessionStorage].forEach(st=>Object.keys(st).forEach(k=>{if(k.startsWith('acad_c:')||(all&&st===sessionStorage&&/^acad_(me|n|r):/.test(k)))st.removeItem(k)}))}catch(_){}}
 async function rest(path,o={},retry=true){const u=U(),h={apikey:SUPA_KEY,'Content-Type':'application/json',...(o.headers||{})};
  if(u&&u.token)h.Authorization='Bearer '+u.token;
@@ -26,13 +31,13 @@ const get=p=>{if(_gi.has(p))return _gi.get(p);const pr=(async()=>{const r=await 
 /* كاش للبيانات اللي بتتغير نادرًا (كتب/كورسات/دروس/مدرسين...): بيحمّلها مرة وبعدها من الجهاز لحد ما المدة تخلص (ثواني) */
 function cget(p,ttl,all){ttl=ttl==null?300:ttl;const u=U(),k='acad_c:'+(u?u.id:'-')+':'+p;let c=null;
  try{c=JSON.parse(localStorage.getItem(k)||'null')}catch(_){}
- if(c&&(Date.now()-c.t<ttl*1000||(_lvOk&&Date.now()-c.t<3600000)))return Promise.resolve(c.d);
+ if(c&&(Date.now()-c.t<ttl*1000||(lvOk()&&Date.now()-c.t<3600000)))return Promise.resolve(c.d);
  return (all?getAll(p):get(p)).then(d=>{try{localStorage.setItem(k,JSON.stringify({t:Date.now(),d}))}catch(_){}return d}).catch(e=>{if(c)return c.d;throw e})}
 /* بيانات الطالب الأساسية (نقاط/حظر/تاريخ التسجيل/الاسم) في طلب واحد ومحفوظة دقيقة ونص */
 function ME(force){const u=U();if(!u)return Promise.resolve(null);const k='acad_me:'+u.id;
  if(!force){try{const c=JSON.parse(sessionStorage.getItem(k)||'null');if(c&&Date.now()-c.t<90000)return Promise.resolve(c.d)}catch(_){}}
- return get('edu_profiles?select=points,banned,created_at,name').then(r=>{const d=r[0]||null;try{sessionStorage.setItem(k,JSON.stringify({t:Date.now(),d}))}catch(_){}return d})}
-const Q={ls:'edu_lessons?order=sort,id',cs:'edu_courses?select=id,sort,lesson_id,teacher_id,title&order=sort,id',pg:'edu_progress?select=course_id,position,duration,done,updated_at&order=updated_at.desc'};
+ return get('aa_edu_profiles?select=points,banned,created_at,name').then(r=>{const d=r[0]||null;try{sessionStorage.setItem(k,JSON.stringify({t:Date.now(),d}))}catch(_){}return d})}
+const Q={ls:'aa_edu_lessons?order=sort,id',cs:'aa_edu_courses?select=id,sort,lesson_id,teacher_id,title,video_url&order=sort,id',pg:'aa_edu_progress?select=course_id,position,duration,done,updated_at&order=updated_at.desc'};
 const post=(p,b,pref)=>rest(p,{method:'POST',body:JSON.stringify(b),headers:pref?{Prefer:pref}:{}});
 const award=async(reason,ref)=>{if(!U())return;try{const r=await post('rpc/edu_award',{p_reason:reason,p_ref:String(ref)});if(r.ok){const n=await r.json();document.querySelectorAll('.pts').forEach(e=>e.textContent=n);try{const k='acad_me:'+U().id,c=JSON.parse(sessionStorage.getItem(k)||'null');if(c&&c.d){c.d.points=n;sessionStorage.setItem(k,JSON.stringify(c))}}catch(_){}}}catch(_){}};
 /* ===== أيقونات SVG موحّدة (بدون إيموجي) ===== */
@@ -56,9 +61,45 @@ function shell(active){const u=U();
  notifInit();liveConnect();const tg=()=>document.body.classList.toggle('so');$('#mb').onclick=tg;$('#ov').onclick=tg;
  const lo=$('#lo');if(lo)lo.onclick=()=>{setU(null);location.href='auth#login'};
  if(u)ME().then(r=>{if(r&&r.banned){setU(null);alert('تم حظر حسابك. تواصل مع الإدارة.');location.href='auth#login';return}if(r)document.querySelectorAll('.pts').forEach(e=>e.textContent=r.points)}).catch(()=>{});
- if(u)(()=>{const rk='acad_r:'+u.id;let rc=null;try{rc=sessionStorage.getItem(rk)}catch(_){}return rc!==null?Promise.resolve(rc?[{role:rc}]:[]):get('edu_staff?select=role,teacher_id').then(r=>{try{sessionStorage.setItem(rk,r[0]?r[0].role:'')}catch(_){}return r})})().then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
-const topbar=()=>shell(document.body.dataset.p||'');
+ if(u)(()=>{const rk='acad_r:'+u.id;let rc=null;try{rc=sessionStorage.getItem(rk)}catch(_){}return rc!==null?Promise.resolve(rc?[{role:rc}]:[]):get('aa_edu_staff?select=role,teacher_id').then(r=>{try{sessionStorage.setItem(rk,r[0]?r[0].role:'')}catch(_){}return r})})().then(r=>{window.ROLE=r[0]&&r[0].role;if(r[0])$('.sb nav').insertAdjacentHTML('beforeend',`<a href="staff" class="sl ${active=='staff'?'on':''}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5zM7 11v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></svg><span>${r[0].role=='admin'?'لوحة الإدارة':'لوحة المدرس'}</span></a>`);if(r[0]&&r[0].role=='admin'){const n=$('.sb-n');if(n)n.insertAdjacentHTML('afterend',`<span class="pt" style="align-self:flex-start">${ic('crown',14)} أدمن</span>`)}}).catch(()=>{})}
+const topbar=()=>{shell(document.body.dataset.p||'');prettyInit()};
 const lvl=p=>Math.floor(p/100)+1;
+
+
+/* ===== روابط نظيفة: courses#course-math-lesson-1 | course#course-math-lesson-1-amr-sami | teachers?t=amr-sami =====
+   الأجزاء المتعددة لنفس المدرس في نفس الدرس: ...-amr-sami-p2  |  الروابط القديمة (id رقمي) لسه شغالة وبتتحوّل تلقائيًا */
+const tslug=t=>t.slug||('t'+t.id),sg=(x,p)=>x.slug||(p+x.id),slg=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+let _ix=null;
+function IDX(){return _ix||(_ix=Promise.all([cget('aa_edu_subjects?grade=eq.prep3&order=sort'),cget(Q.ls),cget(Q.cs,null,1),cget('aa_edu_teachers?order=id')]).then(([ss,ls,cs,ts])=>{
+ const X={ss,ls,cs,ts,sm:{},lm:{},tm:{},cm:{},pk:{}},cnt={},dh=h=>{try{return decodeURIComponent(String(h||'').replace(/^#/,''))}catch(_){return ''}};
+ ss.forEach(s=>X.sm[s.id]=s);ls.forEach(l=>X.lm[l.id]=l);ts.forEach(t=>X.tm[t.id]=t);
+ cs.slice().sort((a,b)=>(a.sort||0)-(b.sort||0)||a.id-b.id).forEach(c=>{const k=c.lesson_id+'_'+c.teacher_id;X.pk[c.id]=cnt[k]=(cnt[k]||0)+1;X.cm[c.id]=c});
+ X.hash=(s,l,t)=>{if(!s||!X.sm[s])return '';let h='course-'+sg(X.sm[s],'s');if(l&&X.lm[l]){h+='-'+sg(X.lm[l],'l');if(t&&X.tm[t])h+='-'+tslug(X.tm[t])}return '#'+h};
+ X.cUrl=id=>{const c=X.cm[id],l=c&&X.lm[c.lesson_id],t=c&&X.tm[c.teacher_id];if(!l||!t)return 'course?id='+id;const n=X.pk[id];return 'course'+X.hash(l.subject_id,l.id,c.teacher_id)+(n>1?'-p'+n:'')};
+ X.tUrl=id=>X.tm[id]?'teachers?t='+encodeURIComponent(tslug(X.tm[id])):'teachers?id='+id;
+ X.parse=h=>{h=dh(h);if(/^\d+(-\d+){0,2}$/.test(h)){const[a,b,c]=h.split('-').map(Number);return[a||0,b||0,c||0]}
+  for(const s of ss){const p='course-'+sg(s,'s');if(h===p)return[s.id,0,0];if(!h.startsWith(p+'-'))continue;
+   for(const l of ls){if(l.subject_id!=s.id)continue;const pl=p+'-'+sg(l,'l');if(h===pl)return[s.id,l.id,0];if(!h.startsWith(pl+'-'))continue;
+    for(const t of ts)if(h===pl+'-'+tslug(t))return[s.id,l.id,t.id]}}return[0,0,0]};
+ X.courseByHash=h=>{h=dh(h);let n=1,r=X.parse(h);if(!r[2]){const m=h.match(/^(.+)-p(\d+)$/);if(m){n=+m[2];r=X.parse(m[1])}}if(!r[2])return 0;
+  const a=cs.filter(c=>c.lesson_id==r[1]&&c.teacher_id==r[2]).sort((x,y)=>(x.sort||0)-(y.sort||0)||x.id-y.id);return a[n-1]?a[n-1].id:0};
+ X.teacherByKey=k=>{const t=ts.find(x=>x.slug==k||String(x.id)==k);return t?t.id:0};
+ window._X=X;return X}));}
+addEventListener('acad:update',()=>{_ix=null;IDX().then(prettyLinks).catch(()=>{})});
+function prettyLinks(){const X=window._X;if(!X)return;document.querySelectorAll('a[href]').forEach(a=>{const h=a.getAttribute('href');let m;
+ if(m=h.match(/^course\?id=(\d+)(?:&tab=(\d+))?$/)){const u=X.cUrl(+m[1]);if(u.includes('#'))a.setAttribute('href',m[2]?u.replace('#','?tab='+m[2]+'#'):u)}
+ else if(m=h.match(/^courses#(\d+)(?:-(\d+))?(?:-(\d+))?$/)){const u=X.hash(+m[1],+m[2]||0,+m[3]||0);if(u)a.setAttribute('href','courses'+u)}
+ else if(m=h.match(/^teachers\?id=(\d+)$/))a.setAttribute('href',X.tUrl(+m[1]))})}
+let _plT=null;function prettyInit(){IDX().then(()=>{prettyLinks();new MutationObserver(()=>{clearTimeout(_plT);_plT=setTimeout(prettyLinks,60)}).observe(document.body,{childList:true,subtree:true})}).catch(()=>{})}
+
+/* ===== التقديمات (طالب متفوق / مبرمج / مدرس / سبورت): تعريف الحقول مشترك بين البروفايل ولوحة الإدارة ===== */
+const APK={top_student:'طالب متفوق',programmer:'مبرمج',teacher:'مدرس',sport:'سبورت'},APS={pending:'قيد المراجعة',approved:'مقبول',rejected:'مرفوض',withdrawn:'تم السحب'};
+const APF={
+ top_student:[['grade','الصف / المرحلة','text',1,'مثال: الصف الثالث الإعدادي'],['school','المدرسة','text',1],['gov','المحافظة','text',1],['score','المجموع أو النسبة في آخر نتيجة','text',1,'مثال: 280 من 300'],['ach','إنجازاتك وتفوقك (مسابقات، ترتيب، شهادات)','area',1],['proof','رابط إثبات (صورة الشهادة أو كشف الدرجات)','url',0]],
+ programmer:[['field','مجال البرمجة','sel',1,['برمجة مواقع','تطبيقات موبايل','ذكاء اصطناعي','ألعاب','تحليل بيانات','أخرى']],['level','مستواك','sel',1,['مبتدئ','متوسط','محترف']],['skills','اللغات والأدوات اللي بتشتغل بيها','text',1,'مثال: Python, JavaScript, React'],['exp','خبراتك ومشاريعك السابقة','area',1],['link','رابط GitHub أو معرض أعمالك','url',0],['why','ليه عايز تنضم لفريق المنصة؟','area',1]],
+ teacher:[['subject','المادة اللي بتدرّسها','text',1,'مثال: رياضيات'],['years','سنوات الخبرة','num',1],['qual','المؤهل العلمي','text',1],['sample','رابط فيديو شرح تجريبي (يوتيوب أو درايف)','url',1],['bio','نبذة عنك وأسلوبك في الشرح','area',1]],
+ sport:[['sport','نوع الرياضة','text',1,'مثال: كرة قدم، سباحة، كاراتيه'],['age','السن','num',1],['level','المستوى','sel',1,['مبتدئ','ناشئ','محترف / بطولات']],['ach','إنجازاتك الرياضية','area',0],['video','رابط فيديو لأدائك','url',0],['gname','اسم ولي الأمر (لو أقل من 18 سنة)','text',0],['gphone','موبايل ولي الأمر','text',0]]};
+Object.assign(IP,{code:'<path d="M8 8l-5 4 5 4M16 8l5 4-5 4M14 5l-4 14"/>'});
 
 /* رفع ملف إلى Supabase Storage (bucket: academy) ويرجع الرابط العام */
 /* تحويل الصور تلقائيًا إلى WebP + تصغيرها وضغطها قبل الرفع (يتجاهل GIF/SVG وأي ملف مش صورة) */
@@ -174,17 +215,17 @@ function mountVideo(box,url0,opt={}){if(!box)return;const flag=NE(url0),url=clea
 
 
 
-/* ===== تحديث فوري بدون طلبات إضافية: اتصال Realtime واحد (WebSocket) بيبلّغ الجهاز لحظة ما الأدمن يغيّر محتوى =====
-   - مفيش polling: الاتصال مفتوح وبيبعت نبضة صغيرة كل 30 ثانية (مش ريكوست REST)
-   - أول ما يوصل تغيير: الكاش يتمسح فورًا، والصفحة المفتوحة تتحدّث (تلقائيًا أو بزر)
-   - لو الاتصال وقع: الكاش يرجع يشتغل بالمدة (TTL) كأمان، وأول ما يرجع الاتصال الكاش يتمسح عشان مفيش تغيير يفوتنا */
-const LIVE_T=['edu_books','edu_course_files','edu_course_solutions','edu_courses','edu_lessons','edu_subjects','edu_teachers','edu_ads','edu_updates','edu_about','edu_quizzes','edu_quiz_questions'];
-let _lv=null,_lvOk=false,_lvT=null,_lvHb=null,_lvRetry=0,_lvRef=0,_lvEver=false,_lvDown=0,_lvDeb=null,_lvMax=null,_lvQ=[];
+/* ===== تحديث المحتوى لحظيًا بأقل حمل: جدول aa_edu_content_version فيه رقم لكل جدول محتوى بيزيد تلقائيًا (trigger) مع أي تعديل =====
+   - اتصال Realtime واحد على الجدول ده بس (مش 12 جدول): أي تعديل من الأدمن يوصل الطالب في ثواني والصفحة تتحدّث لوحدها
+   - الكاش بيتمسح للجدول المتغيّر بس (والـ view المرتبط بيه)، والباقي يفضل من الجهاز بدون طلبات
+   - لو الاتصال وقع أو وصلت حد اتصالات الخطة: الموقع بيرجع لوحده يفحص الجدول كل LIVE_POLL ثانية (طلب صغير) لحد ما الاتصال يرجع
+   - التاب في الخلفية أكتر من دقيقة بيقفل الاتصال، وأول ما يرجع بيفحص اللي فاته */
+let _lvAt=0,_lvDeb=null,_lvMax=null,_lvQ=[],_lvBusy=0,_lvTmr=null,_lvKnown=null;
 /* التغييرات بتتجمّع ~1.5 ثانية وبعدها صفحة واحدة بتعيد تحميل الجزء المتغيّر بس (من غير reload) — الفيديو والكويز مبيتقطعوش */
 function liveFlush(){clearTimeout(_lvDeb);clearTimeout(_lvMax);_lvDeb=_lvMax=null;const d=_lvQ;_lvQ=[];if(!d.length)return;
  const go=()=>window.dispatchEvent(new CustomEvent('acad:update',{detail:d}));
  document.hidden?document.addEventListener('visibilitychange',function f(){if(!document.hidden){document.removeEventListener('visibilitychange',f);go()}}):go()}
-const LV_DEP={edu_courses:['edu_courses_v'],edu_teachers:['edu_courses_v'],edu_subjects:['edu_courses_v'],edu_lessons:['edu_courses_v'],edu_quiz_questions:['edu_quizzes'],edu_reviews:['edu_courses_v']};
+const LV_DEP={aa_edu_courses:['aa_edu_courses_v'],aa_edu_teachers:['aa_edu_courses_v'],aa_edu_subjects:['aa_edu_courses_v'],aa_edu_lessons:['aa_edu_courses_v'],aa_edu_quiz_questions:['aa_edu_quizzes'],aa_edu_reviews:['aa_edu_courses_v']};
 /* بيمسح من الكاش المفاتيح بتاعة الجدول المتغيّر بس (والـ view المرتبط بيه) — الباقي يفضل من الجهاز بدون ريكوست */
 function cDrop(t){try{const S=t==='*'?null:new Set([t,...(LV_DEP[t]||[])]);
  Object.keys(localStorage).forEach(k=>{if(!k.startsWith('acad_c:'))return;if(!S){localStorage.removeItem(k);return}if(S.has(k.split(':').slice(2).join(':').split('?')[0]))localStorage.removeItem(k)})}catch(_){}}
@@ -192,32 +233,43 @@ function liveChanged(table,rec){cDrop(table);_lvQ.push({table:table||'*',rec:rec
  clearTimeout(_lvDeb);_lvDeb=setTimeout(liveFlush,600);if(!_lvMax)_lvMax=setTimeout(liveFlush,2000)}
 /* الصفحة بتسجّل دالة بتعيد تحميل بياناتها؛ tables = الجداول اللي تهمّها (لو مفيش = أي جدول). مفيش ريكوست لو التغيير مش بتاعها */
 function onLive(fn,tables){window.addEventListener('acad:update',e=>{const d=e.detail||[];const hit=d.filter(x=>x.table==='*'||!tables||tables.includes(x.table));if(hit.length)fn(hit)})}
-function liveConnect(){if(_lv||!U()||document.hidden||(typeof LIVE_ON!=='undefined'&&LIVE_ON===false))return;
- try{_lv=new WebSocket(SUPA_URL.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+SUPA_KEY+'&vsn=1.0.0')}catch(_){return}
- const send=(topic,event,payload)=>{try{_lv.readyState===1&&_lv.send(JSON.stringify({topic,event,payload:payload||{},ref:String(++_lvRef)}))}catch(_){}};
- _lv.onopen=()=>{const u=U();_lvRetry=0;
-  send('realtime:acad-content','phx_join',{config:{postgres_changes:LIVE_T.map(table=>({event:'*',schema:'public',table})),broadcast:{self:false},presence:{enabled:false}},access_token:u&&u.token||SUPA_KEY});
-  clearInterval(_lvHb);_lvHb=setInterval(()=>send('phoenix','heartbeat'),30000)};
- _lv.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}
-  if(m.event==='phx_reply'&&m.topic==='realtime:acad-content'){
-   const pc=m.payload&&m.payload.response&&m.payload.response.postgres_changes;
-   if(m.payload&&m.payload.status==='ok'&&pc&&pc.length>=LIVE_T.length){_lvOk=true;if(_lvEver&&Date.now()-_lvDown>30000)liveChanged('*');_lvEver=true}else _lvOk=false}
-  else if(m.event==='system'&&m.payload&&m.payload.status==='error')_lvOk=false
-  else if(m.event==='postgres_changes'){const x=(m.payload&&m.payload.data)||{};liveChanged(x.table,x.record||x.old_record)}};
- const down=()=>{_lvOk=false;_lv=null;_lvDown=Date.now();clearInterval(_lvHb);clearTimeout(_lvT);
-  if(document.hidden)return;_lvT=setTimeout(liveConnect,Math.min(60000,2000*Math.pow(2,_lvRetry++))+Math.random()*3000)};
- _lv.onclose=down;_lv.onerror=()=>{try{_lv&&_lv.close()}catch(_){}}}
-/* التاب في الخلفية أكتر من دقيقة = نقفل الـ WebSocket (بيحرّر اتصال من حد الخطة) ونفتحه تاني أول ما الطالب يرجع */
-let _lvIdle=null;document.addEventListener('visibilitychange',()=>{clearTimeout(_lvIdle);
- if(document.hidden){_lvIdle=setTimeout(()=>{const w=_lv;if(w){_lv=null;_lvOk=false;_lvDown=Date.now();clearInterval(_lvHb);clearTimeout(_lvT);w.onclose=null;try{w.close()}catch(_){}}},60000)}
- else if(!_lv||_lv.readyState>1){_lv=null;liveConnect()}});
-addEventListener('pagehide',()=>{try{_lv&&_lv.close()}catch(_){}});
+let _ws=null,_wsOk=false,_wsRetry=0,_wsT=null,_wsHb=null,_wsRef=0,_wsIdle=null,_poll=null,_started=false;
+const lvEvery=()=>(typeof LIVE_ON!=='undefined'&&LIVE_ON===false)?0:(typeof LIVE_POLL!=='undefined'?+LIVE_POLL:90),lvOk=()=>_wsOk||(lvEvery()>0&&Date.now()-_lvAt<(lvEvery()*2+30)*1000),VK='acad_ver';
+const lvSave=()=>{try{localStorage.setItem(VK,JSON.stringify({t:Date.now(),v:_lvKnown||{}}))}catch(_){}};
+async function lvCheck(force){if(!lvEvery()||_lvBusy)return;let st=null;try{st=JSON.parse(localStorage.getItem(VK)||'null')}catch(_){}
+ if(!force&&st&&Date.now()-st.t<20000){_lvAt=st.t;_lvKnown=_lvKnown||st.v;return}
+ _lvBusy=1;try{const r=await fetch(SUPA_URL+'/rest/v1/aa_edu_content_version?select=tbl,v',{headers:{apikey:SUPA_KEY}});if(!r.ok)throw 0;
+  const rows=await r.json(),nv={};rows.forEach(x=>nv[x.tbl]=x.v);if(!rows.length)throw 0;_lvAt=Date.now();
+  const base=_lvKnown||(st&&st.v)||null;_lvKnown=nv;lvSave();
+  if(!base)liveChanged('*');else Object.keys(nv).filter(t=>base[t]!==nv[t]).forEach(t=>liveChanged(t))}catch(_){}finally{_lvBusy=0}}
+/* فحص دوري (احتياطي): بيشتغل بس لما اتصال Realtime مش شغال، وبيقف أول ما الاتصال يتأكد */
+function wsMode(){if(_wsOk||!lvEvery()){clearInterval(_poll);_poll=null}else if(!_poll)_poll=setInterval(()=>{if(!document.hidden)lvCheck(true)},lvEvery()*1000)}
+/* اتصال Realtime واحد على جدول aa_edu_content_version بس (صف لكل جدول محتوى) — أي تعديل يوصل للجهاز لحظيًا */
+function wsOpen(){if(_ws||document.hidden||!lvEvery())return;let w;
+ try{w=_ws=new WebSocket(SUPA_URL.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+SUPA_KEY+'&vsn=1.0.0')}catch(_){_ws=null;return wsRetry()}
+ const send=(topic,event,payload)=>{try{w.readyState===1&&w.send(JSON.stringify({topic,event,payload:payload||{},ref:String(++_wsRef)}))}catch(_){}};
+ w.onopen=()=>{const u=U();send('realtime:acad-ver','phx_join',{config:{postgres_changes:[{event:'*',schema:'public',table:'aa_edu_content_version'}],broadcast:{self:false},presence:{enabled:false}},access_token:(u&&u.token)||SUPA_KEY});
+  clearInterval(_wsHb);_wsHb=setInterval(()=>send('phoenix','heartbeat'),30000)};
+ w.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch(_){return}
+  if(m.event==='phx_reply'&&m.topic==='realtime:acad-ver'){const pc=m.payload&&m.payload.response&&m.payload.response.postgres_changes;
+   if(m.payload.status==='ok'&&pc&&pc.length){_wsOk=true;_wsRetry=0;wsMode();lvCheck(true)}else{_wsOk=false;wsMode()}}
+  else if(m.event==='system'&&m.payload&&m.payload.status==='error'){_wsOk=false;wsMode()}
+  else if(m.event==='postgres_changes'){const r=((m.payload&&m.payload.data)||{}).record;if(r&&r.tbl){_lvKnown=_lvKnown||{};_lvKnown[r.tbl]=r.v;_lvAt=Date.now();lvSave();liveChanged(r.tbl)}}};
+ w.onclose=()=>wsDown(w);w.onerror=()=>{try{w.close()}catch(_){}}}
+function wsRetry(){clearTimeout(_wsT);if(document.hidden||!lvEvery())return;_wsT=setTimeout(wsOpen,Math.min(60000,2000*Math.pow(2,_wsRetry++))+Math.random()*3000)}
+function wsDown(w){if(w&&_ws!==w)return;_ws=null;_wsOk=false;clearInterval(_wsHb);wsMode();wsRetry()}
+function liveConnect(){if(_started||!lvEvery())return;_started=true;lvCheck();wsOpen();wsMode()}
+/* التاب في الخلفية أكتر من دقيقة = نقفل الاتصال (بيحرّر مكان من حد الخطة) ونفتحه تاني أول ما الطالب يرجع ونفحص اللي فاته */
+document.addEventListener('visibilitychange',()=>{clearTimeout(_wsIdle);if(!lvEvery())return;
+ if(document.hidden){_wsIdle=setTimeout(()=>{const w=_ws;if(w){_ws=null;_wsOk=false;clearInterval(_wsHb);clearTimeout(_wsT);w.onclose=null;try{w.close()}catch(_){}wsMode()}},60000)}
+ else{if(!_ws)wsOpen();if(Date.now()-_lvAt>30000)lvCheck(true)}});
+addEventListener('pagehide',()=>{try{_ws&&_ws.close()}catch(_){}});
 
 /* ===== الإشعارات: جرس + لوحة + عدّاد غير المقروء ===== */
 const NT={list:[]};
 async function notifLoad(force){const u=U();if(!u)return;
  try{const nk='acad_n:'+u.id;let c=null;if(!force){try{c=JSON.parse(sessionStorage.getItem(nk)||'null');if(c&&Date.now()-c.t>120000)c=null}catch(_){}}
-  if(!c){const [n,s,me]=await Promise.all([get('edu_notifications?order=created_at.desc&limit=40'),get('edu_notif_state?select=last_read'),ME()]);
+  if(!c){const [n,s,me]=await Promise.all([get('aa_edu_notifications?order=created_at.desc&limit=40'),get('aa_edu_notif_state?select=last_read'),ME()]);
    c={t:Date.now(),n,lr:(s[0]&&s[0].last_read)||(me&&me.created_at)||0};try{sessionStorage.setItem(nk,JSON.stringify(c))}catch(_){}}
   const lr=new Date(c.lr||0).getTime();
   NT.list=c.n.filter(x=>!x.user_id||x.user_id==u.id).slice(0,25).map(x=>({...x,un:new Date(x.created_at).getTime()>lr}));
@@ -229,13 +281,13 @@ function notifDraw(){const p=$('#np');
 function notifInit(){if(!U())return;document.body.insertAdjacentHTML('beforeend','<div id="np" class="np" hidden></div>');
  document.addEventListener('click',async e=>{const b=e.target.closest('.bell:not(.sbx)'),p=$('#np');
   if(b){p.hidden=!p.hidden;if(!p.hidden)notifDraw();return}
-  if(e.target.id=='nra'){await post('edu_notif_state',{user_id:U().id,last_read:new Date().toISOString()},'resolution=merge-duplicates,return=minimal');await notifLoad(true);return}
+  if(e.target.id=='nra'){await post('aa_edu_notif_state',{user_id:U().id,last_read:new Date().toISOString()},'resolution=merge-duplicates,return=minimal');await notifLoad(true);return}
   if(p&&!p.hidden&&!p.contains(e.target))p.hidden=true});
  setTimeout(()=>notifLoad(),700);setInterval(()=>{if(!document.hidden)notifLoad()},300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)notifLoad()})}
 
 /* مكان الطالب: آخر جزء شاهده -> يكمّل منه، أو الجزء/الدرس التالي */
 async function resume(){if(!U())return null;try{
- const[pg,cs,ls]=await Promise.all([get(Q.pg),cget(Q.cs),cget(Q.ls)]);
+ const[pg,cs,ls]=await Promise.all([get(Q.pg),cget(Q.cs,null,1),cget(Q.ls)]);
  const p=pg[0],dn=new Set(pg.filter(x=>x.done).map(x=>x.course_id)),c=p&&cs.find(x=>x.id==p.course_id),l=c&&ls.find(x=>x.id==c.lesson_id);if(!l)return null;
  const lessonDone=cs.filter(x=>x.lesson_id==l.id).some(x=>{const m=cs.filter(y=>y.lesson_id==l.id&&y.teacher_id==x.teacher_id);return m.every(y=>dn.has(y.id))});
  if(!p.done)return{t:'أنت هنا — كمّل من حيث وقفت',h:'course?id='+c.id,a:l.title,b:c.title};
@@ -248,5 +300,5 @@ const resumeBox=r=>r?`<a class="box row" href="${r.h}" style="border-color:var(-
 const embedUrl=u=>{u=String(u||'');let m=u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?id=)([\w-]+)/);if(m)return'https://drive.google.com/file/d/'+m[1]+'/preview';
  m=u.match(/docs\.google\.com\/(document|presentation|spreadsheets)\/d\/([\w-]+)/);if(m)return'https://docs.google.com/'+m[1]+'/d/'+m[2]+'/preview';return u};
 const frameHtml=u=>`<div style="margin-top:10px"><iframe src="${esc(embedUrl(u))}" style="width:100%;height:70vh;border:1px solid var(--bo);border-radius:12px;background:#fff" allow="fullscreen" referrerpolicy="no-referrer" loading="lazy"></iframe><a class="muted" target="_blank" rel="noopener" href="${esc(u)}">فتح في تبويب جديد</a></div>`;
-const saveProg=(cid,pos,dur,done)=>U()&&post('edu_progress?on_conflict=user_id,course_id',{user_id:U().id,course_id:cid,position:pos,duration:dur,done:!!done,updated_at:new Date().toISOString()},'resolution=merge-duplicates,return=minimal').catch(()=>{});
+const saveProg=(cid,pos,dur,done)=>U()&&post('aa_edu_progress?on_conflict=user_id,course_id',{user_id:U().id,course_id:cid,position:pos,duration:dur,done:!!done,updated_at:new Date().toISOString()},'resolution=merge-duplicates,return=minimal').catch(()=>{});
 
