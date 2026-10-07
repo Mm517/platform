@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الفعاليات | أكاديمية</title>
+<meta name="description" content="الفعاليات | أكاديمية">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
+<body class="cr" data-p="events"><main class="pg" id="m"><h1>الفعاليات</h1><p class="muted" id="sub">تحدّى طالب تاني في نفس الدرس واكسب 50 نقطة.</p><div id="o"><div class="skw" aria-busy="true"><div class="sk sk-h" style="width:45%"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div></div></main>
+<script src="config.js"></script><script src="lib.js"></script>
+<script>
+if(!U())location.replace('auth#login');
+topbar();
+/* ===== حالة الصفحة ===== */
+const KEY='acad_ev_match:'+((U()||{}).id||'-');
+let MID=null,ST=null,OFF=0,TM=null,PL=null,QIDX=0,LOBBY=null,BUSY=false,PEND={},WL=null,LAST='',SRCH=0;
+const now=()=>Date.now()+OFF,mmss=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return String(Math.floor(ms/60)).padStart(2,'0')+':'+String(ms%60).padStart(2,'0')};
+const rpc=async(n,b)=>{const r=await post('rpc/'+n,b||{});if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(_){}throw new Error(m||String(r.status))}const t=await r.text();return t?JSON.parse(t):null};
+const setMid=v=>{MID=v;try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(_){}};
+const stop=()=>{SRCH++;clearInterval(TM);clearTimeout(PL);TM=PL=null};
+const root=h=>{$('#o').innerHTML=h};
+const letters=['أ','ب','ج','د','هـ','و'];
+/* رابط الـ PDF: روابط Drive تتحوّل لمعاينة، والباقي بيتفتح مباشرة */
+function pdfSrc(u){u=String(u||'').trim();let m=u.match(/drive\.google\.com\/file\/d\/([\w-]+)/)||u.match(/drive\.google\.com\/open\?id=([\w-]+)/);if(m)return 'https://drive.google.com/file/d/'+m[1]+'/preview';return /^https?:\/\//i.test(u)?u:''}
+
+/* ===== الصالة: قايمة الدروس اللي عليها فعاليات ===== */
+async function lobby(){
+ stop();setMid(null);ST=null;$('#sub').textContent='تحدّى طالب تاني في نفس الدرس واكسب 50 نقطة.';
+ root('<div class="skw" aria-busy="true"><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div>');
+ let list=[],subs=[],hist=[];
+ try{[list,subs,hist]=await Promise.all([rpc('edu_event_list'),cget('aa_edu_subjects?grade=eq.prep3&order=sort').catch(()=>[]),rpc('edu_event_history').catch(()=>[])])}
+ catch(e){return root('<p class="empty">تعذر تحميل الفعاليات. لو ده أول مرة، اتأكد إن setup_v17.sql اتشغّل على Supabase.</p>')}
+ LOBBY=list;const sm=Object.fromEntries(subs.map(s=>[s.id,s]));
+ const groups={};list.forEach(l=>(groups[l.subject_id]=groups[l.subject_id]||[]).push(l));
+ const rules=`<div class="box ev-rules"><b>${ic('trophy',18)} إزاي بتشتغل الفعالية؟</b><ol><li>اختار درس — السيستم يلاقيلك طالب تاني في نفس الدرس.</li><li><b>10 دقايق مراجعة</b>: بيتفتحلكم ملف PDF بأهم النقط.</li><li><b>امتحان 20 سؤال في 5 دقايق</b> اختيار من متعدد.</li><li>أول واحد يخلّص بيقسم الوقت المتبقي للتاني على 2.</li><li>الأعلى درجة يكسب <b>50 نقطة</b> (ولو اتعادلتوا، الأسرع يكسب).</li></ol></div>`;
+ const body=list.length?Object.keys(groups).map(sid=>`<h2 class="lsn">${esc((sm[sid]||{}).name||'مادة')}</h2><div class="grid">${groups[sid].map(l=>`<div class="box ev-card"><div><b>${esc(l.title)}</b>${l.unit?`<br><small class="muted">${esc(l.unit)}</small>`:''}<div class="ev-meta"><span>${ic('file',14)} ${Math.round(l.review_secs/60)} د مراجعة</span><span>${ic('quiz',14)} 20 سؤال / ${Math.round(l.quiz_secs/60)} د</span></div>${l.waiting?`<div class="ev-wait"><i></i> ${l.waiting} مستني منافس دلوقتي</div>`:''}</div><button class="btn btn-p" data-go="${l.lesson_id}">${ic('trophy',16)} تحدّى</button></div>`).join('')}</div>`).join(''):'<p class="empty">مفيش فعاليات متاحة دلوقتي. هتظهر هنا أول ما الإدارة تفعّل فعالية على درس.</p>';
+ const hh=hist.length?`<h2 class="lsn">آخر مواجهاتك</h2>`+hist.map(h=>`<div class="box row ev-h ${h.rank==1?'w':h.rank==2?'l':''}"><span><b>${esc(h.title)}</b><br><small class="muted">${h.resolved_at?ago(h.resolved_at):''}</small></span><span class="ev-sc">${h.my_score??0} - ${h.opp_score??0} <em>${h.rank==1?'فوز +50':h.rank==2?'خسارة':'تعادل'}</em></span></div>`).join(''):'';
+ root(rules+body+hh);
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)start(+b.dataset.go)});
+
+/* ===== البحث عن منافس ===== */
+async function start(lid){
+ if(BUSY)return;BUSY=true;const l=(LOBBY||[]).find(x=>x.lesson_id==lid)||{};WL=lid;
+ root(`<div class="box ev-search"><div class="ev-spin"></div><h2>بندوّر على منافس...</h2><p class="muted">درس: <b>${esc(l.title||'')}</b><br>سيب الصفحة مفتوحة. أول ما طالب تاني يدخل نفس الدرس هتبدأوا فورًا.</p><button class="btn btn-o" id="cx">إلغاء</button></div>`);
+ $('#cx').onclick=async()=>{stop();BUSY=false;try{await rpc('edu_event_leave')}catch(_){}lobby()};
+ const tok=SRCH,step=async()=>{let r;try{r=await rpc('edu_event_join',{p_lesson:lid})}
+   catch(x){if(tok!==SRCH)return;stop();BUSY=false;toast(/event_not_ready|event_not_found/.test(x.message)?'الفعالية دي مش متاحة دلوقتي':'حصلت مشكلة، جرّب تاني',1);return lobby()}
+   if(tok!==SRCH){if(r&&r.match_id)setMid(r.match_id);else rpc('edu_event_leave').catch(()=>{});return}
+   if(r&&r.match_id){stop();BUSY=false;setMid(r.match_id);return run()}
+   PL=setTimeout(step,3000)};
+ PL=null;step();
+}
+
+/* ===== تشغيل المواجهة: بنسأل السيرفر عن الحالة ونرسم على حسبها ===== */
+async function fetchState(){const s=await rpc('edu_event_state',{p_match:MID});OFF=s.now-Date.now();ST=s;return s}
+async function run(){
+ stop();
+ try{await fetchState()}catch(e){if(/not_in_match/.test(e.message)){setMid(null);return lobby()}root('<p class="empty">تعذر تحميل المواجهة. <button class="btn btn-o btn-s" id="rt">إعادة المحاولة</button></p>');$('#rt').onclick=run;return}
+ paint();
+ const poll=async()=>{try{const o=ST.status+(ST.me_finished?'f':'');await fetchState();if(ST.status+(ST.me_finished?'f':'')!==o||ST.status=='done')paint();else sync()}catch(_){}
+  if(ST&&ST.status!='done')PL=setTimeout(poll,ST.status=='quiz'?2500:3000)};
+ if(ST.status!='done')PL=setTimeout(poll,2500);
+ TM=setInterval(tick,250);
+}
+function paint(){
+ const s=ST;if(!s)return;
+ if(s.status=='review')return paintReview();
+ if(s.status=='quiz')return s.me_finished?paintWait():paintQuiz();
+ return paintResult();
+}
+function tick(){
+ const s=ST;if(!s)return;const t=$('#tmr');
+ if(s.status=='review'){const l=s.review_ends-now();if(t)t.textContent=mmss(l);if(l<=0&&!tick.f){tick.f=1;run().finally(()=>tick.f=0)}}
+ else if(s.status=='quiz'&&!s.me_finished){const l=s.my_deadline-now();if(t){t.textContent=mmss(l);t.parentElement.classList.toggle('low',l<60000)}if(l<=0&&!tick.f){tick.f=1;run().finally(()=>tick.f=0)}}
+ else if(s.status=='quiz'&&s.me_finished){const l=s.opp_deadline-now();if(t)t.textContent=mmss(l);if(l<=-1500&&!tick.f){tick.f=1;run().finally(()=>tick.f=0)}}
+}
+/* لو الوقت اتغيّر من السيرفر (الخصم خلّص → وقتي اتقسم) بنحدّث العداد من غير ما نعيد رسم الأسئلة */
+function sync(){const n=$('#opn');if(n)n.innerHTML=ST.opp_finished?`${ic('check',14)} ${esc(ST.opp_name)} خلّص — وقتك اتقسم على 2`:`${esc(ST.opp_name)} لسه بيحل`}
+
+/* ===== 1) المراجعة ===== */
+function paintReview(){
+ const s=ST,src=pdfSrc(s.pdf);$('#sub').textContent='مرحلة المراجعة';
+ root(`<div class="ev-top box"><span>${ic('users',18)} هتتنافس مع <b>${esc(s.opp_name)}</b> في درس <b>${esc(s.lesson)}</b></span><span class="ev-t"><small>الامتحان يبدأ بعد</small><b id="tmr">${mmss(s.review_ends-now())}</b></span></div>
+ <div class="ev-pdf">${src?`<iframe src="${esc(src)}" title="مراجعة الدرس" allow="fullscreen"></iframe>`:'<p class="empty">مفيش ملف مراجعة لهذا الدرس.</p>'}</div>
+ ${src?`<p class="muted" style="margin-top:8px">لو الملف مش بيظهر <a href="${esc(src)}" target="_blank" rel="noopener" style="color:var(--bl)">افتحه في تبويب جديد</a>. الامتحان هيبدأ لوحده لما الوقت يخلص.</p>`:''}`);
+}
+
+/* ===== 2) الامتحان ===== */
+function paintQuiz(){
+ const s=ST,qs=s.questions||[];$('#sub').textContent='الامتحان — ركّز!';if(QIDX>=qs.length)QIDX=0;
+ const A=s.answers||{};
+ root(`<div class="ev-top box"><span>${ic('users',18)} ضد <b>${esc(s.opp_name)}</b> <small class="muted" id="opn"></small></span><span class="ev-t"><small>الوقت المتبقي</small><b id="tmr">${mmss(s.my_deadline-now())}</b></span></div>
+ <div class="ev-dots" id="dots">${qs.map((q,i)=>`<button data-d="${i}" class="${A[i]!=null?'a':''} ${i==QIDX?'on':''}">${i+1}</button>`).join('')}</div>
+ <div class="box ev-q" id="qb"></div>
+ <div class="row ev-nav"><button class="btn btn-o" id="pv">السابق</button><span class="muted" id="pc"></span><button class="btn btn-o" id="nx">التالي</button></div>
+ <div style="text-align:center;margin-top:16px"><button class="btn btn-p" id="fin">${ic('check',16)} خلّصت الامتحان</button></div>`);
+ sync();drawQ();
+ $('#dots').onclick=e=>{const b=e.target.closest('[data-d]');if(b){QIDX=+b.dataset.d;drawQ()}};
+ $('#pv').onclick=()=>{if(QIDX>0){QIDX--;drawQ()}};$('#nx').onclick=()=>{if(QIDX<qs.length-1){QIDX++;drawQ()}};
+ $('#fin').onclick=finish;
+}
+function drawQ(){
+ const s=ST,qs=s.questions||[],q=qs[QIDX];if(!q)return;const A=s.answers||{};
+ $('#qb').innerHTML=`<div class="ev-qn">سؤال ${QIDX+1} من ${qs.length}</div><h3>${esc(q.q)}</h3><div class="ev-opts">${(q.options||[]).map((o,j)=>`<button class="ev-o ${A[q.i]===j?'on':''}" data-o="${j}"><i>${letters[j]||j+1}</i><span>${esc(o)}</span></button>`).join('')}</div>`;
+ $('#qb').onclick=e=>{const b=e.target.closest('[data-o]');if(!b)return;choose(q.i,+b.dataset.o)};
+ $('#pc').textContent=Object.keys(A).length+' / '+qs.length+' اتجاوب';
+ document.querySelectorAll('#dots button').forEach((d,i)=>{d.classList.toggle('on',i==QIDX);d.classList.toggle('a',A[i]!=null)});
+ $('#pv').disabled=QIDX==0;$('#nx').disabled=QIDX>=qs.length-1;
+}
+/* الإجابة بتتحفظ على السيرفر فورًا (عشان لو الوقت خلص أو النت قطع، اللي اتجاوب بيتحسب) */
+async function choose(i,c){
+ ST.answers=ST.answers||{};ST.answers[i]=c;drawQ();
+ const send=async(n)=>{try{const r=await rpc('edu_event_answer',{p_match:MID,p_idx:i,p_choice:c});if(!r.ok)run()}catch(_){if(n<3)setTimeout(()=>send(n+1),1200)}};send(0);
+}
+async function finish(){
+ const qs=ST.questions||[],un=qs.length-Object.keys(ST.answers||{}).length;
+ if(un>0&&!confirm('لسه '+un+' سؤال من غير إجابة وهيتحسبوا غلط. تخلّص برضو؟'))return;
+ if(!un&&!confirm('تأكيد إنهاء الامتحان؟'))return;
+ $('#fin').disabled=true;try{await rpc('edu_event_finish',{p_match:MID})}catch(_){}run();
+}
+
+/* ===== 3) استنى الخصم ===== */
+function paintWait(){
+ const s=ST;$('#sub').textContent='خلّصت — بنستنى المنافس';
+ root(`<div class="box ev-search"><div class="ev-spin"></div><h2>خلّصت امتحانك</h2><p class="muted">بنستنى <b>${esc(s.opp_name)}</b> يخلّص أو وقته يخلص.</p><div class="ev-t big"><small>الوقت المتبقي له</small><b id="tmr">${mmss(s.opp_deadline-now())}</b></div></div>`);
+}
+
+/* ===== 4) النتيجة ===== */
+function paintResult(){
+ const s=ST,r=s.result||{},qs=s.questions||[],A=s.answers||{};$('#sub').textContent='النتيجة';stop();
+ const cls=r.draw?'d':r.win?'w':'l',tt=r.draw?'تعادل!':r.win?'مبروك — كسبت!':'للأسف خسرت المرة دي';
+ const answered=Object.keys(A).length;
+ root(`<div class="box ev-res ${cls}"><div class="ev-rank">${r.draw?'—':r.rank==1?'1':'2'}</div><h2>${tt}</h2>${r.points?`<div class="ev-pts">${ic('star',18,'fill amber')} +${r.points} نقطة</div>`:''}
+ <div class="ev-board"><div class="${r.rank==1?'top':''}"><small>الترتيب ${r.rank==2?'الثاني':'الأول'}</small><b>أنت</b><span>${r.my_score}/${s.total}</span></div><div class="${r.rank==2?'top':''}"><small>الترتيب ${r.rank==1?'الثاني':'الأول'}</small><b>${esc(s.opp_name)}</b><span>${r.opp_score}/${s.total}</span></div></div>
+ <p class="muted">جاوبت على ${answered} من ${s.total} سؤال${r.draw?' — وده تعادل كامل في الدرجة والوقت.':''}</p>
+ <button class="btn btn-p" id="bk">رجوع للفعاليات</button></div>
+ <h2 class="lsn">مراجعة الإجابات</h2>`+qs.map(q=>{const my=A[q.i],ok=my===q.answer;return `<div class="box ev-rv ${my==null?'n':ok?'ok':'bad'}"><b>${q.i+1}. ${esc(q.q)}</b>${(q.options||[]).map((o,j)=>`<div class="${j==q.answer?'c':''} ${j===my&&!ok?'x':''}">${letters[j]||j+1}) ${esc(o)}${j==q.answer?' ✓':''}${j===my&&!ok?' (إجابتك)':''}</div>`).join('')}${my==null?'<small class="muted">لم تُجب على هذا السؤال</small>':''}</div>`}).join(''));
+ $('#bk').onclick=lobby;try{ME(true)}catch(_){}
+ get('aa_edu_profiles?select=points').then(p=>{if(p[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=p[0].points)}).catch(()=>{});
+}
+window.addEventListener('beforeunload',e=>{if(ST&&ST.status=='quiz'&&!ST.me_finished){e.preventDefault();e.returnValue=''}});
+/* الدخول: لو فيه مواجهة شغالة نكمّل فيها، وإلا الصالة */
+(()=>{let m=null;try{m=localStorage.getItem(KEY)}catch(_){}if(m){MID=+m;run()}else lobby()})();
+</script></body></html>
