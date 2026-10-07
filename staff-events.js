@@ -38,6 +38,10 @@ function evParse(t){
  return{ok,bad};
 }
 
+/* صف اختيار واحد: دايرة (الإجابة الصحيحة) + حرف + خانة الكتابة + زرار حذف */
+function evRow(i,on){return `<div class="evo-r"><input type="radio" name="evc" value="${i}" ${on?'checked':''} aria-label="الإجابة الصحيحة"><b class="evo-l">${EVL[i]}</b><input class="evo-i" maxlength="300" placeholder="الاختيار ${EVL[i]}"><button type="button" class="evo-x" data-ev="orm" title="حذف الاختيار" aria-label="حذف الاختيار">×</button></div>`}
+function evRenum(){const rs=[...document.querySelectorAll('#evo .evo-r')];rs.forEach((r,i)=>{r.querySelector('input[type=radio]').value=i;r.querySelector('.evo-l').textContent=EVL[i];r.querySelector('.evo-i').placeholder='الاختيار '+EVL[i]});if(!document.querySelector('#evo input[type=radio]:checked')&&rs[0])rs[0].querySelector('input[type=radio]').checked=true;const ad=document.querySelector('[data-ev=oadd]');if(ad)ad.disabled=rs.length>=6}
+
 V.ev=()=>{
  if(R!='admin')return '<p class="empty">الصفحة دي للأدمن فقط.</p>';
  if(EVerr)return '<p class="empty">تعذر تحميل الفعاليات — شغّل ملف <b>setup_v17.sql</b> من Supabase → SQL Editor ثم حدّث الصفحة.</p>';
@@ -59,10 +63,19 @@ V.ev=()=>{
    <input id="evp2" dir="ltr" value="${esc(e.pdf_url||'')}" placeholder="رابط PDF المراجعة">
    <div style="display:flex;gap:10px;flex-wrap:wrap"><label style="flex:1;min-width:130px"><small class="muted">دقايق المراجعة</small><input id="evr2" type="number" min="1" max="60" value="${Math.round(e.review_secs/60)}"></label><label style="flex:1;min-width:130px"><small class="muted">دقايق الامتحان</small><input id="evz2" type="number" min="1" max="60" value="${Math.round(e.quiz_secs/60)}"></label></div>
    <button class="btn btn-p btn-s" data-ev="cfg" data-id="${e.lesson_id}" style="margin-top:6px">حفظ الإعدادات</button>
-   <b style="display:block;margin-top:16px">إضافة أسئلة (ممكن تلصق كذا سؤال مرة واحدة)</b>
-   <small class="muted">سؤال بعد التاني بسطر فاضي بينهم. الفورمات:<br><span dir="rtl" style="white-space:pre-line;display:block;background:var(--soft);border-radius:8px;padding:8px;margin-top:4px">نص السؤال؟\nأ) الاختيار الأول\nب) الاختيار الثاني\nج) الاختيار الثالث\nد) الاختيار الرابع\nالإجابة: ب</span></small>
-   <textarea id="evb" rows="9" placeholder="الصق الأسئلة هنا..."></textarea>
-   <button class="btn btn-p btn-s" data-ev="qadd" data-id="${e.lesson_id}">${ic('plus',16)} إضافة الأسئلة</button>
+   <b style="display:block;margin-top:16px">إضافة سؤال</b>
+   <div class="box evf" id="evform">
+    <label class="evf-l">نص السؤال</label>
+    <textarea id="evq" rows="2" maxlength="600" placeholder="اكتب السؤال هنا..."></textarea>
+    <label class="evf-l">الاختيارات <small class="muted">— دوس على الدايرة جنب الإجابة الصحيحة</small></label>
+    <div id="evo">${[0,1,2,3].map(i=>evRow(i,i==0)).join('')}</div>
+    <div class="evf-act"><button type="button" class="btn btn-o btn-s" data-ev="oadd">${ic('plus',14)} إضافة اختيار</button><button type="button" class="btn btn-p btn-s" data-ev="q1" data-id="${e.lesson_id}">${ic('check',16)} حفظ السؤال</button></div>
+   </div>
+   <details class="evf-bulk"><summary>إضافة كذا سؤال مرة واحدة (نسخ ولصق)</summary>
+    <small class="muted">سؤال بعد التاني بسطر فاضي بينهم. الفورمات:<br><span dir="rtl" style="white-space:pre-line;display:block;background:var(--soft);border-radius:8px;padding:8px;margin-top:4px">نص السؤال؟\nأ) الاختيار الأول\nب) الاختيار الثاني\nج) الاختيار الثالث\nد) الاختيار الرابع\nالإجابة: ب</span></small>
+    <textarea id="evb" rows="9" placeholder="الصق الأسئلة هنا..."></textarea>
+    <button class="btn btn-p btn-s" data-ev="qadd" data-id="${e.lesson_id}">${ic('plus',16)} إضافة الأسئلة</button>
+   </details>
    <b style="display:block;margin-top:16px">أسئلة الدرس (${n})</b>
    ${qs.map((x,i)=>`<div class="ev-aq"><div class="row"><span><b>${i+1}. ${esc(x.q)}</b></span><button class="btn btn-o btn-s" data-ev="qdel" data-id="${x.id}">حذف</button></div>${(x.options||[]).map((o,j)=>`<div class="${j==x.answer?'c':''}">${EVL[j]||j+1}) ${esc(o)}${j==x.answer?' ✓':''}</div>`).join('')}</div>`).join('')||'<p class="empty">مفيش أسئلة لسه.</p>'}
   </div>`:''}</div>`}).join('')||'<p class="empty">مفيش فعاليات لسه — فعّل أول فعالية من الأعلى.</p>';
@@ -73,6 +86,17 @@ document.addEventListener('click',async e=>{
  const b=e.target.closest('[data-ev]');if(!b||R!='admin')return;
  const a=b.dataset.ev,id=+b.dataset.id||0,mins=v=>{v=Math.round(+v);return v>=1&&v<=60?v*60:0};
  const pdfOk=u=>!u||/^https?:\/\//i.test(u);
+ if(a=='oadd'){const box=$('#evo'),n=box.children.length;if(n>=6)return;box.insertAdjacentHTML('beforeend',evRow(n,false));evRenum();box.lastElementChild.querySelector('.evo-i').focus();return}
+ if(a=='orm'){const box=$('#evo');if(box.children.length<=2)return say('غير ممكن — لازم اختيارين على الأقل');b.closest('.evo-r').remove();evRenum();return}
+ if(a=='q1'){
+  const q=$('#evq').value.trim(),rows=[...document.querySelectorAll('#evo .evo-r')],sel=rows.findIndex(r=>r.querySelector('input[type=radio]').checked),opts=[];let ans=-1;
+  if(q.length<2)return say('اكتب نص السؤال أولًا');
+  rows.forEach((r,i)=>{const v=r.querySelector('.evo-i').value.trim();if(v){if(i==sel)ans=opts.length;opts.push(v)}});
+  if(opts.length<2)return say('اكتب اختيارين على الأقل');
+  if(ans<0)return say('اختار الإجابة الصحيحة (الدايرة جنب الاختيار) وتأكد إنها مكتوبة');
+  b.disabled=true;const rr=await post('aa_edu_event_questions',{lesson_id:id,q,options:opts,answer:ans});b.disabled=false;
+  const ok=await run(rr,'تمت إضافة السؤال');if(ok)setTimeout(()=>{const f=$('#evq');if(f)f.focus()},50);return;
+ }
  if(a=='qs'){EVopen=EVopen==id?0:id;return draw()}
  if(a=='add'){
   const lid=+($('#evl').value||0),pdf=$('#evp').value.trim(),rs=mins($('#evr').value),zs=mins($('#evz').value);
