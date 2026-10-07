@@ -18,7 +18,7 @@ const KEY='acad_ev_match:'+((U()||{}).id||'-');
 let MID=null,ST=null,OFF=0,TM=null,PL=null,QIDX=0,LOBBY=null,BUSY=false,PEND={},WL=null,LAST='',SRCH=0;
 const now=()=>Date.now()+OFF,mmss=ms=>{ms=Math.max(0,Math.ceil(ms/1000));return String(Math.floor(ms/60)).padStart(2,'0')+':'+String(ms%60).padStart(2,'0')};
 const rpc=async(n,b)=>{const r=await post('rpc/'+n,b||{});if(!r.ok){let m='';try{m=(await r.json()).message||''}catch(_){}throw new Error(m||String(r.status))}const t=await r.text();return t?JSON.parse(t):null};
-const setMid=v=>{MID=v;try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(_){}};
+const setMid=v=>{if(v!==MID)QIDX=0;MID=v;try{v?localStorage.setItem(KEY,v):localStorage.removeItem(KEY)}catch(_){}};
 const stop=()=>{SRCH++;clearInterval(TM);clearTimeout(PL);TM=PL=null};
 const root=h=>{$('#o').innerHTML=h};
 const letters=['أ','ب','ج','د','هـ','و'];
@@ -142,6 +142,8 @@ function paintResult(){
  get('aa_edu_profiles?select=points').then(p=>{if(p[0])document.querySelectorAll('.pts').forEach(e=>e.textContent=p[0].points)}).catch(()=>{});
 }
 window.addEventListener('beforeunload',e=>{if(ST&&ST.status=='quiz'&&!ST.me_finished){e.preventDefault();e.returnValue=''}});
+/* لو الطالب قفل الصفحة وهو بيدوّر على منافس، نشيله من الطابور فورًا عشان محدش يتوصّل بمنافس مش موجود */
+window.addEventListener('pagehide',()=>{if(WL&&!MID&&BUSY){try{rest('rpc/edu_event_leave',{method:'POST',body:'{}',keepalive:true})}catch(_){}}});
 /* الدخول: لو فيه مواجهة شغالة نكمّل فيها، وإلا الصالة */
 (()=>{let m=null;try{m=localStorage.getItem(KEY)}catch(_){}if(m){MID=+m;run()}else lobby()})();
 </script></body></html>

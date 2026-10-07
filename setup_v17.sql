@@ -182,6 +182,7 @@ language plpgsql security definer set search_path = public as $$
 declare uid uuid := auth.uid(); ev public.aa_edu_events; mid bigint; opp uuid; ids bigint[];
 begin
   if uid is null then raise exception 'not_authenticated'; end if;
+  if exists (select 1 from public.aa_edu_profiles where id = uid and coalesce(banned, false)) then raise exception 'banned'; end if;
 
   -- عنده مواجهة شغالة؟ كمّل فيها
   for mid in select mp.match_id from public.aa_edu_match_players mp join public.aa_edu_matches m on m.id = mp.match_id
