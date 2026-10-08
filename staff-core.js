@@ -41,7 +41,7 @@ async function loadTab(){const t=tab;
  if(t=='a'){ads=await LK('aa_edu_ads?order=sort,id').catch(()=>[]);return}
  if(t=='b'){bks=await LK('aa_edu_books?order=id.desc').catch(()=>[]);return}
  if(t=='u'){ups=await LK('aa_edu_updates?order=created_at.desc').catch(()=>[]);return}
- if(t=='ev'){if(!window.evLoad&&document.readyState=='loading')await new Promise(r=>document.addEventListener('DOMContentLoaded',r,{once:true}));if(window.evLoad)await evLoad();return}
+ if(t=='ev'){if(window.evLoad)await evLoad();return}
  if(t=='ab'){const r=await rest('aa_edu_about?id=eq.1').catch(()=>({ok:false}));ABerr=!r.ok;AB=r.ok?((await r.json())[0]||{}):{}}}
 const kc=(i,n,l)=>`<div class="kc"><span class="ki">${ic(i,22)}</span><span><b>${n}</b><small>${l}</small></span></div>`;
 const ib=(a,id,i,t,x='')=>`<button class="ib ${x}" data-a="${a}" data-id="${id}" title="${t}" aria-label="${t}">${ic(i,16)}</button>`;

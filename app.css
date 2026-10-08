@@ -489,10 +489,7 @@ details.optb>summary{cursor:pointer;list-style:none}details.optb>summary::-webki
 .ev-b{display:inline-block;font-size:12px;font-weight:700;border-radius:99px;padding:2px 10px;margin-top:4px}.ev-b.on{background:#dcfae6;color:#067647}.ev-b.off{background:#f2f4f7;color:#475467}.ev-b.warn{background:#fef0c7;color:#b54708}
 .ev-aq{border:1px solid var(--bo);border-radius:12px;padding:10px 12px;margin-top:8px;background:#fff}.ev-aq>div:not(.row){font-size:14px;padding:3px 8px;margin-top:3px;border-radius:7px;color:#344054}.ev-aq>div.c{background:#ecfdf3;color:#067647;font-weight:600}
 
-/* نموذج إضافة سؤال (الفعاليات) */
-.evf{margin-top:8px;padding:14px;background:#f7fbff;border-color:#cfe3f3}.evf-l{display:block;font-weight:700;font-size:14px;margin:8px 0 6px;color:var(--bd)}.evf textarea{width:100%;resize:vertical}
-.evo-r{display:flex;align-items:center;gap:8px;margin-bottom:8px;background:#fff;border:1.5px solid var(--bo);border-radius:12px;padding:6px 10px;transition:border-color .15s,background .15s}.evo-r:has(input[type=radio]:checked){border-color:#12b76a;background:#f3fcf7}
-.evo-r input[type=radio]{width:20px;height:20px;accent-color:#12b76a;flex:none;margin:0;cursor:pointer}.evo-l{flex:none;width:24px;text-align:center;color:var(--mu)}.evo-i{flex:1;min-width:0;border:0!important;background:transparent!important;box-shadow:none!important;outline:0;padding:8px 4px}
-.evo-x{flex:none;width:30px;height:30px;border-radius:8px;border:0;background:#f2f4f7;color:#475467;font-size:20px;line-height:1;cursor:pointer}.evo-x:hover{background:#fee4e2;color:#b42318}
-.evf-act{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;margin-top:6px}.evf-act .btn:disabled{opacity:.45;cursor:not-allowed}
-.evf-bulk{margin-top:12px}.evf-bulk summary{cursor:pointer;font-weight:600;color:var(--bl);padding:6px 0}.evf-bulk textarea{width:100%;margin:8px 0}
+/* ===== سكيلتون صور الكورسات (كل الصفحات): بيظهر لمعان لحد ما الصورة تحمّل، وبعدها الصورة بتظهر بنعومة ===== */
+.cv2[style*="url("]:not(.ld){background:linear-gradient(90deg,#dfe9f3 25%,#f3f8fd 40%,#dfe9f3 60%)!important;background-size:300% 100%!important;animation:skm 1.3s ease-in-out infinite}
+.cv2.ld[style*="url("]{animation:cvIn .55s ease}
+@keyframes cvIn{from{opacity:.35}to{opacity:1}}

@@ -302,3 +302,7 @@ const embedUrl=u=>{u=String(u||'');let m=u.match(/drive\.google\.com\/(?:file\/d
 const frameHtml=u=>`<div style="margin-top:10px"><iframe src="${esc(embedUrl(u))}" style="width:100%;height:70vh;border:1px solid var(--bo);border-radius:12px;background:#fff" allow="fullscreen" referrerpolicy="no-referrer" loading="lazy"></iframe><a class="muted" target="_blank" rel="noopener" href="${esc(u)}">فتح في تبويب جديد</a></div>`;
 const saveProg=(cid,pos,dur,done)=>U()&&post('aa_edu_progress?on_conflict=user_id,course_id',{user_id:U().id,course_id:cid,position:pos,duration:dur,done:!!done,updated_at:new Date().toISOString()},'resolution=merge-duplicates,return=minimal').catch(()=>{});
 
+
+/* ===== سكيلتون صور الكورسات: يحمّل الصورة في الخلفية ويشيل اللمعان أول ما تجهز (أو لو فشلت/اتأخرت 8 ثواني) ===== */
+function imgSk(){document.querySelectorAll('.cv2[style*="url("]:not(.ld):not([data-sk])').forEach(e=>{e.dataset.sk=1;const m=(e.getAttribute('style')||'').match(/url\(\s*['"]?([^'")]+)/),d=()=>e.classList.add('ld');if(!m)return d();const i=new Image();i.onload=i.onerror=d;i.src=m[1];setTimeout(d,8000)})}
+(function(){let t=null;const go=()=>{imgSk();new MutationObserver(()=>{clearTimeout(t);t=setTimeout(imgSk,30)}).observe(document.body,{childList:true,subtree:true})};document.readyState==='loading'?document.addEventListener('DOMContentLoaded',go):go()})();

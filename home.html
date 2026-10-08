@@ -1,49 +1,153 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<script>try{if(sessionStorage.getItem('acad_intro')||matchMedia('(prefers-reduced-motion:reduce)').matches)document.documentElement.classList.add('noin')}catch(e){document.documentElement.classList.add('noin')}setTimeout(function(){document.documentElement.classList.add('noin')},7000)</script>
 <title>الرئيسية | أكاديمية</title>
 <meta name="description" content="الرئيسية | أكاديمية">
 <meta name="robots" content="noindex, nofollow">
 <meta name="theme-color" content="#0878C9">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"></head>
-<body class="cr" data-p="home"><main class="pg" id="m"><div id="o"><div class="skw" aria-busy="true"><div class="sk sk-h" style="width:45%"></div><div class="sk sk-ban"></div><div class="sk-g"><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div><div class="sk sk-row"></div><div class="sk sk-row"></div></div></div></main>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Lalezar&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="home.css"></head>
+<body class="cr" data-p="home">
+<div id="intro" aria-hidden="true"><div class="in-grid"></div><i class="in-orb o1"></i><i class="in-orb o2"></i>
+ <div class="in-c"><div class="in-wrap"><span class="in-w w1"><b>انت</b></span><span class="in-w w2"><b>قدها</b></span></div>
+  <svg class="in-ul" viewBox="0 0 400 24" preserveAspectRatio="none"><defs><linearGradient id="inUg" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ffe08a"/><stop offset="1" stop-color="#ffb100"/></linearGradient></defs><path pathLength="1" d="M6 15 C 70 4, 150 22, 230 11 S 350 6, 394 13"/></svg>
+  <div class="in-sub">أكاديمية · مذاكرة مجانية لكل طالب</div></div>
+ <div class="in-sk">اضغط في أي مكان للتخطي</div></div>
+<main class="pg hm-pg" id="m"><div id="o"><div class="hm hm-sk" aria-busy="true">
+ <div class="hm-a"><div class="skw"><div class="sk sk-h" style="width:42%"></div><div class="sk sk-ban"></div><div class="sk-tl"><div class="sk sk-t"></div><div class="sk sk-t"></div><div class="sk sk-t"></div><div class="sk sk-t"></div></div><div class="sk-two"><div class="sk sk-bx"></div><div class="sk sk-bx"></div></div></div></div>
+ <aside class="hm-s"><div class="sk sk-sd"></div><div class="sk sk-sd" style="height:250px"></div></aside>
+ <div class="hm-b"><div class="skw" style="margin-top:14px"><div class="sk sk-bx" style="height:190px"></div><div class="sk sk-sj"></div><div class="sk sk-sj"></div></div></div>
+</div></div></main>
 <script src="config.js"></script><script src="lib.js"></script>
 <script>
+/* ===== أنيميشن الافتتاح (مرة واحدة في الجلسة) ===== */
+(function(){const H=document.documentElement,el=document.getElementById('intro');
+ if(H.classList.contains('noin')||!el)return;
+ try{sessionStorage.setItem('acad_intro','1')}catch(_){}
+ for(let i=0;i<16;i++){const s=document.createElement('i');s.className='in-sp';s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;animation-delay:${(Math.random()*2.4).toFixed(2)}s;transform:scale(${(.5+Math.random()).toFixed(2)})`;el.appendChild(s)}
+ let done=false;const end=()=>{if(done)return;done=true;el.classList.add('out');setTimeout(()=>{H.classList.add('noin');el.remove()},1000)};
+ el.addEventListener('click',end);addEventListener('keydown',end,{once:true});
+ const run=()=>{el.classList.add('go');setTimeout(end,3100)};
+ Promise.race([document.fonts&&document.fonts.load?document.fonts.load('120px Lalezar','انت قدها'):Promise.resolve(),new Promise(r=>setTimeout(r,1300))]).then(run,run)})();
+
 if(!U())location.replace('auth#login');
 topbar();
+Object.assign(IP,{flame:'<path d="M12 3c1 3.5 5 5.5 5 10.5a5 5 0 01-10 0c0-2 1-3.2 2.2-4.2.1 2 1 3 2.1 3C11.5 9.6 11 6.4 12 3z"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'});
 const ok=p=>p.catch(()=>[]),u=U()||{},h=new Date().getHours(),gr=h<12?'صباح الخير':h<18?'نهارك سعيد':'مساء الخير';
 const DEF=[['إعلانك هنا','تواصل مع الإدارة لعرض متجرك','#0878C9,#075B98'],['عروض المتاجر','اكتشف عروض المتاجر القريبة','#f59e0b,#d97706'],['تعلّم أكثر','دروس الثالث الإعدادي مجانًا','#16a34a,#15803d']];
-const RS={watch:'مشاهدة درس',file:'فتح ملف',solution:'فيديو حل',question:'سؤال للمدرس',review:'تقييم'};
-const cc=x=>`<a class="cc" href="course?id=${x.id}"><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${x.is_free?'f':'p'}">${x.is_free?'مجاني':'مميز'}</span></div><div class="cb"><h3>${esc(x.title)}</h3><p class="tg">${esc(x.teacher_name)}</p></div></a>`;
-let UD=null;const P0=Promise.all([ME().then(m=>m?[m]:[]),ok(get('aa_edu_points_log?select=reason,ref,amount,created_at&order=created_at.desc&limit=300')),ok(get('aa_edu_enrollments?select=course_id')),cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3')),ok(get('aa_edu_quiz_attempts?select=score,total,aa_edu_quizzes(title)&order=created_at.desc&limit=5'))]);
-const render=([p,lg,en,cs,ads,up,qa])=>{UD=[p,lg,en,qa];window._hsig=JSON.stringify([cs,ads,up]);
+const DAYS=[[6,'السبت'],[0,'الأحد'],[1,'الإثنين'],[2,'الثلاثاء'],[3,'الأربعاء'],[4,'الخميس'],[5,'الجمعة']],TD=new Date().getDay(),DN=d=>(DAYS.find(x=>x[0]==d)||[0,''])[1];
+const fmtTm=t=>{if(!t)return '';const[a,b]=t.split(':').map(Number);return(a%12||12)+':'+String(b).padStart(2,'0')+(a<12?' ص':' م')};
+const mix=(c,p)=>`color-mix(in srgb,${c} ${p}%,#06233b)`;
+const timeout=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
+let UD=null,LB=null,SCH=[],SCM='db',SUBS=[];
+const LKS='acad_sch:'+(u.id||'-');
+const subOf=id=>SUBS.find(s=>s.id==id);
+
+/* ---------- جلب: ترتيب الطلاب + جدول المذاكرة (لو الجداول مش موجودة بيكمّل الموقع عادي) ---------- */
+const lbGet=()=>timeout(post('rpc/edu_leaderboard',{}).then(r=>r.ok?r.json():null).catch(()=>null),5000);
+const schGet=()=>timeout(get('aa_edu_schedule?select=id,day,tm,title,subject_id,done&order=tm').then(r=>{SCM='db';return r}).catch(()=>{SCM='local';try{return JSON.parse(localStorage.getItem(LKS)||'[]')}catch(_){return []}}),5000).then(r=>r||[]);
+const schSave=()=>{if(SCM=='local')try{localStorage.setItem(LKS,JSON.stringify(SCH))}catch(_){}};
+
+/* ---------- قطع الواجهة ---------- */
+const cc=(x,i,subs,done)=>`<a class="cc hc rv" style="--i:${i%8}" href="course?id=${x.id}"${subs.has(x.id)?' data-sub="1"':''}><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${x.is_free?'f':'p'}">${x.is_free?'مجاني':'مميز'}</span><span class="hc-t">${subs.has(x.id)?'<span class="s">مشترك</span>':''}${done.has(String(x.id))?`<span class="d">${ic('check',12)} تمت</span>`:''}</span></div><div class="cb"><h3>${esc(x.title)}</h3><p class="tg">${esc(x.teacher_name)}</p></div></a>`;
+const tile=(i,icn,val,lab,c1,c2,pre,suf)=>`<div class="hs rv" style="--i:${i};--c1:${c1};--c2:${c2}"><span class="hs-i">${ic(icn,20)}</span><b>${pre||''}<span data-cu="${val}">${val}</span>${suf?`<em>${suf}</em>`:''}</b><small>${lab}</small></div>`;
+const ring=(i,p,lab,c1,c2)=>{p=Math.max(0,Math.min(100,Math.round(p)));return `<div class="rg rv" style="--i:${i}"><div class="rg-c"><svg viewBox="0 0 80 80"><defs><linearGradient id="rg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><circle class="tr" cx="40" cy="40" r="32" pathLength="100"/><circle class="pr" cx="40" cy="40" r="32" pathLength="100" stroke="url(#rg${i})" style="--p:${p}"/></svg><b><span data-cu="${p}">${p}</span>%</b></div><small>${lab}</small></div>`};
+
+function lbHTML(){
+ if(!LB||!LB.top)return `<div class="hbox lbx"><div class="lbx-h"><b>${ic('trophy',18)} ترتيب الطلاب</b></div><p class="empty" style="padding:14px">الترتيب غير متاح حاليًا.</p></div>`;
+ const mx=Math.max(1,...LB.top.map(x=>x.points),LB.me?LB.me.points:0);
+ const row=(x,i)=>`<div class="lr rv${x.me?' me':''}" style="--i:${i};--w:${Math.max(6,x.points/mx*100)}%"><span class="rk r${x.rank<=3?x.rank:0}">${x.rank==1?ic('crown',15):x.rank}</span><span class="nm">${esc(x.name)}${x.me?'<em>أنت</em>':''}</span><b>${x.points}</b></div>`;
+ const inTop=LB.top.some(x=>x.me),nm=(u.name||'').split(' ')[0]||'أنت';
+ return `<div class="hbox lbx rv"><div class="lbx-h"><b>${ic('trophy',18)} ترتيب الطلاب</b><small>حسب النقاط · ${LB.total} طالب</small></div>${LB.top.length?LB.top.map(row).join(''):'<p class="empty" style="padding:14px">لسه مفيش ترتيب. ابدأ واكسب نقاط!</p>'}${LB.me&&!inTop?`<div class="lsep">• • •</div>${row({rank:LB.me.rank,name:nm,points:LB.me.points,me:true},LB.top.length)}`:''}</div>`}
+
+function formHTML(){return `<form class="hbox sf rv" id="sf" autocomplete="off"><b class="t">${ic('cal',18)} أضف للجدول</b>
+ <label>اليوم<select id="sd">${DAYS.map(([d,n])=>`<option value="${d}"${d==TD?' selected':''}>${n}${d==TD?' (النهاردة)':''}</option>`).join('')}</select></label>
+ <div class="two2"><label>الوقت<input id="stm" type="time"></label><label>المادة<select id="ssb"><option value="">بدون</option>${SUBS.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></label></div>
+ <label>المهمة<input id="stx" type="text" maxlength="80" placeholder="مثال: مراجعة درس المعادلات" required></label>
+ <button class="btn btn-p" type="submit">${ic('plus',18)} أضف للجدول</button></form>`}
+
+function drawSch(){const w=document.getElementById('schw');if(!w)return;
+ const by=d=>SCH.filter(x=>x.day==d).sort((a,b)=>(a.tm||'99').localeCompare(b.tm||'99')),tn=by(TD),dn=tn.filter(x=>x.done).length;
+ const si=x=>{const s=subOf(x.subject_id),c=(s&&s.color)||'#0878C9';return `<div class="si${x.done?' dn':''}" style="--c:${esc(c)}">${x.tm?`<span class="st">${fmtTm(x.tm)}</span>`:''}<span class="sx">${esc(x.title)}</span>${s?`<small>${esc(s.name)}</small>`:''}<span class="sa"><button type="button" data-t="${x.id}" title="${x.done?'إلغاء التم':'تم'}" aria-label="تم">${ic('check',14)}</button><button type="button" data-x="${x.id}" title="حذف" aria-label="حذف">${ic('x',14)}</button></span></div>`};
+ document.getElementById('sct').innerHTML=`<span class="tdb">${ic('cal',14)} النهاردة · ${DN(TD)}</span><span>${tn.length?`${tn.length} مهام${dn?` · خلّصت ${dn}`:''}`:'مفيش مهام النهاردة'}</span>`;
+ w.innerHTML=`<table class="sch"><thead><tr>${DAYS.map(([d,n])=>`<th class="${d==TD?'today':''}">${n}${d==TD?'<em>النهاردة</em>':''}</th>`).join('')}</tr></thead><tbody><tr>${DAYS.map(([d])=>`<td class="${d==TD?'today':''}">${by(d).map(si).join('')||'<span class="se">—</span>'}</td>`).join('')}</tr></tbody></table>`;
+ const t=w.querySelector('td.today');if(t&&w.scrollWidth>w.clientWidth){const sw=w.scrollWidth,cw=w.clientWidth,x=t.offsetLeft+t.offsetWidth/2-cw/2;w.scrollLeft=Math.max(-(sw-cw),Math.min(0,x-(sw-cw)))}}
+
+async function schAdd(o){
+ if(SCH.length>=60)return toast('وصلت للحد الأقصى (60 مهمة)',1);
+ if(SCM=='local'){SCH.push({id:Date.now(),...o,done:false});schSave();drawSch();return toast('اتضافت للجدول')}
+ try{const r=await post('aa_edu_schedule',o,'return=representation');if(!r.ok)throw 0;const a=await r.json();SCH.push(a[0]);drawSch();toast('اتضافت للجدول')}
+ catch(_){toast('تعذّرت الإضافة، جرّب تاني',1)}}
+async function schSet(id,patch){const x=SCH.find(y=>y.id==id);if(!x)return;
+ if(patch===null){SCH=SCH.filter(y=>y.id!=id)}else Object.assign(x,patch);drawSch();
+ if(SCM=='local')return schSave();
+ try{const r=await rest('aa_edu_schedule?id=eq.'+id,patch===null?{method:'DELETE'}:{method:'PATCH',body:JSON.stringify(patch)});if(!r.ok)throw 0}catch(_){toast('تعذّر الحفظ',1);SCH=await schGet();drawSch()}}
+
+/* ---------- أنيميشن الظهور + العدّادات ---------- */
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function cu(root){root.querySelectorAll('[data-cu]').forEach(e=>{if(e.dataset.d)return;e.dataset.d=1;const to=+e.dataset.cu||0;if(RM||to===0){e.textContent=to;return}const t0=performance.now(),D=Math.min(1400,500+to*8);const f=n=>{const k=Math.min(1,(n-t0)/D),v=1-Math.pow(1-k,3);e.textContent=Math.round(to*v);if(k<1)requestAnimationFrame(f)};e.textContent=0;requestAnimationFrame(f)})}
+let IO=null;function rvInit(){if(!IO)IO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const t=e.target;t.classList.add('in');IO.unobserve(t);cu(t)}),{threshold:.1,rootMargin:'0px 0px -4% 0px'});
+ document.querySelectorAll('#o .rv:not([data-o])').forEach(e=>{e.dataset.o=1;IO.observe(e)});
+ document.querySelectorAll('#o img').forEach(i=>{if(i.complete&&i.naturalWidth)i.classList.add('ld')})}
+
+const P0=Promise.all([ME().then(m=>m?[m]:[]),ok(get('aa_edu_points_log?select=reason,ref,amount,created_at&order=created_at.desc&limit=300')),ok(get('aa_edu_enrollments?select=course_id')),cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3')),ok(get('aa_edu_quiz_attempts?select=score,total,aa_edu_quizzes(title)&order=created_at.desc&limit=5')),ok(cget('aa_edu_subjects?grade=eq.prep3&order=sort')),lbGet(),schGet()]);
+
+const render=([p,lg,en,cs,ads,up,qa,ss,lb,sc])=>{
+ UD=[p,lg,en,qa];window._hsig=JSON.stringify([cs,ads,up,ss]);
+ if(lb!==undefined)LB=lb;if(sc)SCH=sc;SUBS=ss||[];
  const n=p[0]?.points||0,name=(p[0]?.name||u.name||'').split(' ')[0],done=new Set(lg.filter(x=>x.reason=='watch').map(x=>String(x.ref))),subs=new Set(en.map(x=>x.course_id));
- const mine=cs.filter(c=>subs.has(c.id)),sj=new Set(mine.map(c=>c.subject_id));
+ const mine=cs.filter(c=>subs.has(c.id));
  const dl=new Set();cs.forEach(c=>{const m=cs.filter(y=>y.lesson_id==c.lesson_id&&y.teacher_id==c.teacher_id);if(m.every(y=>done.has(String(y.id))))dl.add(c.lesson_id)});
- const nxt=cs.filter(c=>!done.has(String(c.id))&&!subs.has(c.id)&&!dl.has(c.lesson_id)).sort((a,b)=>sj.has(b.subject_id)-sj.has(a.subject_id)).slice(0,4);
- const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return{k:d.toDateString(),l:d.toLocaleDateString('ar-EG',{weekday:'short'}),v:0}});
- lg.forEach(x=>{const d=days.find(y=>y.k==new Date(x.created_at).toDateString());if(d)d.v+=x.amount});const mx=Math.max(1,...days.map(d=>d.v));
+ const allL=new Set(cs.map(c=>c.lesson_id)),lp=allL.size?dl.size/allL.size*100:0;
+ const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return{k:d.toDateString(),l:d.toLocaleDateString('ar-EG',{weekday:'short'}),v:0,t:i==6}});
+ lg.forEach(x=>{const d=days.find(y=>y.k==new Date(x.created_at).toDateString());if(d)d.v+=x.amount});const mx=Math.max(1,...days.map(d=>d.v)),wkp=days.reduce((a,d)=>a+d.v,0);
+ const ds=new Set(lg.map(x=>new Date(x.created_at).toDateString()));let st=0,dd=new Date();if(!ds.has(dd.toDateString()))dd.setDate(dd.getDate()-1);while(ds.has(dd.toDateString())){st++;dd.setDate(dd.getDate()-1)}
  const cnt=r=>lg.filter(x=>x.reason==r).length,sl=ads.length?ads.map(a=>[a.title,'',null,a.image,a.link]):DEF.map(a=>[a[0],a[1],a[2]]);
- $('#o').innerHTML=`<div class="hi"><h1>${gr} ${esc(name)}</h1><span class="pt">${ic('star',14,'fill amber')} <b class="pts">${n}</b> نقطة</span></div><p class="muted">كمّل من حيث وقفت واكسب نقاط.</p>
- <div class="ads" id="ads"><div class="ads-t" id="at">${sl.map(a=>`<${a[4]?'a href="'+esc(a[4])+'" target="_blank" rel="noopener"':'div'} class="ad${a[3]?' ad-img':''}"${a[3]?` aria-label="${esc(a[0])}"`:` style="background:linear-gradient(135deg,${a[2]})"`}>${a[3]?`<img src="${esc(a[3])}" alt="${esc(a[0])}" draggable="false" decoding="async">`:`${esc(a[0])}<small>${esc(a[1])}</small>`}</${a[4]?'a':'div'}>`).join('')}</div><div class="ads-d" id="ad">${sl.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></div>
- <div class="stat"><div class="box"><b>${n}</b>نقطة</div><div class="box"><b>${lvl(n)}</b>المستوى</div><div class="box"><b>${dl.size}</b>درس خلّصته</div><div class="box"><b>${mine.length}</b>اشتراكاتك</div></div>
- <div class="two"><div class="box"><b>${ic('chart',18)} تحليلك آخر ٧ أيام</b><div class="bars">${days.map(d=>`<div><i style="height:${d.v/mx*80}%"></i>${d.l}</div>`).join('')}</div></div>
- <div class="box"><b>${ic('trophy',18)} نتائجك</b><div class="pbar" style="margin:10px 0"><i style="width:${n%100}%"></i></div><small class="muted">${100-n%100} نقطة للمستوى ${lvl(n)+1}</small>
- <div class="lg"><span>دروس خلّصتها</span><b>${dl.size}</b></div><div class="lg"><span>فيديوهات حل</span><b>${cnt('solution')}</b></div><div class="lg"><span>أسئلة للمدرس</span><b>${cnt('question')}</b></div><div class="lg"><span>تقييمات</span><b>${cnt('review')}</b></div></div></div>
- ${qa.length?`<div class="box" style="margin-top:14px"><b>${ic('quiz',18)} آخر اختباراتك</b>${qa.map(x=>`<div class="lg"><span>${esc(x.aa_edu_quizzes?.title||'اختبار')}</span><b>${x.score}/${x.total}</b></div>`).join('')}</div>`:''}
- <h2 class="lsn">${ic('book',20)} المشترك فيه</h2>${mine.length?`<div class="grid">${mine.map(cc).join('')}</div>`:'<p class="empty">لم تشترك في كورس بعد. افتح أي كورس واضغط «اشترك».</p>'}
- <h2 class="lsn">${ic('right',20)} إيه القادم</h2>${nxt.length?`<div class="grid">${nxt.map(cc).join('')}</div>`:'<p class="empty">شاهدت كل الدروس المتاحة، ترقّب الجديد!</p>'}
- ${up.map(x=>`<div class="box"><b>${ic('mega',18)} ${esc(x.title)}</b><div>${esc(x.body||'')}</div></div>`).join('')}
- <a class="btn btn-p" style="margin-top:16px" href="courses">ابدأ اختيار المادة والدرس</a>`;
- (window._rsr!==undefined?Promise.resolve(window._rsr):resume().then(r=>window._rsr=r)).then(r=>{if(r)$('#o .stat').insertAdjacentHTML('beforebegin',resumeBox(r))});
- let i=0;const t=$('#at'),ds=[...document.querySelectorAll('#ad i')],fit=()=>{const s=t.children[i];if(s&&s.offsetHeight)$('#ads').style.height=s.offsetHeight+'px'},go=k=>{i=(k+sl.length)%sl.length;t.style.transform=`translateX(-${i*100}%)`;ds.forEach((d,j)=>d.classList.toggle('on',j==i));fit()};t.addEventListener('load',fit,true);window.addEventListener('resize',fit);fit();
+ const qs=qa.reduce((a,x)=>a+x.score,0),qt=qa.reduce((a,x)=>a+x.total,0),qp=qt?qs/qt*100:0;
+ const pct=LB&&LB.me&&LB.total>1?(LB.total-LB.me.rank)/(LB.total-1)*100:null;
+ const sec=SUBS.map(s=>({s,c:cs.filter(c=>c.subject_id==s.id)})).filter(x=>x.c.length);
+ const sc2=s=>s.color||'#0878C9';
+ let ci=0;
+ $('#o').innerHTML=`<div class="hm">
+ <div class="hm-a">
+  <div class="hm-hi"><h1>${gr} ${esc(name)}</h1><span class="pt">${ic('star',14,'fill amber')} <b class="pts">${n}</b> نقطة</span></div><p class="muted">كمّل من حيث وقفت واكسب نقاط.</p>
+  <div class="ads" id="ads"><div class="ads-t" id="at">${sl.map((a,i)=>`<${a[4]?'a href="'+esc(a[4])+'" target="_blank" rel="noopener"':'div'} class="ad${a[3]?' ad-img':''}"${a[3]?` aria-label="${esc(a[0])}"`:` style="background:linear-gradient(135deg,${a[2]})"`}>${a[3]?`<img src="${esc(a[3])}" alt="${esc(a[0])}" draggable="false" decoding="async"${i?'':' fetchpriority="high"'} onload="this.classList.add('ld');this.parentNode.classList.add('ok')" onerror="this.classList.add('ld');this.parentNode.classList.add('ok')">`:`${esc(a[0])}<small>${esc(a[1])}</small>`}</${a[4]?'a':'div'}>`).join('')}</div><div class="ads-d" id="ad">${sl.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></div>
+  <div class="hs-g">${tile(0,'star',n,'نقطة','#f59e0b','#fbbf24')}${tile(1,'bolt',lvl(n),'المستوى','#0878C9','#38bdf8')}${LB&&LB.me?tile(2,'crown',LB.me.rank,'ترتيبك من '+LB.total,'#7c3aed','#a78bfa','#'):tile(2,'chart',wkp,'نقاط الأسبوع','#7c3aed','#a78bfa')}${tile(3,'flame',st,'أيام متتالية','#ef4444','#fb923c','','يوم')}${tile(4,'check',dl.size,'درس خلّصته','#16a34a','#4ade80')}${tile(5,'book',mine.length,'اشتراكاتك','#0891b2','#22d3ee')}</div>
+  <div class="rings">${ring(0,n%100,'تقدّمك للمستوى '+(lvl(n)+1),'#0878C9','#38bdf8')}${ring(1,lp,'إتمام الدروس','#16a34a','#4ade80')}${ring(2,qp,qt?'متوسط الاختبارات':'الاختبارات (لسه)','#f59e0b','#fbbf24')}${pct!=null?ring(3,pct,'أفضل من طلاب المنصة','#7c3aed','#c084fc'):ring(3,wkp?Math.min(100,wkp):0,'نقاط الأسبوع','#7c3aed','#c084fc')}</div>
+  <div class="hm-two">
+   <div class="hbox rv"><b class="t">${ic('chart',18)} نشاطك آخر ٧ أيام<small>${wkp} نقطة</small></b><div class="wk">${days.map((d,i)=>`<div class="${d.t?'td':''}"><span class="v">${d.v||''}</span><i class="bz" style="--h:${Math.max(4,d.v/mx*100)}%;--i:${i}"></i>${d.l}</div>`).join('')}</div></div>
+   <div class="hbox rv"><b class="t">${ic('target',18)} تقدّمك في المواد</b>${sec.length?sec.map(x=>{const w=x.c.filter(c=>done.has(String(c.id))).length,pp=Math.round(w/x.c.length*100),c=sc2(x.s);return `<div class="sp"><span class="sp-i" style="background:${esc(c)}">${ico(x.s.icon,18)}</span><div class="sp-m"><div class="row"><b>${esc(x.s.name)}</b><small>${w}/${x.c.length} · ${pp}%</small></div><div class="sp-b"><i style="--w:${pp}%;background:linear-gradient(90deg,${esc(c)},${mix(esc(c),60)})"></i></div></div></div>`}).join(''):'<p class="empty" style="padding:18px">هتظهر المواد هنا.</p>'}</div>
+  </div>
+  <div class="hm-two">
+   <div class="hbox rv"><b class="t">${ic('trophy',18)} نتائجك</b><div class="lv-bar"><i style="--w:${n%100}%"></i></div><small class="muted">${100-n%100} نقطة للمستوى ${lvl(n)+1}</small>
+    <div class="lg"><span>دروس خلّصتها</span><b>${dl.size}</b></div><div class="lg"><span>فيديوهات حل</span><b>${cnt('solution')}</b></div><div class="lg"><span>أسئلة للمدرس</span><b>${cnt('question')}</b></div><div class="lg"><span>تقييمات</span><b>${cnt('review')}</b></div></div>
+   <div class="hbox rv"><b class="t">${ic('quiz',18)} آخر اختباراتك${qt?`<small>المتوسط ${Math.round(qp)}%</small>`:''}</b>${qa.length?qa.map(x=>`<div class="lg"><span>${esc(x.aa_edu_quizzes?.title||'اختبار')}</span><b>${x.score}/${x.total}</b></div>`).join(''):'<p class="empty" style="padding:18px">لسه ماعملتش اختبار.</p>'}</div>
+  </div>
+ </div>
+ <aside class="hm-s" id="side">${lbHTML()}${formHTML()}</aside>
+ <div class="hm-b">
+  <section class="hbox rv" style="margin-top:14px"><div class="sch-h"><b>${ic('cal',18)} جدول مذاكرتك</b><div id="sct"></div></div><div class="sch-w" id="schw"></div></section>
+  <h2 class="lsn">${ic('book',20)} الكورسات حسب المادة</h2>
+  <div class="fcs"><button class="fc on" data-f="all">الكل</button><button class="fc" data-f="sub">المشترك فيه (${mine.length})</button></div>
+  <p class="empty" id="nosub" hidden>لم تشترك في كورس بعد. افتح أي كورس واضغط «اشترك».</p>
+  ${sec.length?sec.map(x=>{const c=sc2(x.s);return `<section class="sbj" style="--c:${esc(c)}"><div class="sbj-h"><span class="sbj-i">${ico(x.s.icon,26)}</span><div><h2>${esc(x.s.name)}</h2><small>${x.c.length} كورس</small></div><a href="courses#${x.s.id}">عرض الكل ${ic('left',16)}</a></div><div class="grid">${x.c.slice(0,8).map(k=>cc(k,ci++,subs,done)).join('')}</div></section>`}).join(''):(cs.length?`<div class="grid">${cs.slice(0,8).map(k=>cc(k,ci++,subs,done)).join('')}</div>`:'<p class="empty">مفيش كورسات لسه، ترقّب الجديد!</p>')}
+  ${up.map(x=>`<div class="box rv"><b>${ic('mega',18)} ${esc(x.title)}</b><div>${esc(x.body||'')}</div></div>`).join('')}
+  <a class="btn btn-p" style="margin-top:16px" href="courses">ابدأ اختيار المادة والدرس</a>
+ </div></div>`;
+ drawSch();
+ const sf=$('#sf');sf.onsubmit=e=>{e.preventDefault();const t=$('#stx').value.trim();if(!t)return;schAdd({day:+$('#sd').value,tm:$('#stm').value||null,title:t,subject_id:$('#ssb').value?+$('#ssb').value:null});$('#stx').value='';$('#stm').value=''};
+ $('#schw').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.t){const x=SCH.find(y=>y.id==b.dataset.t);if(x)schSet(x.id,{done:!x.done})}else if(b.dataset.x)schSet(+b.dataset.x||b.dataset.x,null)};
+ document.querySelectorAll('.fc').forEach(b=>b.onclick=()=>{document.querySelectorAll('.fc').forEach(x=>x.classList.toggle('on',x==b));const s=b.dataset.f=='sub';document.querySelectorAll('.hc').forEach(c=>c.hidden=s&&!c.dataset.sub);document.querySelectorAll('.sbj').forEach(x=>x.hidden=![...x.querySelectorAll('.hc')].some(c=>!c.hidden));$('#nosub').hidden=!(s&&!mine.length)});
+ rvInit();
+ (window._rsr!==undefined?Promise.resolve(window._rsr):resume().then(r=>window._rsr=r)).then(r=>{if(r)$('#o .hs-g').insertAdjacentHTML('beforebegin',resumeBox(r))});
+ let i=0;const t=$('#at'),dts=[...document.querySelectorAll('#ad i')],fit=()=>{const s=t.children[i];if(s&&s.offsetHeight)$('#ads').style.height=s.offsetHeight+'px'},go=k=>{i=(k+sl.length)%sl.length;t.style.transform=`translateX(-${i*100}%)`;dts.forEach((d,j)=>d.classList.toggle('on',j==i));fit()};t.addEventListener('load',fit,true);window.addEventListener('resize',fit);fit();
  clearInterval(window._adtm);let tm=window._adtm=setInterval(()=>go(i+1),4000),x0=null;const bx=$('#ads');
  bx.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;clearInterval(tm)},{passive:true});
  bx.addEventListener('touchend',e=>{if(x0!=null){const d=e.changedTouches[0].clientX-x0;if(Math.abs(d)>40)go(i+(d<0?1:-1));x0=null}tm=window._adtm=setInterval(()=>go(i+1),4000)});
 };
 P0.then(render).catch(()=>{if(!U())location.replace('auth#login');else $('#o').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>'});
-/* تحديث فوري: بيجيب (من الشبكة) الجزء المتغيّر بس من كورسات/إعلانات/تحديثات، وبيستخدم بيانات الطالب اللي اتحمّلت قبل كده */
-onLive(()=>{if(!UD)return;Promise.all([cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3'))]).then(([cs,ads,up])=>{const sg=JSON.stringify([cs,ads,up]);if(sg===window._hsig)return;window._hsig=sg;render([UD[0],UD[1],UD[2],cs,ads,up,UD[3]])}).catch(()=>{})},['aa_edu_courses','aa_edu_teachers','aa_edu_subjects','aa_edu_lessons','aa_edu_ads','aa_edu_updates']);
+/* تحديث فوري: بيجيب (من الشبكة) الجزء المتغيّر بس من كورسات/إعلانات/تحديثات/مواد، وبيستخدم بيانات الطالب اللي اتحمّلت قبل كده */
+onLive(()=>{if(!UD)return;Promise.all([cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3')),ok(cget('aa_edu_subjects?grade=eq.prep3&order=sort'))]).then(([cs,ads,up,ss])=>{const sg=JSON.stringify([cs,ads,up,ss]);if(sg===window._hsig)return;window._hsig=sg;render([UD[0],UD[1],UD[2],cs,ads,up,UD[3],ss,LB,SCH])}).catch(()=>{})},['aa_edu_courses','aa_edu_teachers','aa_edu_subjects','aa_edu_lessons','aa_edu_ads','aa_edu_updates']);
 </script></body></html>
