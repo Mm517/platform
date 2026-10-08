@@ -8,7 +8,7 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Lalezar&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="home.css"></head>
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="home.css"><link rel="stylesheet" href="community.css"></head>
 <body class="cr" data-p="home">
 <div id="intro" aria-hidden="true"><div class="in-grid"></div><i class="in-orb o1"></i><i class="in-orb o2"></i>
  <div class="in-c"><div class="in-wrap"><span class="in-w w1"><b>انت</b></span><span class="in-w w2"><b>قدها</b></span></div>
@@ -38,22 +38,24 @@ Object.assign(IP,{flame:'<path d="M12 3c1 3.5 5 5.5 5 10.5a5 5 0 01-10 0c0-2 1-3
 const ok=p=>p.catch(()=>[]),u=U()||{},h=new Date().getHours(),gr=h<12?'صباح الخير':h<18?'نهارك سعيد':'مساء الخير';
 const DEF=[['إعلانك هنا','تواصل مع الإدارة لعرض متجرك','#0878C9,#075B98'],['عروض المتاجر','اكتشف عروض المتاجر القريبة','#f59e0b,#d97706'],['تعلّم أكثر','دروس الثالث الإعدادي مجانًا','#16a34a,#15803d']];
 const mix=(c,p)=>`color-mix(in srgb,${c} ${p}%,#06233b)`;
-let UD=null,LB=null;
+let UD=null,CM=null;
 
-/* ---------- جلب: ترتيب الطلاب + جدول المذاكرة (لو الجداول مش موجودة بيكمّل الموقع عادي) ---------- */
-const lbGet=()=>timeout(post('rpc/edu_leaderboard',{}).then(r=>r.ok?r.json():null).catch(()=>null),5000);
+/* ---------- جلب: ملخص المجتمع + جدول المذاكرة (لو الجداول مش موجودة بيكمّل الموقع عادي) ---------- */
+const cmGet=()=>timeout(post('rpc/comm_summary',{}).then(r=>r.ok?r.json():null).catch(()=>null),5000);
 
 /* ---------- قطع الواجهة ---------- */
 const cc=(x,i,subs,done,c)=>{c=c||'#0878C9';const dn=done.has(String(x.id)),te=String(x.teacher_name||'').trim();return `<a class="cc hc rv" style="--i:${i%8};--c:${esc(c)}" href="course?id=${x.id}"${subs.has(x.id)?' data-sub="1"':''}><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:`background:linear-gradient(135deg,${esc(c)},${mix(esc(c),50)})`}"><span class="hc-pl">${ic('play',22)}</span>${subs.has(x.id)?`<span class="hc-t"><span class="s">${ic('check',12)} مشترك</span></span>`:''}</div><div class="hc-b"><div class="hc-te"><span class="av" style="background:linear-gradient(135deg,${esc(c)},${mix(esc(c),60)})">${esc(te.charAt(0)||'؟')}</span><span class="tn">${esc(te)}</span></div><h3>${esc(x.title)}</h3><div class="hc-f"><span class="${dn?'ok':''}">${dn?ic('check',14)+' تمت المشاهدة':'ابدأ المشاهدة'}</span>${ic('left',16)}</div></div>${dn?'<i class="hc-bar"></i>':''}</a>`};
 const tile=(i,icn,val,lab,c1,c2,pre,suf)=>`<div class="hs rv" style="--i:${i};--c1:${c1};--c2:${c2}"><span class="hs-i">${ic(icn,20)}</span><b>${pre||''}<span data-cu="${val}">${val}</span>${suf?`<em>${suf}</em>`:''}</b><small>${lab}</small></div>`;
 const ring=(i,p,lab,c1,c2)=>{p=Math.max(0,Math.min(100,Math.round(p)));return `<div class="rg rv" style="--i:${i}"><div class="rg-c"><svg viewBox="0 0 80 80"><defs><linearGradient id="rg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><circle class="tr" cx="40" cy="40" r="32" pathLength="100"/><circle class="pr" cx="40" cy="40" r="32" pathLength="100" stroke="url(#rg${i})" style="--p:${p}"/></svg><b><span data-cu="${p}">${p}</span>%</b></div><small>${lab}</small></div>`};
 
-function lbHTML(){
- if(!LB||!LB.top)return `<div class="hbox lbx"><div class="lbx-h"><b>${ic('trophy',16)} ترتيب الطلاب</b></div><p class="empty" style="padding:10px;font-size:13px">الترتيب غير متاح حاليًا.</p></div>`;
- const T=LB.top.slice(0,5),mx=Math.max(1,...T.map(x=>x.points),LB.me?LB.me.points:0);
- const row=(x,i)=>`<div class="lr rv${x.me?' me':''}" style="--i:${i};--w:${Math.max(6,x.points/mx*100)}%"><span class="rk r${x.rank<=3?x.rank:0}">${x.rank==1?ic('crown',13):x.rank}</span><span class="nm">${esc(x.name)}${x.me?'<em>أنت</em>':''}</span><b>${x.points}</b></div>`;
- const inTop=T.some(x=>x.me),nm=(u.name||'').split(' ')[0]||'أنت';
- return `<div class="hbox lbx rv"><div class="lbx-h"><b>${ic('trophy',16)} ترتيب الطلاب</b><small>${LB.total} طالب</small></div>${T.length?T.map(row).join(''):'<p class="empty" style="padding:10px;font-size:13px">لسه مفيش ترتيب. ابدأ واكسب نقاط!</p>'}${LB.me&&!inTop?`<div class="lsep">• • •</div>${row({rank:LB.me.rank,name:nm,points:LB.me.points,me:true},T.length)}`:''}</div>`}
+function cmHTML(){
+ const c=CM,off=!c,lv=c&&c.live_on,n=c?+c.voice_count||0:0,last=c&&c.last&&c.last[0];
+ const row=(k,h,icn,t,sub,tag)=>`<a class="cmx-r ${k}${off?' off':''}" href="${off?'#':'community#'+h}"><span class="cmx-i">${ic(icn,20)}</span><span class="cmx-t"><b>${t}</b><small>${sub}</small></span>${tag}</a>`;
+ return `<div class="hbox cmx rv"><div class="cmx-h"><b>${ic('users',16)} المجتمع</b><a href="${off?'#':'community'}"><small>${off?'':'فتح الكل'}</small></a></div>
+ ${row('lv','live','live','لايف',off?'بث مباشر مع الإدارة':lv?esc(c.live_title||'بث مباشر الآن'):'مفيش بث دلوقتي',off?'<span class="cmx-g soon">قريبًا</span>':lv?'<span class="cmx-g on">مباشر</span>':'<span class="cmx-g">متوقف</span>')}
+ ${row('ch','chat','msg','شات المجتمع',off?'دردش مع زمايلك':last?esc(last.name)+': '+esc(last.body):'ابدأ أول رسالة',off?'<span class="cmx-g soon">قريبًا</span>':c.chat_locked?'<span class="cmx-g">مقفول</span>':'')}
+ ${row('vc','voice','mic','غرفة صوتية',off?'اتكلم واسمع مباشرة':c.voice_open===false?'الغرفة مقفولة حاليًا':n?n+' متواجد دلوقتي':'مفيش حد دلوقتي',off?'<span class="cmx-g soon">قريبًا</span>':c.voice_open===false?'<span class="cmx-g">مقفولة</span>':'<span class="cmx-g gr">مفتوحة</span>')}
+ </div>`}
 
 /* ---------- أنيميشن الظهور + العدّادات ---------- */
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -62,11 +64,11 @@ let IO=null;function rvInit(){if(!IO)IO=new IntersectionObserver(es=>es.forEach(
  document.querySelectorAll('#o .rv:not([data-o])').forEach(e=>{e.dataset.o=1;IO.observe(e)});
  document.querySelectorAll('#o img').forEach(i=>{if(i.complete&&i.naturalWidth)i.classList.add('ld')})}
 
-const P0=Promise.all([ME().then(m=>m?[m]:[]),ok(get('aa_edu_points_log?select=reason,ref,amount,created_at&order=created_at.desc&limit=300')),ok(get('aa_edu_enrollments?select=course_id')),cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3')),ok(get('aa_edu_quiz_attempts?select=score,total,aa_edu_quizzes(title)&order=created_at.desc&limit=5')),ok(cget('aa_edu_subjects?grade=eq.prep3&order=sort')),lbGet(),schGet()]);
+const P0=Promise.all([ME().then(m=>m?[m]:[]),ok(get('aa_edu_points_log?select=reason,ref,amount,created_at&order=created_at.desc&limit=300')),ok(get('aa_edu_enrollments?select=course_id')),cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3')),ok(get('aa_edu_quiz_attempts?select=score,total,aa_edu_quizzes(title)&order=created_at.desc&limit=5')),ok(cget('aa_edu_subjects?grade=eq.prep3&order=sort')),cmGet(),schGet()]);
 
-const render=([p,lg,en,cs,ads,up,qa,ss,lb,sc])=>{
+const render=([p,lg,en,cs,ads,up,qa,ss,cm,sc])=>{
  UD=[p,lg,en,qa];window._hsig=JSON.stringify([cs,ads,up,ss]);
- if(lb!==undefined)LB=lb;if(sc)SCH=sc;SUBS=ss||[];
+ if(cm!==undefined)CM=cm;if(sc)SCH=sc;SUBS=ss||[];
  const n=p[0]?.points||0,name=(p[0]?.name||u.name||'').split(' ')[0],done=new Set(lg.filter(x=>x.reason=='watch').map(x=>String(x.ref))),subs=new Set(en.map(x=>x.course_id));
  const mine=cs.filter(c=>subs.has(c.id));
  const dl=new Set();cs.forEach(c=>{const m=cs.filter(y=>y.lesson_id==c.lesson_id&&y.teacher_id==c.teacher_id);if(m.every(y=>done.has(String(y.id))))dl.add(c.lesson_id)});
@@ -76,7 +78,6 @@ const render=([p,lg,en,cs,ads,up,qa,ss,lb,sc])=>{
  const ds=new Set(lg.map(x=>new Date(x.created_at).toDateString()));let st=0,dd=new Date();if(!ds.has(dd.toDateString()))dd.setDate(dd.getDate()-1);while(ds.has(dd.toDateString())){st++;dd.setDate(dd.getDate()-1)}
  const cnt=r=>lg.filter(x=>x.reason==r).length,sl=ads.length?ads.map(a=>[a.title,'',null,a.image,a.link]):DEF.map(a=>[a[0],a[1],a[2]]);
  const qs=qa.reduce((a,x)=>a+x.score,0),qt=qa.reduce((a,x)=>a+x.total,0),qp=qt?qs/qt*100:0;
- const pct=LB&&LB.me&&LB.total>1?(LB.total-LB.me.rank)/(LB.total-1)*100:null;
  const sec=SUBS.map(s=>({s,c:cs.filter(c=>c.subject_id==s.id)})).filter(x=>x.c.length);
  const sc2=s=>s.color||'#0878C9';
  let ci=0;
@@ -84,8 +85,8 @@ const render=([p,lg,en,cs,ads,up,qa,ss,lb,sc])=>{
  <div class="hm-a">
   <div class="hm-hi"><h1>${gr} ${esc(name)}</h1><span class="pt">${ic('star',14,'fill amber')} <b class="pts">${n}</b> نقطة</span></div><p class="muted">كمّل من حيث وقفت واكسب نقاط.</p>
   <div class="ads" id="ads"><div class="ads-t" id="at">${sl.map((a,i)=>`<${a[4]?'a href="'+esc(a[4])+'" target="_blank" rel="noopener"':'div'} class="ad${a[3]?' ad-img':''}"${a[3]?` aria-label="${esc(a[0])}"`:` style="background:linear-gradient(135deg,${a[2]})"`}>${a[3]?`<img src="${esc(a[3])}" alt="${esc(a[0])}" draggable="false" decoding="async"${i?'':' fetchpriority="high"'} onload="this.classList.add('ld');this.parentNode.classList.add('ok')" onerror="this.classList.add('ld');this.parentNode.classList.add('ok')">`:`${esc(a[0])}<small>${esc(a[1])}</small>`}</${a[4]?'a':'div'}>`).join('')}</div><div class="ads-d" id="ad">${sl.map((_,i)=>`<i class="${i?'':'on'}"></i>`).join('')}</div></div>
-  <div class="hs-g">${tile(0,'star',n,'نقطة','#f59e0b','#fbbf24')}${tile(1,'bolt',lvl(n),'المستوى','#0878C9','#38bdf8')}${LB&&LB.me?tile(2,'crown',LB.me.rank,'ترتيبك من '+LB.total,'#7c3aed','#a78bfa','#'):tile(2,'chart',wkp,'نقاط الأسبوع','#7c3aed','#a78bfa')}${tile(3,'flame',st,'أيام متتالية','#ef4444','#fb923c','','يوم')}${tile(4,'check',dl.size,'درس خلّصته','#16a34a','#4ade80')}${tile(5,'book',mine.length,'اشتراكاتك','#0891b2','#22d3ee')}</div>
-  <div class="rings">${ring(0,n%100,'تقدّمك للمستوى '+(lvl(n)+1),'#0878C9','#38bdf8')}${ring(1,lp,'إتمام الدروس','#16a34a','#4ade80')}${ring(2,qp,qt?'متوسط الاختبارات':'الاختبارات (لسه)','#f59e0b','#fbbf24')}${pct!=null?ring(3,pct,'أفضل من طلاب المنصة','#7c3aed','#c084fc'):ring(3,wkp?Math.min(100,wkp):0,'نقاط الأسبوع','#7c3aed','#c084fc')}</div>
+  <div class="hs-g">${tile(0,'star',n,'نقطة','#f59e0b','#fbbf24')}${tile(1,'bolt',lvl(n),'المستوى','#0878C9','#38bdf8')}${tile(2,'chart',wkp,'نقاط الأسبوع','#7c3aed','#a78bfa')}${tile(3,'flame',st,'أيام متتالية','#ef4444','#fb923c','','يوم')}${tile(4,'check',dl.size,'درس خلّصته','#16a34a','#4ade80')}${tile(5,'book',mine.length,'اشتراكاتك','#0891b2','#22d3ee')}</div>
+  <div class="rings">${ring(0,n%100,'تقدّمك للمستوى '+(lvl(n)+1),'#0878C9','#38bdf8')}${ring(1,lp,'إتمام الدروس','#16a34a','#4ade80')}${ring(2,qp,qt?'متوسط الاختبارات':'الاختبارات (لسه)','#f59e0b','#fbbf24')}${ring(3,wkp?Math.min(100,wkp):0,'نقاط الأسبوع','#7c3aed','#c084fc')}</div>
   <div class="hm-two">
    <div class="hbox rv"><b class="t">${ic('chart',18)} نشاطك آخر ٧ أيام<small>${wkp} نقطة</small></b><div class="wk">${days.map((d,i)=>`<div class="${d.t?'td':''}"><span class="v">${d.v||''}</span><i class="bz" style="--h:${Math.max(4,d.v/mx*100)}%;--i:${i}"></i>${d.l}</div>`).join('')}</div></div>
    <div class="hbox rv"><b class="t">${ic('target',18)} تقدّمك في المواد</b>${sec.length?sec.map(x=>{const w=x.c.filter(c=>done.has(String(c.id))).length,pp=Math.round(w/x.c.length*100),c=sc2(x.s);return `<div class="sp"><span class="sp-i" style="background:${esc(c)}">${ico(x.s.icon,18)}</span><div class="sp-m"><div class="row"><b>${esc(x.s.name)}</b><small>${w}/${x.c.length} · ${pp}%</small></div><div class="sp-b"><i style="--w:${pp}%;background:linear-gradient(90deg,${esc(c)},${mix(esc(c),60)})"></i></div></div></div>`}).join(''):'<p class="empty" style="padding:18px">هتظهر المواد هنا.</p>'}</div>
@@ -96,7 +97,7 @@ const render=([p,lg,en,cs,ads,up,qa,ss,lb,sc])=>{
    <div class="hbox rv"><b class="t">${ic('quiz',18)} آخر اختباراتك${qt?`<small>المتوسط ${Math.round(qp)}%</small>`:''}</b>${qa.length?qa.map(x=>`<div class="lg"><span>${esc(x.aa_edu_quizzes?.title||'اختبار')}</span><b>${x.score}/${x.total}</b></div>`).join(''):'<p class="empty" style="padding:18px">لسه ماعملتش اختبار.</p>'}</div>
   </div>
  </div>
- <aside class="hm-s" id="side">${lbHTML()}</aside>
+ <aside class="hm-s" id="side">${cmHTML()}</aside>
  <div class="hm-b">
   <section class="hbox sch-p rv" style="margin-top:14px"><div class="sch-h"><b>${ic('cal',18)} جدول مذاكرتك</b><div id="sct"></div><a class="sch-l" href="schedule">${ic('plus',14)} إدارة الجدول</a></div><div class="sch-w" id="schw"></div></section>
   <h2 class="lsn">${ic('book',20)} الكورسات حسب المادة</h2>
@@ -118,5 +119,5 @@ const render=([p,lg,en,cs,ads,up,qa,ss,lb,sc])=>{
 };
 P0.then(render).catch(()=>{if(!U())location.replace('auth#login');else $('#o').innerHTML='<p class="empty">تعذر التحميل، حدّث الصفحة.</p>'});
 /* تحديث فوري: بيجيب (من الشبكة) الجزء المتغيّر بس من كورسات/إعلانات/تحديثات/مواد، وبيستخدم بيانات الطالب اللي اتحمّلت قبل كده */
-onLive(()=>{if(!UD)return;Promise.all([cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3')),ok(cget('aa_edu_subjects?grade=eq.prep3&order=sort'))]).then(([cs,ads,up,ss])=>{const sg=JSON.stringify([cs,ads,up,ss]);if(sg===window._hsig)return;window._hsig=sg;render([UD[0],UD[1],UD[2],cs,ads,up,UD[3],ss,LB,SCH])}).catch(()=>{})},['aa_edu_courses','aa_edu_teachers','aa_edu_subjects','aa_edu_lessons','aa_edu_ads','aa_edu_updates']);
+onLive(()=>{if(!UD)return;Promise.all([cget('aa_edu_courses_v?order=is_featured.desc,id',null,1),ok(cget('aa_edu_ads?active=eq.true&order=sort,id')),ok(cget('aa_edu_updates?order=created_at.desc&limit=3')),ok(cget('aa_edu_subjects?grade=eq.prep3&order=sort'))]).then(([cs,ads,up,ss])=>{const sg=JSON.stringify([cs,ads,up,ss]);if(sg===window._hsig)return;window._hsig=sg;render([UD[0],UD[1],UD[2],cs,ads,up,UD[3],ss,CM,SCH])}).catch(()=>{})},['aa_edu_courses','aa_edu_teachers','aa_edu_subjects','aa_edu_lessons','aa_edu_ads','aa_edu_updates']);
 </script></body></html>

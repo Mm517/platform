@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>المجتمع | أكاديمية</title>
+<meta name="description" content="المجتمع | أكاديمية">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0878C9">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"><link rel="stylesheet" href="app.css"><link rel="stylesheet" href="community.css"></head>
+<body class="cr" data-p="community" data-tab="live"><main class="pg cm-pg" id="m">
+<h1>المجتمع</h1><p class="muted">لايف، شات، وغرفة صوتية — اتكلم واسأل وسمّع زمايلك.</p>
+<div class="cm-ban" id="cmBan" hidden></div>
+<div class="cm-tabs" id="cmTabs"></div>
+<div class="cm-grid">
+ <div>
+  <section class="cm-panel" id="pLive"></section>
+  <section class="cm-panel" id="pVoice"></section>
+  <section class="cm-panel" id="pAdm"></section>
+ </div>
+ <section class="cm-chat" id="pChat">
+  <div class="cm-ch-h"><span id="chT">الشات</span><small id="chS"></small></div>
+  <div class="cm-pinned" id="chPin" hidden></div>
+  <div class="cm-list" id="chL" aria-live="polite"></div>
+  <button class="cm-new" id="chNew" hidden>رسائل جديدة</button>
+  <div class="cm-note" id="chNote" hidden></div>
+  <div class="cm-comp"><input id="chI" maxlength="500" placeholder="اكتب رسالتك..." autocomplete="off" enterkeyhint="send"><button id="chB" aria-label="إرسال"></button></div>
+ </section>
+</div>
+</main>
+<script src="config.js"></script><script src="lib.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+if(!U())location.replace('auth#login');
+topbar();
+Object.assign(IP,{
+ micoff:'<path d="M3 3l18 18M9 5a3 3 0 016 0v5M15 14a3 3 0 01-5.5 1.5M5 11a7 7 0 0011 5M12 18v3"/>',
+ hand:'<path d="M8 12V6a1.5 1.5 0 013 0v5M11 11V4.5a1.5 1.5 0 013 0V11M14 11V6a1.5 1.5 0 013 0v7a6 6 0 01-6 6h-1a5 5 0 01-4-2l-3-4a1.5 1.5 0 012.3-1.9L8 14"/>',
+ pin:'<path d="M9 3h6l-1 6 3 3H7l3-3zM12 12v9"/>',
+ shield:'<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/>',
+ out:'<path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/>'
+});
+/* ===================== أدوات عامة ===================== */
+const ME_ID=U().id,MYN=((U().name||'').split(' ')[0])||'أنت';
+const rpc=async(n,b)=>{const r=await post('rpc/'+n,b||{});if(!r.ok){let m='';try{const j=await r.json();m=j.message||j.hint||''}catch(_){}throw new Error(m||String(r.status))}const t=await r.text();return t?JSON.parse(t):null};
+const ERR={locked:'الشات مقفول حاليًا',slow:'استنى ثانية بين الرسائل',blocked_mute:'انت مكتوم حاليًا',blocked_ban:'انت محظور من المجتمع',blocked_kick:'تم إخراجك من الغرفة — جرّب بعد شوية',closed:'الغرفة الصوتية مقفولة حاليًا',forbidden:'مش مسموح',speakers_full:'المنصة مليانة — نزّل متحدث الأول',target_admin:'مينفعش على أدمن',target_muted:'الطالب ده مكتوم',bad_url:'اكتب رابط يوتيوب صحيح (https://...)',not_member:'انت مش في الغرفة'};
+const em=e=>ERR[String(e&&e.message||e).trim()]||'حصل خطأ، جرّب تاني';
+const tm=d=>new Date(d).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'});
+const rnd=()=>Math.random().toString(36).slice(2,10);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let ADM=false,ST={chat_locked:false,voice_open:true,live_on:false,live_title:'',live_url:'',max_speakers:6},RES=null,RT_OK=false,SUM=null;
+
+/* ===================== التابات ===================== */
+const isDesk=()=>matchMedia('(min-width:981px)').matches;
+function drawTabs(){const t=document.body.dataset.tab;
+ $('#cmTabs').innerHTML=`<button class="cm-tab ${t=='live'?'on':''}" data-t="live">${ic('live',17)} لايف${ST.live_on?'<i class="dot"></i>':''}</button><button class="cm-tab ${t=='voice'?'on':''}" data-t="voice">${ic('mic',17)} غرفة الصوت</button><button class="cm-tab ${t=='chat'?'on':''}" data-t="chat">${ic('msg',17)} الشات</button>${ADM?`<button class="cm-tab ${t=='admin'?'on':''}" data-t="admin">${ic('shield',17)} الإدارة</button>`:''}`}
+function setTab(t){if(!['live','voice','chat','admin'].includes(t)||(t=='admin'&&!ADM))t='live';if(t=='chat'&&isDesk())t='live';document.body.dataset.tab=t;drawTabs();if(t=='chat')chScroll(true);if(t=='admin')admLoad();try{history.replaceState(null,'','#'+t)}catch(_){}}
+$('#cmTabs').onclick=e=>{const b=e.target.closest('[data-t]');if(b)setTab(b.dataset.t)};
+matchMedia('(min-width:981px)').addEventListener('change',()=>setTab(document.body.dataset.tab));
+
+/* ===================== حالة الحظر / الكتم الخاصة بالطالب ===================== */
+async function loadRestrict(){try{const r=await get('aa_edu_comm_restrict?select=kind,until,reason&user_id=eq.'+ME_ID);const x=r[0];
+  RES=x&&(!x.until||new Date(x.until)>new Date())?x:null;clearTimeout(loadRestrict.t);if(RES&&RES.until)loadRestrict.t=setTimeout(loadRestrict,Math.min(2147e6,new Date(RES.until)-Date.now()+800))}catch(_){}
+ const b=$('#cmBan');if(RES){const k=RES.kind;b.hidden=false;b.innerHTML=ic('ban',18)+`<span>${k=='ban'?'انت محظور من المجتمع':k=='kick'?'تم إخراجك من الغرفة الصوتية مؤقتًا':'انت مكتوم'}${RES.until?' لحد '+new Date(RES.until).toLocaleString('ar-EG',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}):''}${RES.reason?' — '+esc(RES.reason):''}</span>`}else b.hidden=true;
+ chState();if(V.joined&&RES&&(RES.kind=='ban'||RES.kind=='kick'))vLeaveLocal(ERR['blocked_'+RES.kind]);else if(V.joined&&RES&&RES.kind=='mute'&&V.me&&V.me.can)vHand(false,true);drawVoice()}
+
+/* ===================== الشات ===================== */
+const CH={map:new Map(),pinId:null};
+const nearBottom=()=>{const l=$('#chL');return l.scrollHeight-l.scrollTop-l.clientHeight<140};
+function chScroll(f){const l=$('#chL');if(f||nearBottom()){l.scrollTop=l.scrollHeight;$('#chNew').hidden=true}else $('#chNew').hidden=false}
+$('#chNew').onclick=()=>chScroll(true);$('#chL').addEventListener('scroll',()=>{if(nearBottom())$('#chNew').hidden=true},{passive:true});
+const msgHTML=m=>`<div class="cm-m${m.is_admin?' ad':''}${m.user_id==ME_ID?' me':''}${ADM&&m.user_id!=ME_ID&&!m.is_admin?' adm-on':''}" data-id="${m.id}" data-u="${m.user_id}"><div class="cm-mh"><b class="cm-n">${esc(m.name)}</b>${m.is_admin?`<em class="cm-bd">${ic('crown',11)} إدارة</em>`:''}<small>${tm(m.created_at)}</small></div><div class="cm-b">${esc(m.body)}</div>${m.pinned?`<i class="cm-pn">${ic('pin',13)}</i>`:''}</div>`;
+function addMsg(m,quiet){if(CH.map.has(m.id))return;CH.map.set(m.id,m);const l=$('#chL'),stick=nearBottom()||m.user_id==ME_ID;l.insertAdjacentHTML('beforeend',msgHTML(m));
+ while(l.children.length>250){const f=l.firstElementChild;CH.map.delete(+f.dataset.id);f.remove()}
+ if(!quiet){if(stick)chScroll(true);else $('#chNew').hidden=false}}
+function drawPin(){const p=$('#chPin'),m=CH.pinId&&CH.map.get(CH.pinId);if(!m){p.hidden=true;return}p.hidden=false;p.innerHTML=`${ic('pin',14)}<span><b>${esc(m.name)}:</b> ${esc(m.body)}</span>`}
+async function chInit(){try{const [rows,pn]=await Promise.all([get('aa_edu_comm_msgs?select=id,user_id,name,body,pinned,is_admin,created_at&order=id.desc&limit=60'),get('aa_edu_comm_msgs?select=id,user_id,name,body,pinned,is_admin,created_at&pinned=eq.true&limit=1').catch(()=>[])]);
+  $('#chL').innerHTML='';CH.map.clear();rows.reverse().forEach(m=>addMsg(m,true));if(pn[0]){CH.map.set(pn[0].id,pn[0]);CH.pinId=pn[0].id}else CH.pinId=null;drawPin();chScroll(true);
+  if(!rows.length)$('#chL').innerHTML='<div class="cm-empty" id="chE">'+ic('msg',30)+'<span>ابدأ الكلام — أول رسالة ليك!</span></div>'}
+ catch(_){$('#chL').innerHTML='<p class="empty">تعذر تحميل الشات. لو ده أول مرة، اتأكد إن setup_v19.sql اتشغّل على Supabase.</p>'}}
+function chState(){const i=$('#chI'),b=$('#chB'),n=$('#chNote');let why='';
+ if(RES&&RES.kind=='ban')why='انت محظور من المجتمع';else if(RES&&RES.kind=='mute')why='انت مكتوم حاليًا';else if(ST.chat_locked&&!ADM)why='الشات مقفول حاليًا — الإدارة بس اللي بتكتب';
+ i.disabled=b.disabled=!!why;i.placeholder=why||'اكتب رسالتك...';n.hidden=!(ST.chat_locked&&ADM);if(ST.chat_locked&&ADM)n.textContent='الشات مقفول على الطلاب (انت بس تقدر تكتب)'}
+$('#chB').innerHTML=ic('send',20);
+async function chSend(){const i=$('#chI'),t=i.value.trim();if(!t||i.disabled)return;i.value='';$('#chB').disabled=true;
+ try{const r=await rpc('comm_send',{p_body:t});const e=$('#chE');if(e)e.remove();addMsg({id:r.id,user_id:ME_ID,name:ADM?'الإدارة':MYN,body:t,pinned:false,is_admin:ADM,created_at:new Date().toISOString()})}
+ catch(e){toast(em(e),true);i.value=t}finally{$('#chB').disabled=false;chState();if(!i.disabled)i.focus()}}
+$('#chB').onclick=chSend;$('#chI').addEventListener('keydown',e=>{if(e.key=='Enter'&&!e.isComposing){e.preventDefault();chSend()}});
+const chAdm=async(act,x)=>{try{await rpc('comm_admin',{p_act:act,...x});return true}catch(e){toast(em(e),true);return false}};
+$('#chL').addEventListener('click',e=>{if(!ADM)return;const a=e.target.closest('[data-a]');
+ if(a){const m=a.closest('.cm-m'),id=+m.dataset.id,u=m.dataset.u,k=a.dataset.a;
+  if(k=='del')chAdm('delete',{p_id:id});else if(k=='pin')chAdm('pin',{p_id:id});else if(k=='unpin')chAdm('unpin',{p_id:id});
+  else if(k=='m10')chAdm('mute',{p_user:u,p_minutes:10}).then(o=>o&&toast('تم الكتم 10 دقايق'));else if(k=='m60')chAdm('mute',{p_user:u,p_minutes:60}).then(o=>o&&toast('تم الكتم ساعة'));else if(k=='m1d')chAdm('mute',{p_user:u,p_minutes:1440}).then(o=>o&&toast('تم الكتم يوم'));
+  else if(k=='ban'){if(confirm('حظر '+m.querySelector('.cm-n').textContent+' من المجتمع بالكامل؟'))chAdm('ban',{p_user:u}).then(o=>o&&toast('تم الحظر'))}
+  return}
+ const n=e.target.closest('.cm-n');if(!n)return;const m=n.closest('.cm-m'); const ex=m.querySelector('.cm-ac');if(ex){ex.remove();return}document.querySelectorAll('#chL .cm-ac').forEach(x=>x.remove());
+ const pn=CH.pinId==+m.dataset.id,own=m.classList.contains('adm-on');
+ m.insertAdjacentHTML('beforeend',`<div class="cm-ac"><button data-a="del" class="dg">حذف</button><button data-a="${pn?'unpin':'pin'}">${pn?'إلغاء التثبيت':'تثبيت'}</button>${own?'<button data-a="m10">كتم 10د</button><button data-a="m60">كتم ساعة</button><button data-a="m1d">كتم يوم</button><button data-a="ban" class="dg">حظر</button>':''}</div>`)});
+function onMsg(p){const ev=p.eventType;
+ if(ev=='INSERT'){const m=p.new;const e=$('#chE');if(e)e.remove();addMsg(m);if(m.pinned){CH.pinId=m.id;drawPin()}}
+ else if(ev=='DELETE'){const id=p.old&&p.old.id;if(id){CH.map.delete(id);const el=$('#chL [data-id="'+id+'"]');if(el)el.remove();if(CH.pinId==id){CH.pinId=null;drawPin()}}else chInit()}
+ else if(ev=='UPDATE'){const m=p.new;CH.map.set(m.id,m);const el=$('#chL [data-id="'+m.id+'"]');if(el){const t=document.createElement('div');t.innerHTML=msgHTML(m);el.replaceWith(t.firstElementChild)}
+  if(m.pinned){CH.pinId=m.id}else if(CH.pinId==m.id)CH.pinId=null;
+  [...CH.map.values()].forEach(x=>{if(x.id!=m.id&&m.pinned&&x.pinned){x.pinned=false;const el2=$('#chL [data-id="'+x.id+'"]');if(el2){const t=document.createElement('div');t.innerHTML=msgHTML(x);el2.replaceWith(t.firstElementChild)}}});drawPin()}
+ clearTimeout(onMsg.t);if(!$('#chL').children.length)onMsg.t=setTimeout(chInit,500)}
+/* احتياطي لو Realtime مش شغّال: بيجيب الجديد كل 5 ثواني */
+setInterval(async()=>{if(RT_OK||document.hidden)return;try{const last=Math.max(0,...CH.map.keys());const r=await get('aa_edu_comm_msgs?select=id,user_id,name,body,pinned,is_admin,created_at&id=gt.'+last+'&order=id');r.forEach(m=>addMsg(m))}catch(_){}},5000);
+
+/* ===================== لايف ===================== */
+function drawLive(){const p=$('#pLive');const id=ST.live_on&&ytId(ST.live_url);
+ if(!id){p.innerHTML=`<div class="cm-card cm-empty">${ic('live',44)}<h2>مفيش لايف دلوقتي</h2><span>أول ما الإدارة تبدأ بث مباشر هيظهر هنا وتقدر تتفاعل في الشات.</span></div>`;p._k='';return}
+ if(p._k===id)return;p._k=id;
+ p.innerHTML=`<div class="cm-vid"><iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1&modestbranding=1" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin" title="بث مباشر"></iframe></div><div class="cm-lt"><span class="cm-live-b"><i></i> مباشر الآن</span><b>${esc(ST.live_title||'بث مباشر')}</b></div>`}
+
+/* ===================== الغرفة الصوتية (WebRTC) ===================== */
+const ICE=(typeof ICE_SERVERS!=='undefined'&&ICE_SERVERS&&ICE_SERVERS.length)?ICE_SERVERS:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}];
+const V={joined:false,mem:[],mx:6,me:null,pcs:{},stream:null,mic:true,vol:1,ctx:null,aud:{},wt:{},sp:new Set(),orph:{},fails:{},seen:new Set(),lastSig:0,needTap:false,mfail:'',mbusy:false,ping:null,deb:null,poll:null};
+const sig=(to,sid,kind,side,obj)=>post('aa_edu_voice_sig',{to_user:to,sid,kind,side,payload:JSON.stringify(obj)},'return=minimal').catch(()=>{});
+const sm=id=>V.mem.find(x=>x.id==id);
+function unwatch(id){const w=V.wt[id];if(w){try{w.src.disconnect()}catch(_){}delete V.wt[id]}V.sp.delete(id)}
+function watch(id,stream){unwatch(id);try{if(!V.ctx)return;const src=V.ctx.createMediaStreamSource(stream),an=V.ctx.createAnalyser();an.fftSize=512;src.connect(an);V.wt[id]={an,src,buf:new Uint8Array(an.fftSize)}}catch(_){}}
+setInterval(()=>{if(!V.joined)return;for(const id in V.wt){const w=V.wt[id];w.an.getByteTimeDomainData(w.buf);let s=0;for(const v of w.buf)s+=(v-128)*(v-128);let on=Math.sqrt(s/w.buf.length)>5;if(id==ME_ID&&(!V.mic||!V.stream))on=false;
+  if(on!==V.sp.has(id)){on?V.sp.add(id):V.sp.delete(id);document.querySelectorAll('[data-mid="'+id+'"]').forEach(el=>el.classList.toggle('sp',on))}}},180);
+
+function closeKey(k){const en=V.pcs[k];if(!en)return;delete V.pcs[k];try{en.pc.onicecandidate=en.pc.ontrack=en.pc.onconnectionstatechange=null;en.pc.close()}catch(_){}
+ if(k.startsWith('in:')){const id=k.slice(3),a=V.aud[id];if(a){try{a.pause();a.srcObject=null}catch(_){}delete V.aud[id]}unwatch(id)}}
+function closeAll(){Object.keys(V.pcs).forEach(closeKey)}
+function mkEntry(key,pc,sid,peer){const en={pc,sid,peer,q:V.orph[key+'|'+sid]||[]};delete V.orph[key+'|'+sid];V.pcs[key]=en;
+ pc.onconnectionstatechange=()=>{if(V.pcs[key]!==en)return;const s=pc.connectionState;
+  if(s=='failed'||s=='closed'){closeKey(key);if(key.startsWith('out:')){V.fails[key]=(V.fails[key]||0)+1;if(V.fails[key]<=4)setTimeout(syncPeers,1500*V.fails[key])}}
+  else if(s=='disconnected')setTimeout(()=>{if(V.pcs[key]===en&&pc.connectionState=='disconnected'){closeKey(key);if(key.startsWith('out:'))setTimeout(syncPeers,800)}},6000);
+  else if(s=='connected')V.fails[key]=0};return en}
+async function startOut(peer){const key='out:'+peer;if(V.pcs[key]||!V.stream)return;const sid=rnd(),pc=new RTCPeerConnection({iceServers:ICE});mkEntry(key,pc,sid,peer);
+ V.stream.getAudioTracks().forEach(t=>pc.addTrack(t,V.stream));
+ pc.onicecandidate=e=>{if(e.candidate)sig(peer,sid,'cand','out',e.candidate.toJSON())};
+ try{const o=await pc.createOffer();await pc.setLocalDescription(o);sig(peer,sid,'offer','out',pc.localDescription)}catch(_){closeKey(key)}}
+async function flushQ(en){const q=en.q;en.q=[];for(const c of q){try{await en.pc.addIceCandidate(c)}catch(_){}}}
+async function onSig(r){if(!V.joined||!r||r.to_user!=ME_ID||V.seen.has(r.id))return;V.seen.add(r.id);if(r.id>V.lastSig)V.lastSig=r.id;
+ let d;try{d=JSON.parse(r.payload)}catch(_){return}const from=r.from_user;
+ if(r.kind=='offer'){let s=sm(from);if(!s||!s.can){await refreshView(true);s=sm(from)}if(!s||!s.can)return;
+  const key='in:'+from;closeKey(key);const pc=new RTCPeerConnection({iceServers:ICE}),en=mkEntry(key,pc,r.sid,from);
+  pc.onicecandidate=e=>{if(e.candidate)sig(from,r.sid,'cand','in',e.candidate.toJSON())};
+  pc.ontrack=e=>{const st=e.streams[0]||new MediaStream([e.track]);let a=V.aud[from];if(!a){a=new Audio();a.autoplay=true;a.playsInline=true;V.aud[from]=a}a.srcObject=st;a.volume=V.vol;a.play().catch(()=>{V.needTap=true;drawVoice()});watch(from,st)};
+  try{await pc.setRemoteDescription(d);await flushQ(en);const ans=await pc.createAnswer();await pc.setLocalDescription(ans);sig(from,r.sid,'answer','in',pc.localDescription)}catch(_){closeKey(key)}}
+ else if(r.kind=='answer'){const en=V.pcs['out:'+from];if(!en||en.sid!=r.sid)return;try{await en.pc.setRemoteDescription(d);await flushQ(en);
+   en.pc.getSenders().forEach(s=>{try{const p=s.getParameters();if(!p.encodings||!p.encodings.length)p.encodings=[{}];p.encodings[0].maxBitrate=40000;s.setParameters(p)}catch(_){}})}catch(_){}}
+ else if(r.kind=='cand'){const key=(r.side=='out'?'in:':'out:')+from,en=V.pcs[key];
+  if(en&&en.sid==r.sid){if(en.pc.remoteDescription){try{await en.pc.addIceCandidate(d)}catch(_){}}else en.q.push(d)}
+  else{const k=key+'|'+r.sid;(V.orph[k]=V.orph[k]||[]).push(d);setTimeout(()=>delete V.orph[k],15000)}}}
+let _syncT=null;
+function syncPeers(){if(!V.joined)return;const me=V.me,can=!!(me&&me.can&&!(RES&&RES.kind=='mute'));
+ if(!can&&(V.stream||V.mfail)){stopMic()}
+ if(can&&!V.stream&&!V.mbusy&&!V.mfail)startMic();
+ const ids=new Set(V.mem.map(m=>m.id));
+ Object.keys(V.pcs).forEach(k=>{const id=k.slice(k.indexOf(':')+1);if(k.startsWith('out:')){if(!ids.has(id)||!V.stream||id==ME_ID)closeKey(k)}else{const s=sm(id);if(!s||!s.can)closeKey(k)}});
+ if(can&&V.stream){let d=0;V.mem.forEach(m=>{if(m.id==ME_ID||V.pcs['out:'+m.id]||(V.fails['out:'+m.id]||0)>4)return;setTimeout(()=>startOut(m.id),d);d+=120})}}
+async function startMic(){if(V.stream||V.mbusy)return;if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){V.mfail='nosup';drawVoice();return toast('المتصفح ده مش بيدعم الميكروفون',true)}
+ V.mbusy=true;try{const s=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:1}});
+  if(!(V.joined&&V.me&&V.me.can)){s.getTracks().forEach(t=>t.stop());return}
+  V.stream=s;V.mfail='';s.getAudioTracks()[0].enabled=V.mic;watch(ME_ID,s);toast('الميكروفون شغّال — انت دلوقتي بتتكلم')}
+ catch(e){V.mfail=e&&e.name=='NotAllowedError'?'denied':'nodev';toast(V.mfail=='denied'?'اسمح للمتصفح بالميكروفون من إعدادات الموقع':'مش لاقي ميكروفون',true)}
+ finally{V.mbusy=false;drawVoice();syncPeers()}}
+function stopMic(){if(V.stream){V.stream.getTracks().forEach(t=>t.stop());V.stream=null}unwatch(ME_ID);V.mfail='';Object.keys(V.pcs).filter(k=>k.startsWith('out:')).forEach(closeKey)}
+function applyView(v){if(!v)return;const was=V.me&&V.me.can;V.mem=v.members||[];V.mx=(v.settings&&v.settings.max_speakers)||6;V.me=sm(ME_ID)||null;
+ if(was&&V.me&&!V.me.can)toast(V.me.muted?'الإدارة كتمتك':'انتهى دورك في الكلام');
+ if(!was&&V.me&&V.me.can&&!V.me.admin)toast('الإدارة وافقت — تقدر تتكلم دلوقتي');
+ if(!V.me&&V.joined)return;syncPeers();drawVoice()}
+async function refreshView(quiet){try{applyView(await rpc('voice_ping'))}catch(e){const m=String(e.message);if(m=='not_member'){try{applyView(await rpc('voice_join'))}catch(e2){vLeaveLocal(em(e2))}}else if(/closed|blocked_/.test(m))vLeaveLocal(em(e));else if(!quiet){}}}
+const schedView=()=>{clearTimeout(V.deb);V.deb=setTimeout(()=>refreshView(true),250)};
+async function vJoin(){if(V.joined)return;if(RES&&(RES.kind=='ban'||RES.kind=='kick'))return toast(ERR['blocked_'+RES.kind],true);
+ try{V.ctx=V.ctx||new (window.AudioContext||window.webkitAudioContext)();V.ctx.resume&&V.ctx.resume()}catch(_){}
+ try{const l=await get('aa_edu_voice_sig?select=id&to_user=eq.'+ME_ID+'&order=id.desc&limit=1').catch(()=>[]);V.lastSig=l[0]?l[0].id:0;
+  const v=await rpc('voice_join');V.joined=true;V.mic=true;V.fails={};V.mfail='';applyView(v);
+  clearInterval(V.ping);V.ping=setInterval(()=>refreshView(true),25000);
+  clearInterval(V.poll);V.poll=setInterval(async()=>{if(RT_OK||!V.joined)return;try{const r=await get('aa_edu_voice_sig?select=*&to_user=eq.'+ME_ID+'&id=gt.'+V.lastSig+'&order=id&limit=100');for(const x of r)await onSig(x)}catch(_){}},2000);
+  drawVoice()}catch(e){toast(em(e),true)}}
+function vLeaveLocal(msg){if(!V.joined)return;V.joined=false;clearInterval(V.ping);clearInterval(V.poll);closeAll();stopMic();V.mem=[];V.me=null;V.needTap=false;Object.keys(V.wt).forEach(unwatch);if(msg)toast(msg,true);drawVoice();loadSum()}
+async function vLeave(){const w=V.joined;vLeaveLocal();if(w)try{await rpc('voice_leave')}catch(_){}}
+async function vHand(up,quiet){try{await rpc('voice_hand',{p_up:up});if(!up)stopMic();await refreshView(true);if(up&&!quiet)toast('رفعت إيدك — مستني موافقة الإدارة')}catch(e){toast(em(e),true)}}
+const vAdm=async(u,act,why)=>{try{await rpc('voice_admin',{p_user:u,p_act:act,p_reason:why||null});await refreshView(true)}catch(e){toast(em(e),true)}};
+addEventListener('pagehide',()=>{if(!V.joined)return;try{fetch(SUPA_URL+'/rest/v1/rpc/voice_leave',{method:'POST',keepalive:true,headers:{apikey:SUPA_KEY,Authorization:'Bearer '+U().token,'Content-Type':'application/json'},body:'{}'})}catch(_){}});
+
+function memCard(m){const me=m.id==ME_ID,stage=m.can||m.muted,a=[];
+ if(ADM&&!me&&!m.admin){
+  if(m.want&&!stage)a.push(`<button class="ok" data-v="accept" data-u="${m.id}">قبول</button><button data-v="deny" data-u="${m.id}">رفض</button>`);
+  if(stage){a.push(m.muted?`<button data-v="unmute" data-u="${m.id}">فك الميوت</button>`:`<button data-v="mute" data-u="${m.id}">ميوت</button>`,`<button data-v="revoke" data-u="${m.id}">إنزال</button>`)}
+  else if(!m.want)a.push(`<button data-v="accept" data-u="${m.id}">إعطاء الكلمة</button>`);
+  a.push(`<button class="dg" data-v="kick" data-u="${m.id}">طرد</button><button class="dg" data-v="ban" data-u="${m.id}">حظر</button>`)}
+ const st=m.muted?`<small class="rd">${ic('micoff',13)} مكتوم من الإدارة</small>`:m.admin?`<small>${ic('crown',13)} الإدارة</small>`:stage?`<small>${ic('mic',13)} بيتكلم</small>`:m.want?`<small>${ic('hand',13)} رافع إيده</small>`:'<small>مستمع</small>';
+ return `<div class="cm-vm${m.admin?' ad':''}${V.sp.has(m.id)?' sp':''}" data-mid="${m.id}"><span class="av">${esc((m.name||'؟').charAt(0))}</span><div class="in"><b>${esc(m.name)}${me?'<em>أنت</em>':''}</b>${st}</div>${a.length?`<div class="cm-va">${a.join('')}</div>`:''}</div>`}
+function drawVoice(){const p=$('#pVoice');
+ if(!V.joined){const cnt=SUM?SUM.voice_count:0,closed=ST.voice_open===false&&!ADM,bn=RES&&(RES.kind=='ban'||RES.kind=='kick');
+  p.innerHTML=`<div class="cm-card"><div class="cm-vh"><span class="cm-vi">${ic('mic',38)}</span><h2>الغرفة الصوتية</h2><p class="muted">اسمع النقاش مباشرة، ولو عايز تتكلم ارفع إيدك والإدارة بتوافق.</p><button class="btn btn-p" id="vJoin" ${closed||bn?'disabled':''}>${closed?'الغرفة مقفولة حاليًا':'ادخل الغرفة'}</button><small class="muted">${cnt?cnt+' متواجد دلوقتي':'مفيش حد في الغرفة دلوقتي'}</small></div></div>`;return}
+ const me=V.me||{},stage=V.mem.filter(m=>m.can||m.muted),want=V.mem.filter(m=>m.want&&!(m.can||m.muted)),rest=V.mem.filter(m=>!(m.can||m.muted)&&!m.want),canSp=!!me.can,speakers=stage.filter(m=>!m.admin).length;
+ let bar='';
+ if(canSp){bar+=V.stream?`<button class="btn ${V.mic?'btn-g':'btn-r'}" id="vMic">${ic(V.mic?'mic':'micoff',17)} ${V.mic?'الميكروفون شغّال':'الميكروفون مقفول'}</button>`:`<button class="btn btn-g" id="vMicOn">${ic('mic',17)} ${V.mfail=='denied'?'جرّب الميكروفون تاني':'شغّل الميكروفون'}</button>`;if(!me.admin)bar+=`<button class="btn btn-o" id="vDown">انزل من المنصة</button>`}
+ else if(me.muted)bar+=`<span class="muted">${ic('micoff',16)} الإدارة كتمتك</span>`;
+ else if(RES&&RES.kind=='mute')bar+=`<span class="muted">${ic('micoff',16)} انت مكتوم — تقدر تسمع بس</span>`;
+ else bar+=me.want?`<button class="btn btn-a" id="vHand">${ic('hand',17)} نزّل إيدك</button>`:`<button class="btn btn-p" id="vHand" data-up="1">${ic('hand',17)} ارفع إيدك عشان تتكلم</button>`;
+ bar+=`<span class="cm-vol">${ic('vol',17)}<input type="range" id="vVol" min="0" max="100" value="${Math.round(V.vol*100)}" aria-label="مستوى الصوت"></span><button class="btn btn-r" id="vLeave">${ic('out',17)} مغادرة</button>`;
+ p.innerHTML=`<div class="cm-card"><div class="cm-st ${RT_OK?'':'bad'}"><i></i>${RT_OK?'متصل':'الاتصال الفوري ضعيف — الصوت ممكن يتأخر'} · ${V.mem.length} في الغرفة · المنصة ${speakers}/${V.mx}</div>
+  <div class="cm-tap" id="vTap" ${V.needTap?'':'hidden'}>المتصفح وقّف الصوت <button class="btn btn-p btn-s" id="vTapB">اضغط لتشغيل الصوت</button></div>
+  ${V.mfail=='denied'?`<div class="cm-tap">${ic('alert',16)} الميكروفون ممنوع — اسمح بيه من أيقونة القفل جنب الرابط وبعدين اضغط «جرّب تاني».</div>`:''}
+  <div class="cm-vbar">${bar}</div>
+  <div class="cm-vs">${ic('mic',16)} على المنصة <span>${stage.length}</span></div><div class="cm-vg">${stage.map(memCard).join('')||'<p class="muted">مفيش حد بيتكلم دلوقتي.</p>'}</div>
+  ${want.length?`<div class="cm-vs">${ic('hand',16)} طلبات الكلام <span>${want.length}</span></div><div class="cm-vg">${want.map(memCard).join('')}</div>`:''}
+  <div class="cm-vs">${ic('users',16)} المستمعون <span>${rest.length}</span></div><div class="cm-vg">${rest.map(memCard).join('')||'<p class="muted">—</p>'}</div></div>`}
+$('#pVoice').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.id=='vJoin')return vJoin();if(b.id=='vLeave')return vLeave();
+ if(b.id=='vHand')return vHand(!!b.dataset.up);if(b.id=='vDown')return vHand(false);
+ if(b.id=='vMicOn'){V.mfail='';return startMic()}
+ if(b.id=='vMic'){V.mic=!V.mic;if(V.stream)V.stream.getAudioTracks()[0].enabled=V.mic;return drawVoice()}
+ if(b.id=='vTapB'){V.needTap=false;Object.values(V.aud).forEach(a=>a.play().catch(()=>{}));try{V.ctx&&V.ctx.resume()}catch(_){}return drawVoice()}
+ const k=b.dataset.v;if(!k)return;const u=b.dataset.u,nm=(sm(u)||{}).name||'';
+ if(k=='kick'){if(confirm('طرد '+nm+' من الغرفة (5 دقايق)؟'))vAdm(u,'kick')}
+ else if(k=='ban'){if(confirm('حظر '+nm+' من المجتمع بالكامل؟'))vAdm(u,'ban')}
+ else vAdm(u,k)});
+$('#pVoice').addEventListener('input',e=>{if(e.target.id=='vVol'){V.vol=e.target.value/100;Object.values(V.aud).forEach(a=>a.volume=V.vol)}});
+
+/* ===================== لوحة الإدارة ===================== */
+async function admLoad(){if(!ADM)return;const p=$('#pAdm');let rs=[];try{rs=await get('aa_edu_comm_restrict?select=*&order=created_at.desc&limit=100')}catch(_){}
+ const act=rs.filter(x=>!x.until||new Date(x.until)>new Date());
+ const KN={mute:'كتم',ban:'حظر',kick:'طرد مؤقت'};
+ p.innerHTML=`<div class="cm-ad-g">
+ <div class="cm-card"><h3>${ic('live',18)} اللايف</h3><input type="text" id="aLT" maxlength="120" placeholder="عنوان البث (اختياري)" value="${esc(ST.live_title||'')}"><input type="url" id="aLU" placeholder="رابط لايف يوتيوب https://youtube.com/live/..." value="${esc(ST.live_url||'')}" dir="ltr"><div class="cm-ad-r"><button class="btn btn-g" data-ad="live">${ST.live_on?'تحديث البث':'ابدأ اللايف'}</button>${ST.live_on?'<button class="btn btn-r" data-ad="live_off">أوقف اللايف</button>':''}</div><small class="muted">افتح بث مباشر على يوتيوب وانسخ الرابط هنا — هيظهر لكل الطلاب مع الشات.</small></div>
+ <div class="cm-card"><h3>${ic('msg',18)} الشات</h3><div class="cm-ad-r"><button class="btn ${ST.chat_locked?'btn-g':'btn-a'}" data-ad="${ST.chat_locked?'unlock':'lock'}">${ST.chat_locked?'فتح الشات':'قفل الشات'}</button><button class="btn btn-r" data-ad="clear">مسح كل الرسائل</button></div><small class="muted">اضغط على اسم أي طالب في الشات: حذف، تثبيت، كتم، حظر.</small></div>
+ <div class="cm-card"><h3>${ic('mic',18)} الغرفة الصوتية</h3><div class="cm-ad-r"><button class="btn ${ST.voice_open===false?'btn-g':'btn-a'}" data-ad="${ST.voice_open===false?'voice_open':'voice_close'}">${ST.voice_open===false?'فتح الغرفة':'قفل الغرفة وإخراج الكل'}</button><button class="btn btn-o" data-ad="mute_all">ميوت لكل المتحدثين</button><button class="btn btn-o" data-ad="unmute_all">فك الميوت عن الكل</button></div>
+  <div style="margin-top:10px;display:flex;align-items:center;gap:8px"><span>أقصى عدد متحدثين:</span><select id="aMx" style="width:90px;margin:0">${[2,3,4,5,6,8,10,12].map(n=>`<option ${n==ST.max_speakers?'selected':''}>${n}</option>`).join('')}</select></div></div>
+ <div class="cm-card"><h3>${ic('ban',18)} المكتومين والمحظورين <span class="cm-k ban">${act.length}</span></h3>${act.length?act.map(x=>`<div class="cm-rs"><span><b>${esc(x.name||'طالب')}</b><span class="cm-k ${x.kind}">${KN[x.kind]}</span><small>${x.until?'لحد '+new Date(x.until).toLocaleString('ar-EG',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'}):'دائم'}${x.reason?' — '+esc(x.reason):''}</small></span><button class="btn btn-o btn-s" data-un="${x.user_id}">فك</button></div>`).join(''):'<p class="muted">مفيش حد.</p>'}</div></div>`}
+$('#pAdm').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.un){if(await chAdm('unrestrict',{p_user:b.dataset.un}))toast('تم فك القيد');return admLoad()}
+ const k=b.dataset.ad;if(!k)return;
+ if(k=='live'){if(await chAdm('live',{p_text:$('#aLU').value.trim(),p_reason:$('#aLT').value.trim()}))toast('تم تحديث اللايف')}
+ else if(k=='clear'){if(!confirm('مسح كل رسائل الشات؟ مينفعش التراجع.'))return;await chAdm('clear')}
+ else await chAdm(k);
+ setTimeout(admLoad,400)});
+$('#pAdm').addEventListener('change',async e=>{if(e.target.id=='aMx'){if(await chAdm('max_speakers',{p_minutes:+e.target.value}))toast('تم الحفظ')}});
+
+/* ===================== الإعدادات + Realtime ===================== */
+function onSettings(s){const wasLive=ST.live_on;ST={...ST,...s};drawLive();chState();drawTabs();if(!V.joined)drawVoice();else{if(ST.voice_open===false&&!ADM)vLeaveLocal('الغرفة الصوتية اتقفلت');else schedView()}
+ if(document.body.dataset.tab=='admin')admLoad();if(!wasLive&&ST.live_on&&!ADM)toast('بدأ بث مباشر! افتح تاب لايف')}
+async function loadSum(){try{SUM=await rpc('comm_summary');if(!V.joined)drawVoice()}catch(_){}}
+let CHN=null;
+function rtStart(){if(!window.supabase){return}
+ try{window._SB=window._SB||supabase.createClient(SUPA_URL,SUPA_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:20}}});const SB=window._SB;SB.realtime.setAuth(U().token);
+  CHN=SB.channel('comm-'+ME_ID)
+   .on('postgres_changes',{event:'*',schema:'public',table:'aa_edu_comm_msgs'},onMsg)
+   .on('postgres_changes',{event:'*',schema:'public',table:'aa_edu_comm_settings'},p=>p.new&&onSettings(p.new))
+   .on('postgres_changes',ADM?{event:'*',schema:'public',table:'aa_edu_comm_restrict'}:{event:'*',schema:'public',table:'aa_edu_comm_restrict',filter:'user_id=eq.'+ME_ID},()=>{loadRestrict();if(ADM&&document.body.dataset.tab=='admin')admLoad()})
+   .on('postgres_changes',{event:'*',schema:'public',table:'aa_edu_voice_members'},()=>{if(V.joined)schedView();else{clearTimeout(rtStart.t);rtStart.t=setTimeout(loadSum,1500)}})
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'aa_edu_voice_sig',filter:'to_user=eq.'+ME_ID},p=>onSig(p.new))
+   .subscribe(s=>{const ok=s==='SUBSCRIBED';if(ok!==RT_OK){RT_OK=ok;if(V.joined)drawVoice();if(ok&&V.joined)refreshView(true)}});
+  setInterval(async()=>{await refresh();try{SB.realtime.setAuth(U().token)}catch(_){}},20*60*1000)}catch(_){}}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&V.joined)refreshView(true)});
+
+(async function init(){
+ $('#pVoice').innerHTML='<div class="skw"><div class="sk sk-row"></div></div>';
+ await refresh();
+ try{const r=await get('aa_edu_staff?select=role');ADM=!!(r[0]&&r[0].role=='admin')}catch(_){}
+ try{const s=await get('aa_edu_comm_settings?select=*&id=eq.1');if(s[0])ST={...ST,...s[0]}}catch(_){
+  $('#pLive').innerHTML=$('#pVoice').innerHTML='<p class="empty">قسم المجتمع لسه متفعّلش. شغّل ملف setup_v19.sql من Supabase → SQL Editor.</p>';$('#chL').innerHTML='<p class="empty">قريبًا</p>';$('#chI').disabled=$('#chB').disabled=true;
+  const h=(location.hash||'').slice(1);setTab(h||'live');return}
+ await loadRestrict();drawLive();drawVoice();chInit();loadSum();
+ const h=(location.hash||'').slice(1);setTab(h||'live');chState();
+ rtStart()})();
+</script></body></html>
