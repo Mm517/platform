@@ -20,7 +20,7 @@
  <aside class="hm-s"><div class="sk sk-sd"></div><div class="sk sk-sd" style="height:250px"></div></aside>
  <div class="hm-b"><div class="skw" style="margin-top:14px"><div class="sk sk-bx" style="height:190px"></div><div class="sk sk-sj"></div><div class="sk sk-sj"></div></div></div>
 </div></div></main>
-<script src="config.js"></script><script src="lib.js"></script>
+<script src="config.js"></script><script src="lib.js"></script><script src="sched.js"></script>
 <script>
 /* ===== أنيميشن الافتتاح (مرة واحدة في الجلسة) ===== */
 (function(){const H=document.documentElement,el=document.getElementById('intro');
@@ -37,53 +37,23 @@ topbar();
 Object.assign(IP,{flame:'<path d="M12 3c1 3.5 5 5.5 5 10.5a5 5 0 01-10 0c0-2 1-3.2 2.2-4.2.1 2 1 3 2.1 3C11.5 9.6 11 6.4 12 3z"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',bolt:'<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'});
 const ok=p=>p.catch(()=>[]),u=U()||{},h=new Date().getHours(),gr=h<12?'صباح الخير':h<18?'نهارك سعيد':'مساء الخير';
 const DEF=[['إعلانك هنا','تواصل مع الإدارة لعرض متجرك','#0878C9,#075B98'],['عروض المتاجر','اكتشف عروض المتاجر القريبة','#f59e0b,#d97706'],['تعلّم أكثر','دروس الثالث الإعدادي مجانًا','#16a34a,#15803d']];
-const DAYS=[[6,'السبت'],[0,'الأحد'],[1,'الإثنين'],[2,'الثلاثاء'],[3,'الأربعاء'],[4,'الخميس'],[5,'الجمعة']],TD=new Date().getDay(),DN=d=>(DAYS.find(x=>x[0]==d)||[0,''])[1];
-const fmtTm=t=>{if(!t)return '';const[a,b]=t.split(':').map(Number);return(a%12||12)+':'+String(b).padStart(2,'0')+(a<12?' ص':' م')};
 const mix=(c,p)=>`color-mix(in srgb,${c} ${p}%,#06233b)`;
-const timeout=(p,ms)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(null),ms))]);
-let UD=null,LB=null,SCH=[],SCM='db',SUBS=[];
-const LKS='acad_sch:'+(u.id||'-');
-const subOf=id=>SUBS.find(s=>s.id==id);
+let UD=null,LB=null;
 
 /* ---------- جلب: ترتيب الطلاب + جدول المذاكرة (لو الجداول مش موجودة بيكمّل الموقع عادي) ---------- */
 const lbGet=()=>timeout(post('rpc/edu_leaderboard',{}).then(r=>r.ok?r.json():null).catch(()=>null),5000);
-const schGet=()=>timeout(get('aa_edu_schedule?select=id,day,tm,title,subject_id,done&order=tm').then(r=>{SCM='db';return r}).catch(()=>{SCM='local';try{return JSON.parse(localStorage.getItem(LKS)||'[]')}catch(_){return []}}),5000).then(r=>r||[]);
-const schSave=()=>{if(SCM=='local')try{localStorage.setItem(LKS,JSON.stringify(SCH))}catch(_){}};
 
 /* ---------- قطع الواجهة ---------- */
-const cc=(x,i,subs,done)=>`<a class="cc hc rv" style="--i:${i%8}" href="course?id=${x.id}"${subs.has(x.id)?' data-sub="1"':''}><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:'background:linear-gradient(135deg,#0878C9,#075B98)'}"><span class="bd ${x.is_free?'f':'p'}">${x.is_free?'مجاني':'مميز'}</span><span class="hc-t">${subs.has(x.id)?'<span class="s">مشترك</span>':''}${done.has(String(x.id))?`<span class="d">${ic('check',12)} تمت</span>`:''}</span></div><div class="cb"><h3>${esc(x.title)}</h3><p class="tg">${esc(x.teacher_name)}</p></div></a>`;
+const cc=(x,i,subs,done,c)=>{c=c||'#0878C9';const dn=done.has(String(x.id)),te=String(x.teacher_name||'').trim();return `<a class="cc hc rv" style="--i:${i%8};--c:${esc(c)}" href="course?id=${x.id}"${subs.has(x.id)?' data-sub="1"':''}><div class="cv2" style="${x.image?`background-image:url('${esc(x.image)}')`:`background:linear-gradient(135deg,${esc(c)},${mix(esc(c),50)})`}"><span class="hc-pl">${ic('play',22)}</span>${subs.has(x.id)?`<span class="hc-t"><span class="s">${ic('check',12)} مشترك</span></span>`:''}</div><div class="hc-b"><div class="hc-te"><span class="av" style="background:linear-gradient(135deg,${esc(c)},${mix(esc(c),60)})">${esc(te.charAt(0)||'؟')}</span><span class="tn">${esc(te)}</span></div><h3>${esc(x.title)}</h3><div class="hc-f"><span class="${dn?'ok':''}">${dn?ic('check',14)+' تمت المشاهدة':'ابدأ المشاهدة'}</span>${ic('left',16)}</div></div>${dn?'<i class="hc-bar"></i>':''}</a>`};
 const tile=(i,icn,val,lab,c1,c2,pre,suf)=>`<div class="hs rv" style="--i:${i};--c1:${c1};--c2:${c2}"><span class="hs-i">${ic(icn,20)}</span><b>${pre||''}<span data-cu="${val}">${val}</span>${suf?`<em>${suf}</em>`:''}</b><small>${lab}</small></div>`;
 const ring=(i,p,lab,c1,c2)=>{p=Math.max(0,Math.min(100,Math.round(p)));return `<div class="rg rv" style="--i:${i}"><div class="rg-c"><svg viewBox="0 0 80 80"><defs><linearGradient id="rg${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><circle class="tr" cx="40" cy="40" r="32" pathLength="100"/><circle class="pr" cx="40" cy="40" r="32" pathLength="100" stroke="url(#rg${i})" style="--p:${p}"/></svg><b><span data-cu="${p}">${p}</span>%</b></div><small>${lab}</small></div>`};
 
 function lbHTML(){
- if(!LB||!LB.top)return `<div class="hbox lbx"><div class="lbx-h"><b>${ic('trophy',18)} ترتيب الطلاب</b></div><p class="empty" style="padding:14px">الترتيب غير متاح حاليًا.</p></div>`;
- const mx=Math.max(1,...LB.top.map(x=>x.points),LB.me?LB.me.points:0);
- const row=(x,i)=>`<div class="lr rv${x.me?' me':''}" style="--i:${i};--w:${Math.max(6,x.points/mx*100)}%"><span class="rk r${x.rank<=3?x.rank:0}">${x.rank==1?ic('crown',15):x.rank}</span><span class="nm">${esc(x.name)}${x.me?'<em>أنت</em>':''}</span><b>${x.points}</b></div>`;
- const inTop=LB.top.some(x=>x.me),nm=(u.name||'').split(' ')[0]||'أنت';
- return `<div class="hbox lbx rv"><div class="lbx-h"><b>${ic('trophy',18)} ترتيب الطلاب</b><small>حسب النقاط · ${LB.total} طالب</small></div>${LB.top.length?LB.top.map(row).join(''):'<p class="empty" style="padding:14px">لسه مفيش ترتيب. ابدأ واكسب نقاط!</p>'}${LB.me&&!inTop?`<div class="lsep">• • •</div>${row({rank:LB.me.rank,name:nm,points:LB.me.points,me:true},LB.top.length)}`:''}</div>`}
-
-function formHTML(){return `<form class="hbox sf rv" id="sf" autocomplete="off"><b class="t">${ic('cal',18)} أضف للجدول</b>
- <label>اليوم<select id="sd">${DAYS.map(([d,n])=>`<option value="${d}"${d==TD?' selected':''}>${n}${d==TD?' (النهاردة)':''}</option>`).join('')}</select></label>
- <div class="two2"><label>الوقت<input id="stm" type="time"></label><label>المادة<select id="ssb"><option value="">بدون</option>${SUBS.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join('')}</select></label></div>
- <label>المهمة<input id="stx" type="text" maxlength="80" placeholder="مثال: مراجعة درس المعادلات" required></label>
- <button class="btn btn-p" type="submit">${ic('plus',18)} أضف للجدول</button></form>`}
-
-function drawSch(){const w=document.getElementById('schw');if(!w)return;
- const by=d=>SCH.filter(x=>x.day==d).sort((a,b)=>(a.tm||'99').localeCompare(b.tm||'99')),tn=by(TD),dn=tn.filter(x=>x.done).length;
- const si=x=>{const s=subOf(x.subject_id),c=(s&&s.color)||'#0878C9';return `<div class="si${x.done?' dn':''}" style="--c:${esc(c)}">${x.tm?`<span class="st">${fmtTm(x.tm)}</span>`:''}<span class="sx">${esc(x.title)}</span>${s?`<small>${esc(s.name)}</small>`:''}<span class="sa"><button type="button" data-t="${x.id}" title="${x.done?'إلغاء التم':'تم'}" aria-label="تم">${ic('check',14)}</button><button type="button" data-x="${x.id}" title="حذف" aria-label="حذف">${ic('x',14)}</button></span></div>`};
- document.getElementById('sct').innerHTML=`<span class="tdb">${ic('cal',14)} النهاردة · ${DN(TD)}</span><span>${tn.length?`${tn.length} مهام${dn?` · خلّصت ${dn}`:''}`:'مفيش مهام النهاردة'}</span>`;
- w.innerHTML=`<table class="sch"><thead><tr>${DAYS.map(([d,n])=>`<th class="${d==TD?'today':''}">${n}${d==TD?'<em>النهاردة</em>':''}</th>`).join('')}</tr></thead><tbody><tr>${DAYS.map(([d])=>`<td class="${d==TD?'today':''}">${by(d).map(si).join('')||'<span class="se">—</span>'}</td>`).join('')}</tr></tbody></table>`;
- const t=w.querySelector('td.today');if(t&&w.scrollWidth>w.clientWidth){const sw=w.scrollWidth,cw=w.clientWidth,x=t.offsetLeft+t.offsetWidth/2-cw/2;w.scrollLeft=Math.max(-(sw-cw),Math.min(0,x-(sw-cw)))}}
-
-async function schAdd(o){
- if(SCH.length>=60)return toast('وصلت للحد الأقصى (60 مهمة)',1);
- if(SCM=='local'){SCH.push({id:Date.now(),...o,done:false});schSave();drawSch();return toast('اتضافت للجدول')}
- try{const r=await post('aa_edu_schedule',o,'return=representation');if(!r.ok)throw 0;const a=await r.json();SCH.push(a[0]);drawSch();toast('اتضافت للجدول')}
- catch(_){toast('تعذّرت الإضافة، جرّب تاني',1)}}
-async function schSet(id,patch){const x=SCH.find(y=>y.id==id);if(!x)return;
- if(patch===null){SCH=SCH.filter(y=>y.id!=id)}else Object.assign(x,patch);drawSch();
- if(SCM=='local')return schSave();
- try{const r=await rest('aa_edu_schedule?id=eq.'+id,patch===null?{method:'DELETE'}:{method:'PATCH',body:JSON.stringify(patch)});if(!r.ok)throw 0}catch(_){toast('تعذّر الحفظ',1);SCH=await schGet();drawSch()}}
+ if(!LB||!LB.top)return `<div class="hbox lbx"><div class="lbx-h"><b>${ic('trophy',16)} ترتيب الطلاب</b></div><p class="empty" style="padding:10px;font-size:13px">الترتيب غير متاح حاليًا.</p></div>`;
+ const T=LB.top.slice(0,5),mx=Math.max(1,...T.map(x=>x.points),LB.me?LB.me.points:0);
+ const row=(x,i)=>`<div class="lr rv${x.me?' me':''}" style="--i:${i};--w:${Math.max(6,x.points/mx*100)}%"><span class="rk r${x.rank<=3?x.rank:0}">${x.rank==1?ic('crown',13):x.rank}</span><span class="nm">${esc(x.name)}${x.me?'<em>أنت</em>':''}</span><b>${x.points}</b></div>`;
+ const inTop=T.some(x=>x.me),nm=(u.name||'').split(' ')[0]||'أنت';
+ return `<div class="hbox lbx rv"><div class="lbx-h"><b>${ic('trophy',16)} ترتيب الطلاب</b><small>${LB.total} طالب</small></div>${T.length?T.map(row).join(''):'<p class="empty" style="padding:10px;font-size:13px">لسه مفيش ترتيب. ابدأ واكسب نقاط!</p>'}${LB.me&&!inTop?`<div class="lsep">• • •</div>${row({rank:LB.me.rank,name:nm,points:LB.me.points,me:true},T.length)}`:''}</div>`}
 
 /* ---------- أنيميشن الظهور + العدّادات ---------- */
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -126,18 +96,17 @@ const render=([p,lg,en,cs,ads,up,qa,ss,lb,sc])=>{
    <div class="hbox rv"><b class="t">${ic('quiz',18)} آخر اختباراتك${qt?`<small>المتوسط ${Math.round(qp)}%</small>`:''}</b>${qa.length?qa.map(x=>`<div class="lg"><span>${esc(x.aa_edu_quizzes?.title||'اختبار')}</span><b>${x.score}/${x.total}</b></div>`).join(''):'<p class="empty" style="padding:18px">لسه ماعملتش اختبار.</p>'}</div>
   </div>
  </div>
- <aside class="hm-s" id="side">${lbHTML()}${formHTML()}</aside>
+ <aside class="hm-s" id="side">${lbHTML()}</aside>
  <div class="hm-b">
-  <section class="hbox rv" style="margin-top:14px"><div class="sch-h"><b>${ic('cal',18)} جدول مذاكرتك</b><div id="sct"></div></div><div class="sch-w" id="schw"></div></section>
+  <section class="hbox sch-p rv" style="margin-top:14px"><div class="sch-h"><b>${ic('cal',18)} جدول مذاكرتك</b><div id="sct"></div><a class="sch-l" href="schedule">${ic('plus',14)} إدارة الجدول</a></div><div class="sch-w" id="schw"></div></section>
   <h2 class="lsn">${ic('book',20)} الكورسات حسب المادة</h2>
   <div class="fcs"><button class="fc on" data-f="all">الكل</button><button class="fc" data-f="sub">المشترك فيه (${mine.length})</button></div>
   <p class="empty" id="nosub" hidden>لم تشترك في كورس بعد. افتح أي كورس واضغط «اشترك».</p>
-  ${sec.length?sec.map(x=>{const c=sc2(x.s);return `<section class="sbj" style="--c:${esc(c)}"><div class="sbj-h"><span class="sbj-i">${ico(x.s.icon,26)}</span><div><h2>${esc(x.s.name)}</h2><small>${x.c.length} كورس</small></div><a href="courses#${x.s.id}">عرض الكل ${ic('left',16)}</a></div><div class="grid">${x.c.slice(0,8).map(k=>cc(k,ci++,subs,done)).join('')}</div></section>`}).join(''):(cs.length?`<div class="grid">${cs.slice(0,8).map(k=>cc(k,ci++,subs,done)).join('')}</div>`:'<p class="empty">مفيش كورسات لسه، ترقّب الجديد!</p>')}
+  ${sec.length?sec.map(x=>{const c=sc2(x.s);return `<section class="sbj" style="--c:${esc(c)}"><i class="sbj-wm">${ico(x.s.icon,230)}</i><div class="sbj-h"><span class="sbj-i">${ico(x.s.icon,26)}</span><div><h2>${esc(x.s.name)}</h2><small>${x.c.length} كورس</small></div><a href="courses#${x.s.id}">عرض الكل ${ic('left',16)}</a></div><div class="grid">${x.c.slice(0,8).map(k=>cc(k,ci++,subs,done,c)).join('')}</div></section>`}).join(''):(cs.length?`<div class="grid">${cs.slice(0,8).map(k=>cc(k,ci++,subs,done)).join('')}</div>`:'<p class="empty">مفيش كورسات لسه، ترقّب الجديد!</p>')}
   ${up.map(x=>`<div class="box rv"><b>${ic('mega',18)} ${esc(x.title)}</b><div>${esc(x.body||'')}</div></div>`).join('')}
   <a class="btn btn-p" style="margin-top:16px" href="courses">ابدأ اختيار المادة والدرس</a>
  </div></div>`;
  drawSch();
- const sf=$('#sf');sf.onsubmit=e=>{e.preventDefault();const t=$('#stx').value.trim();if(!t)return;schAdd({day:+$('#sd').value,tm:$('#stm').value||null,title:t,subject_id:$('#ssb').value?+$('#ssb').value:null});$('#stx').value='';$('#stm').value=''};
  $('#schw').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.t){const x=SCH.find(y=>y.id==b.dataset.t);if(x)schSet(x.id,{done:!x.done})}else if(b.dataset.x)schSet(+b.dataset.x||b.dataset.x,null)};
  document.querySelectorAll('.fc').forEach(b=>b.onclick=()=>{document.querySelectorAll('.fc').forEach(x=>x.classList.toggle('on',x==b));const s=b.dataset.f=='sub';document.querySelectorAll('.hc').forEach(c=>c.hidden=s&&!c.dataset.sub);document.querySelectorAll('.sbj').forEach(x=>x.hidden=![...x.querySelectorAll('.hc')].some(c=>!c.hidden));$('#nosub').hidden=!(s&&!mine.length)});
  rvInit();
