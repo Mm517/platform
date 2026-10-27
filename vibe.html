@@ -126,7 +126,7 @@
 <script>
 const EYE='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
  EYEOFF='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>';
-if(VU()&&VU().token&&!/[?&]stay/.test(location.search))location.replace('vibe-app');
+if(VU()&&VU().token&&!/[?&]stay/.test(location.search)){const u=VU();setVU(null);goDash(u)}
 
 
 /* معرض المشاريع: حط لينك كل مشروع في url (فاضي = "اللينك قريبًا") */
@@ -168,7 +168,7 @@ if(CF){const sc=document.createElement('script');sc.src='https://challenges.clou
 const okMail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
 const fail=(el,t)=>{el.textContent=t;const c=$('#card');c.classList.remove('sh');void c.offsetWidth;c.classList.add('sh')};
 async function run(btn,er,fn){er.textContent='';btn.disabled=true;try{await fn()}catch(e){fail(er,vmsg(e))}finally{btn.disabled=false}}
-const enter=async(j,name)=>{const nm=await ensureMember(j,name);setVU({id:j.user.id,name:nm,email:j.user.email,token:j.access_token,refresh:j.refresh_token});location.replace('vibe-app')};
+const enter=async(j,name)=>{const nm=await ensureMember(j,name);goDash({id:j.user.id,name:nm,email:j.user.email,token:j.access_token,refresh:j.refresh_token})};
 
 $('#fS').addEventListener('submit',e=>{e.preventDefault();const name=$('#sn').value.trim(),email=$('#se').value.trim().toLowerCase(),pw=$('#sp').value,er=$('#eS');
  if(name.length<2)return fail(er,'اكتب اسمك (حرفين على الأقل).');

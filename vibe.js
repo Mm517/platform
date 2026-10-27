@@ -13,7 +13,7 @@ async function vrefresh(){const u=VU();if(!u||!u.refresh)return false;
 async function vrest(path,o={},retry=true){const u=VU(),h={apikey:SUPA_KEY,'Content-Type':'application/json',...(o.headers||{})};
  if(u&&u.token)h.Authorization='Bearer '+u.token;
  const r=await fetch(SUPA_URL+'/rest/v1/'+path,{...o,headers:h});
- if(r.status===401&&u&&retry){if(await vrefresh())return vrest(path,o,false);setVU(null);location.replace('vibe')}
+ if(r.status===401&&u&&retry){if(await vrefresh())return vrest(path,o,false);setVU(null);location.replace(typeof MAIN_VIBE==='string'?MAIN_VIBE:'vibe')}
  return r}
 async function vget(p){const r=await vrest(p);if(!r.ok)throw new Error(String(r.status));return r.json()}
 async function vsend(method,p,b,pref){const r=await vrest(p,{method,body:b==null?undefined:JSON.stringify(b),headers:pref?{Prefer:pref}:{}});
@@ -57,3 +57,11 @@ async function ensureMember(j,name){
  const m=await fetch(SUPA_URL+'/rest/v1/aa_vc_members?select=name,banned&user_id=eq.'+j.user.id,{headers:h}).then(x=>x.ok?x.json():[]);
  if(m[0]&&m[0].banned)throw{error_code:'banned'};
  return m[0]?m[0].name:name}
+
+/* ===== تمرير الجلسة بين موقع الكورس (التسجيل) ولوحة المجتمع (dashboardvibe) =====
+   الجلسة بتتبعت في الـ hash (#s=...) فمبتتبعتش للسيرفر ولا بتتسجّل، وبتتمسح من الرابط فورًا. كلمة السر مش بتتبعت أبدًا. */
+function goDash(u){const p=btoa(unescape(encodeURIComponent(JSON.stringify({id:u.id,name:u.name,email:u.email,token:u.token,refresh:u.refresh}))));
+ location.replace(DASH_URL+'#s='+encodeURIComponent(p))}
+function takeHandoff(){const m=/[#&]s=([^&]+)/.exec(location.hash);if(!m)return;
+ try{const u=JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));if(u&&u.id&&u.token)setVU(u)}catch(_){}
+ history.replaceState(null,'',location.pathname+location.search)}

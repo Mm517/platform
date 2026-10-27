@@ -14,3 +14,6 @@ const TURNSTILE_SITEKEY = "";
    سجّل مجانًا في metered.ca (Open Relay) أو Cloudflare Calls أو أي TURN وحط بياناتك هنا (سيبه null = STUN بس):
    const ICE_SERVERS = [{urls:"stun:stun.l.google.com:19302"},{urls:"turn:YOUR_HOST:443?transport=tcp",username:"USER",credential:"PASS"}]; */
 const ICE_SERVERS = null;
+
+/* لوحة مجتمع الفايب كودينج (موقع منفصل): بعد التسجيل/الدخول المستخدم بيتحوّل هناك بجلسته */
+const DASH_URL = "https://dashboardvibe.vercel.app/";
